@@ -18,12 +18,12 @@ export mark_lines,
     PATTERNS
 
 function mark_lines(patterns, lines)
-    marks = Linemark[]
+    marks = LineNumber[]
     patterns = copy(PATTERNS)  # Cannot use `PATTERNS` directly, it will be modified!
     for (n, line) in enumerate(lines)
         for (i, p) in enumerate(patterns)
             if occursin(p, line)
-                push!(marks, Linemark(p, n))
+                push!(marks, LineNumber(n))
                 deleteat!(patterns, i)
             end
         end
@@ -32,10 +32,10 @@ function mark_lines(patterns, lines)
 end # function mark_lines
 
 function mark_ranges(patterns, lines)
-    split_to_ranges(collect(getfield(x, :n) for x in mark_lines(patterns, lines)))
+    [LineRange(r) for r in split_to_ranges(collect(getfield(x, :n) for x in mark_lines(patterns, lines)))]
 end # function mark_ranges
 
-PATTERNS = [
+const PATTERNS = [
     r"Program PWSCF v\.(\d+)\.?(\d+)"i,
     r"Parallel version \((.*)\), running on\s+(\d+)\s+processor"i,
     r"Parallelization info"i,
