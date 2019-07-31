@@ -9,8 +9,8 @@ using DataStructures
 using QuantumESPRESSOBase: name
 using QuantumESPRESSOBase.QuantumESPRESSOInput.PW
 using QuantumESPRESSOParsers.BasicIO: @iostream_to_lines, @path_to_iostream
-using QuantumESPRESSOParsers.Namelists
-using QuantumESPRESSOParsers.Cards.PW
+using QuantumESPRESSOParsers.InputParsers.Namelists
+using QuantumESPRESSOParsers.InputParsers.Cards.PW
 
 export namelist_identifier_linenumbers,
     namelist_lineranges,
