@@ -40,7 +40,7 @@ end # function mark_ranges
 
 const PATTERNS = [
     r"Program PWSCF v\.(\d+)\.?(\d+)"i,
-    r"Parallel version \((.*)\), running on\s+(\d+)\s+processor"i,
+    r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
     r"Parallelization info"i,
     r"bravais-lattice index"i,
     r"(\d+)\s*Sym\. Ops\., with inversion, found"i,
@@ -59,6 +59,13 @@ const PATTERNS = [
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
     r"JOB DONE\."i
 ]
+
+function parse_processors_num(line::AbstractString)
+    m = match(r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i, line)
+    isnothing(m) && error("Match error!")
+    isnothing(m.captures) && return "Serial version"
+    return m.captures[1], parse(Int, m.captures[2])
+end # function parse_processors_num
 
 function parse_fft_dimensions(line::AbstractString)
     m = match(r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i, line)
