@@ -11,11 +11,14 @@ julia>
 """
 module OutputParsers
 
-export Linemark
+export LineNumber, LineRange
 
-struct Linemark
-    p::Regex
-    n::Int
+struct LineNumber{T<:Integer}
+    n::T
+end
+
+struct LineRange{T<:AbstractRange}
+    r::T
 end
 
 include("PW.jl")
