@@ -1,5 +1,5 @@
 module QuantumESPRESSOParsers
 
-greet() = print("Hello World!")
+include("OutputParsers/OutputParsers.jl")
 
 end # module
