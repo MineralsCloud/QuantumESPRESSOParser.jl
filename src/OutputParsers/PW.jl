@@ -11,6 +11,7 @@ julia>
 """
 module PW
 
+using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
 export mark_lines,
@@ -30,7 +31,11 @@ function mark_lines(patterns, lines)
     marks
 end # function mark_lines
 
-const PATTERNS = [
+function mark_ranges(patterns, lines)
+    split_to_ranges(collect(getfield(x, :n) for x in mark_lines(patterns, lines)))
+end # function mark_ranges
+
+PATTERNS = [
     r"Program PWSCF v\.(\d+)\.?(\d+)"i,
     r"Parallel version \((.*)\), running on\s+(\d+)\s+processor"i,
     r"Parallelization info"i,
