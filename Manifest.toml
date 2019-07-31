@@ -29,6 +29,14 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 deps = ["Mmap"]
 uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
+[[Destructure]]
+deps = ["Test"]
+git-tree-sha1 = "9a5142ea9f536820d1c32f87ecced192292b150d"
+repo-rev = "master"
+repo-url = "git@github.com:jkroso/Destructure.jl.git"
+uuid = "e6fc1553-27c0-580e-96b2-e52ce2d8a456"
+version = "0.0.0"
+
 [[Distributed]]
 deps = ["Random", "Serialization", "Sockets"]
 uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
@@ -67,6 +75,14 @@ deps = ["Dates", "Mmap", "Parsers", "Unicode"]
 git-tree-sha1 = "b34d7cef7b337321e97d22242c3c2b91f476748e"
 uuid = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 version = "0.21.0"
+
+[[Kip]]
+deps = ["Dates", "LibGit2", "MacroTools", "Pkg", "ProgressMeter"]
+git-tree-sha1 = "e5655cc9236b9bd183a9c35ca34146d02ce31ae5"
+repo-rev = "master"
+repo-url = "https://github.com/jkroso/Kip.jl.git"
+uuid = "c32b5c58-9bcc-11e8-1f8b-492a5c8a885c"
+version = "0.1.0"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
@@ -119,6 +135,12 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 [[Printf]]
 deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
+
+[[ProgressMeter]]
+deps = ["Distributed", "Printf"]
+git-tree-sha1 = "0f08e0e74e5b160ca20d3962a2620038b75881c7"
+uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
+version = "1.0.0"
 
 [[QuantumESPRESSOBase]]
 deps = ["FilePaths", "Fortran90Namelists", "IterTools", "JSON", "Parameters"]
