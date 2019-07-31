@@ -11,6 +11,10 @@ julia>
 """
 module PW
 
+using Fortran90Namelists.FortranToJulia
+
+using Compat: isnothing
+
 using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
@@ -55,5 +59,11 @@ const PATTERNS = [
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
     r"JOB DONE\."i
 ]
+
+function parse_fft_dimensions(line::AbstractString)
+    m = match(r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i, line)
+    isnothing(m) && error("Match error!")
+    return map(x -> parse(Int, FortranData(x)), m.captures)
+end # function parse_fft_dimensions
 
 end
