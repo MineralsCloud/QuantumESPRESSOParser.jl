@@ -39,7 +39,7 @@ function mark_ranges(patterns, lines)
 end # function mark_ranges
 
 const PATTERNS = [
-    r"Program PWSCF v\.(\d+)\.?(\d+)"i,
+    r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
     r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
     r"Parallelization info"i,
     r"bravais-lattice index"i,
@@ -59,6 +59,12 @@ const PATTERNS = [
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
     r"JOB DONE\."i
 ]
+
+function parse_qe_version(line::AbstractString)
+    m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, line)
+    isnothing(m) && error("Match error!")
+    return "$(parse(Float64, FortranData(m.captures[1])))"
+end # function parse_qe_version
 
 function parse_processors_num(line::AbstractString)
     m = match(r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i, line)
