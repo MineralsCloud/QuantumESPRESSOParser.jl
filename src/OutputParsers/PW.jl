@@ -14,8 +14,7 @@ module PW
 using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
-export mark_lines, mark_ranges,
-    PATTERNS
+export mark_lines, mark_ranges, PATTERNS
 
 function mark_lines(patterns, lines)
     marks = LineNumber[]

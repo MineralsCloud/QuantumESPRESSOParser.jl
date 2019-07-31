@@ -13,11 +13,11 @@ module OutputParsers
 
 export LineNumber, LineRange
 
-struct LineNumber{T <: Integer}
+struct LineNumber{T<:Integer}
     n::T
 end
 
-struct LineRange{T <: AbstractRange}
+struct LineRange{T<:AbstractRange}
     r::T
 end
 
