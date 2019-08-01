@@ -11,6 +11,10 @@ julia>
 """
 module PW
 
+using Fortran90Namelists.FortranToJulia
+
+using Compat: isnothing
+
 using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
@@ -35,8 +39,8 @@ function mark_ranges(patterns, lines)
 end # function mark_ranges
 
 const PATTERNS = [
-    r"Program PWSCF v\.(\d+)\.?(\d+)"i,
-    r"Parallel version \((.*)\), running on\s+(\d+)\s+processor"i,
+    r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
+    r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
     r"Parallelization info"i,
     r"bravais-lattice index"i,
     r"(\d+)\s*Sym\. Ops\., with inversion, found"i,
@@ -55,5 +59,41 @@ const PATTERNS = [
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
     r"JOB DONE\."i
 ]
+
+# function parse_stress(lines)
+#     stress_atomic = zeros(3, 3)
+#     stress_kbar = zeros(3, 3)
+#     stress = Dict("atomic" => stress_atomic, "kbar" => stress_kbar)
+#     for line in lines
+#         if occursin("total   stress", line)
+#             for i in 1:3  # Read a 3x3 matrix
+#                 readline()
+#                 sp = split(line)
+#                 stress_atomic[i][:] = map(x -> parse(Float64, FortranData(x)), sp)[1:3]
+#                 stress_kbar[i][:] = map(x -> parse(Float64, FortranData(x)), sp)[4:6]
+#             end
+#         end
+#     end
+#     return stress
+# end # function parse_stress
+
+function parse_qe_version(line::AbstractString)
+    m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, line)
+    isnothing(m) && error("Match error!")
+    return "$(parse(Float64, FortranData(m.captures[1])))"
+end # function parse_qe_version
+
+function parse_processors_num(line::AbstractString)
+    m = match(r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i, line)
+    isnothing(m) && error("Match error!")
+    isnothing(m.captures) && return "Serial version"
+    return m.captures[1], parse(Int, m.captures[2])
+end # function parse_processors_num
+
+function parse_fft_dimensions(line::AbstractString)
+    m = match(r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i, line)
+    isnothing(m) && error("Match error!")
+    return map(x -> parse(Int, FortranData(x)), m.captures)
+end # function parse_fft_dimensions
 
 end
