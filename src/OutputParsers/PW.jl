@@ -60,6 +60,23 @@ const PATTERNS = [
     r"JOB DONE\."i
 ]
 
+# function parse_stress(lines)
+#     stress_atomic = zeros(3, 3)
+#     stress_kbar = zeros(3, 3)
+#     stress = Dict("atomic" => stress_atomic, "kbar" => stress_kbar)
+#     for line in lines
+#         if occursin("total   stress", line)
+#             for i in 1:3  # Read a 3x3 matrix
+#                 readline()
+#                 sp = split(line)
+#                 stress_atomic[i][:] = map(x -> parse(Float64, FortranData(x)), sp)[1:3]
+#                 stress_kbar[i][:] = map(x -> parse(Float64, FortranData(x)), sp)[4:6]
+#             end
+#         end
+#     end
+#     return stress
+# end # function parse_stress
+
 function parse_qe_version(line::AbstractString)
     m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, line)
     isnothing(m) && error("Match error!")
