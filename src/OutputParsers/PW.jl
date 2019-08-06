@@ -50,7 +50,7 @@ const PATTERNS = [
     r"total cpu time spent up to now is\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*secs"i,
     r"End of self-consistent calculation"i,
     r"the Fermi energy is\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*ev"i,
-    r"!    total energy              =\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i,
+    r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i,
     r"The total energy is the sum of the following terms:"i,
     r"convergence has been achieved in\s*(\d+)\s*iterations"i,
     r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
@@ -76,6 +76,12 @@ const PATTERNS = [
 #     end
 #     return stress
 # end # function parse_stress
+
+function parse_total_energy(line::AbstractString)
+    m = match(r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i, line)
+    isnothing(m) && error("Match error!")
+    return parse(Float64, FortranData(m.captures[1]))
+end # function parse_total_energy
 
 function parse_qe_version(line::AbstractString)
     m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, line)
