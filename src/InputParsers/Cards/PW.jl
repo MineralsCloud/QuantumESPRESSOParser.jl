@@ -34,7 +34,7 @@ function read_title_line(title_line, regex, default_option)
         @warn "No option is found, default option '$(default_option)' will be set!"
         option = default_option
     end
-    return option
+    return lowercase(option)
 end  # function read_title_line
 
 function preprocess_line(line)
