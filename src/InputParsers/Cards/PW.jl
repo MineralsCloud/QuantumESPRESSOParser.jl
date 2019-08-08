@@ -133,7 +133,7 @@ function read_kpoints(lines)
 end  # function read_kpoints
 
 function read_cellparameters(lines)
-    cell_params = []
+    cell_params = Float64[]
     option = read_title_line(first(lines), r"CELL_PARAMETERS\s*[\{\(]?\s*(\w*)\s*[\}\)]?"i, "bohr")
 
     for line in Iterators.drop(lines, 1)  # Drop the title line
