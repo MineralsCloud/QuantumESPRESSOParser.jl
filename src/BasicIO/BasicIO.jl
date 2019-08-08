@@ -32,6 +32,4 @@ macro path_to_iostream(methodname, mode::AbstractString = "r")
     end
 end  # macro path_to_iostream
 
-include("write.jl")
-
 end
