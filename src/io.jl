@@ -1,16 +1,3 @@
-"""
-# module BasicIO
-
-
-
-# Examples
-
-```jldoctest
-julia>
-```
-"""
-module BasicIO
-
 using FilePaths: AbstractPath
 
 macro iostream_to_lines(methodname)
@@ -31,5 +18,3 @@ macro path_to_iostream(methodname, mode::AbstractString = "r")
         end
     end
 end  # macro path_to_iostream
-
-end
