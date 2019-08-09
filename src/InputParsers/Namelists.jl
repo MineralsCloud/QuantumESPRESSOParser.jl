@@ -15,7 +15,7 @@ using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 
 using QuantumESPRESSOBase.Namelists
-using QuantumESPRESSOBase.Namelists.PW
+using QuantumESPRESSOBase.Namelists.PWscf
 
 export read_namelist
 

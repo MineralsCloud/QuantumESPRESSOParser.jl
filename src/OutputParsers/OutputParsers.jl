@@ -21,6 +21,6 @@ struct LineRange{T<:AbstractRange}
     r::T
 end
 
-include("PW.jl")
+include("PWscf.jl")
 
 end
