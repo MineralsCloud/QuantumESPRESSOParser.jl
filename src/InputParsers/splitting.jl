@@ -7,11 +7,11 @@ splitting:
 using DataStructures
 
 using QuantumESPRESSOBase: name
-using QuantumESPRESSOBase.QuantumESPRESSOInput.PW
+using QuantumESPRESSOBase.Inputs.PWscf
 
 using QuantumESPRESSOParsers: @iostream_to_lines, @path_to_iostream
 using QuantumESPRESSOParsers.InputParsers.Namelists
-using QuantumESPRESSOParsers.InputParsers.Cards.PW
+using QuantumESPRESSOParsers.InputParsers.Cards.PWscf
 
 export namelist_identifier_linenumbers,
     namelist_lineranges,
@@ -161,7 +161,7 @@ function form_input_object(lines)
     for v in values(dict["cards"])
         d[name(typeof(v))] = v
     end  #
-    return PWInput(; d...)
+    return PWscfInput(; d...)
 end  # function form_input_object
 
 isincreasing(r::UnitRange) = r.stop > r.start ? true : false

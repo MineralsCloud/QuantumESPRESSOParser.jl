@@ -1,5 +1,5 @@
 """
-# module PW
+# module PWscf
 
 
 
@@ -9,12 +9,12 @@
 julia>
 ```
 """
-module PW
+module PWscf
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 
-using QuantumESPRESSOBase.Cards.PW
+using QuantumESPRESSOBase.Cards.PWscf
 
 export read_atomicspecies,
     read_atomicpositions,
