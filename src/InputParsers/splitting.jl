@@ -7,7 +7,7 @@ splitting:
 using DataStructures
 
 using QuantumESPRESSOBase: name
-using QuantumESPRESSOBase.QuantumESPRESSOInput.PWscf
+using QuantumESPRESSOBase.Inputs.PWscf
 
 using QuantumESPRESSOParsers: @iostream_to_lines, @path_to_iostream
 using QuantumESPRESSOParsers.InputParsers.Namelists
