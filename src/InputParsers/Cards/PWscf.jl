@@ -114,15 +114,15 @@ function read_kpoints(lines)
             isnothing(str) && continue
 
             sp = split(str)
-            length(sp) == 1 && (nks = parse(Int, FortranData(first(sp))))
+            length(sp) == 1 && (global nks = parse(Int, FortranData(first(sp))))
             (@isdefined nks) && break
         end
-        for line in lines
+        for line in Iterators.drop(lines, 2)  # Drop the title line and the number of k-points line
             str = preprocess_line(line)
             isnothing(str) && continue
 
             sp = split(str)
-            length ≠ 4 && error("Unknown input given!")
+            length(sp) ≠ 4 && error("Unknown input given!")
             push!(kpoints, SpecialKPoint(collect(parse(Float64, FortranData(x)) for x in sp[1:3]), parse(Float64, FortranData(sp[4]))))
         end
         length(kpoints) ≠ nks && throw(DimensionMismatch("The length of k-points $(length(kpoints)) is not equal to $(nks)!"))
