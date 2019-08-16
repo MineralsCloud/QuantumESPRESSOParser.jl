@@ -92,7 +92,7 @@ function read_atomicpositions(lines)
 end  # function read_atomicpositions
 
 function read_kpoints(lines)
-    option = read_title_line(first(lines), r"K_POINTS\s*(?:[({])?\s*(\w*)\s*(?:[)}])?"i, "tbipa")
+    option = read_title_line(first(lines), r"K_POINTS\s*(?:[({])?\s*(\w*)\s*(?:[)}])?"i, "tpiba")
 
     option == "gamma" && return KPointsCard(option = string(option), points = GammaPoint())
 
