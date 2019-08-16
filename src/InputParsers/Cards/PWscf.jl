@@ -31,7 +31,7 @@ function read_title_line(title_line, regex, default_option)
         option = m.captures[1]  # The first parenthesized subgroup will be `option`.
     end
     if isempty(option)
-        @warn "No option is found, default option '$(default_option)' will be set!"
+        @info "No option is found, default option '$(default_option)' will be set!"
         option = default_option
     end
     return lowercase(option)
