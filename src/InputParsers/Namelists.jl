@@ -52,6 +52,7 @@ function read_namelist(lines)
         isnothing(m) && error("Matching not found!")
         captures = m.captures
         k = Symbol(string(captures[1]))
+        # TODO: Does not match "ibrav = 2, celldm(1) =10.20, nat=  2, ntyp= 1,"
         if !isnothing(captures[2])  # An entry with multiple values, e.g., `celldm[2] = 3.0`.
             val = parse(Float64, FortranData(string(captures[3])))
             # If `celldm` occurs before, push the new value, else create a vector of pairs.
