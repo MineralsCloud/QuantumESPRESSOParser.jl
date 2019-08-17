@@ -31,7 +31,7 @@ function read_title_line(title_line, regex, default_option)
         option = m.captures[1]  # The first parenthesized subgroup will be `option`.
     end
     if isempty(option)
-        @warn "No option is found, default option '$(default_option)' will be set!"
+        @info "No option is found, default option '$(default_option)' will be set!"
         option = default_option
     end
     return lowercase(option)
@@ -92,7 +92,7 @@ function read_atomicpositions(lines)
 end  # function read_atomicpositions
 
 function read_kpoints(lines)
-    option = read_title_line(first(lines), r"K_POINTS\s*(?:[({])?\s*(\w*)\s*(?:[)}])?"i, "tbipa")
+    option = read_title_line(first(lines), r"K_POINTS\s*(?:[({])?\s*(\w*)\s*(?:[)}])?"i, "tpiba")
 
     option == "gamma" && return KPointsCard(option = string(option), points = GammaPoint())
 
@@ -114,15 +114,15 @@ function read_kpoints(lines)
             isnothing(str) && continue
 
             sp = split(str)
-            length(sp) == 1 && (nks = parse(Int, FortranData(first(sp))))
+            length(sp) == 1 && (global nks = parse(Int, FortranData(first(sp))))
             (@isdefined nks) && break
         end
-        for line in lines
+        for line in Iterators.drop(lines, 2)  # Drop the title line and the number of k-points line
             str = preprocess_line(line)
             isnothing(str) && continue
 
             sp = split(str)
-            length ≠ 4 && error("Unknown input given!")
+            length(sp) ≠ 4 && error("Unknown input given!")
             push!(kpoints, SpecialKPoint(collect(parse(Float64, FortranData(x)) for x in sp[1:3]), parse(Float64, FortranData(sp[4]))))
         end
         length(kpoints) ≠ nks && throw(DimensionMismatch("The length of k-points $(length(kpoints)) is not equal to $(nks)!"))
