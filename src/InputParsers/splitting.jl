@@ -5,6 +5,7 @@ splitting:
 - Date: 2019-07-17
 =#
 using DataStructures
+using Parameters: reconstruct
 
 using QuantumESPRESSOBase: name, bravais_lattice
 using QuantumESPRESSOBase.Cards.PWscf
@@ -162,7 +163,10 @@ function form_input_object(lines; with_cell_parameters::Bool = true)
     for v in values(dict["cards"])
         d[name(typeof(v))] = v
     end  # for
-    with_cell_parameters && (d[:cell_parameters] = CellParametersCard(data = bravais_lattice(d[:system])))
+    if with_cell_parameters
+        d[:cell_parameters] = CellParametersCard(data = bravais_lattice(d[:system]))
+        d[:system] = reconstruct(d[:system], ibrav = 0)
+    end
     return PWscfInput(; d...)
 end  # function form_input_object
 
