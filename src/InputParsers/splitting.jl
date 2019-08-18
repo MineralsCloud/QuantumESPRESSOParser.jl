@@ -6,7 +6,8 @@ splitting:
 =#
 using DataStructures
 
-using QuantumESPRESSOBase: name
+using QuantumESPRESSOBase: name, bravais_lattice
+using QuantumESPRESSOBase.Cards.PWscf
 using QuantumESPRESSOBase.Inputs.PWscf
 
 using QuantumESPRESSOParsers: @iostream_to_lines, @path_to_iostream
@@ -152,7 +153,7 @@ end  # function dispatch_readers
 @iostream_to_lines dispatch_readers
 @path_to_iostream dispatch_readers
 
-function form_input_object(lines)
+function form_input_object(lines; with_cell_parameters::Bool = true)
     dict = dispatch_readers(lines)
     d = Dict()
     for v in values(dict["namelists"])
@@ -160,7 +161,8 @@ function form_input_object(lines)
     end  # for
     for v in values(dict["cards"])
         d[name(typeof(v))] = v
-    end  #
+    end  # for
+    with_cell_parameters && (d[:cell_parameters] = CellParametersCard(data = bravais_lattice(d[:system])))
     return PWscfInput(; d...)
 end  # function form_input_object
 
