@@ -13,6 +13,8 @@ module PWscf
 
 using MLStyle: @match
 
+export findnamelists, lexnamelist
+
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const NAMELIST_BLOCK_REGEX = r"""
 ^ [ \t]* &(\S+) [ \t]* $\n  # match line w/ nmlst tag; save nmlst name
@@ -43,5 +45,14 @@ function findnamelists(str::AbstractString)
     end
     return dict
 end # function findnamelists
+
+function lexnamelist(content::AbstractString)
+    captured = map(x -> x.captures, eachmatch(NAMELIST_ITEM_REGEX, content))
+    dict = Dict{Symbol, Any}()
+    for (key, value) in captured
+        dict[Symbol(key)] = value
+    end
+    return dict
+end # function lexnamelist
 
 end
