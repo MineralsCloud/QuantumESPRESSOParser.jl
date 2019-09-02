@@ -1,5 +1,3 @@
-using FilePaths: AbstractPath
-
 macro iostream_to_lines(methodname)
     return quote
         function $(esc(methodname))(io::IOStream)
@@ -10,8 +8,8 @@ end  # macro iostream_to_lines
 
 macro path_to_iostream(methodname, mode::AbstractString = "r")
     return quote
-        function $(esc(methodname))(path::AbstractPath)
-            isfile(path) && isreadable(path) || error("File $(path) not readable!")
+        function $(esc(methodname))(path::AbstractString)
+            @assert isfile(path) "File $(path) not exists!"
             open(path, $mode) do io
                 $(esc(methodname))(io)
             end
