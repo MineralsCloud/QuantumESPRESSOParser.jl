@@ -16,10 +16,12 @@ using Fortran90Namelists.FortranToJulia: FortranData
 using MLStyle: @match
 
 using QuantumESPRESSOBase.Namelists: Namelist, to_dict
+using QuantumESPRESSOBase.Namelists.PWscf
 
 using QuantumESPRESSOParsers
+using QuantumESPRESSOParsers.InputParsers.Namelists
 
-export findnamelists
+export findnamelists, parsenamelists
 
 function findnamelists(str::AbstractString)
     captured = map(x -> x.captures, eachmatch(QuantumESPRESSOParsers.NAMELIST_BLOCK_REGEX, str))
@@ -35,5 +37,10 @@ function findnamelists(str::AbstractString)
     end
     return dict
 end # function findnamelists
+
+function parsenamelists(str::AbstractString)
+    dict = findnamelists(str)
+    return [parse(eval(key), value) for (key, value) in dict]
+end # function parsenamelists
 
 end
