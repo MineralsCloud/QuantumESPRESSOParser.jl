@@ -165,22 +165,23 @@ function parsenamelists(str::AbstractString)
 end # function parsenamelists
 
 function findcards(str::AbstractString)
-    captured = Dict{Symbol,String}()
+    matched = Dict{Symbol,String}()
     for (name, regex) in zip((:AtomicSpeciesCard, :AtomicPositionsCard), (ATOMIC_SPECIES_BLOCK_REGEX, ATOMIC_POSITIONS_BLOCK_REGEX))
         m = match(regex, str)
         @assert !isnothing(m) "Cannot find compulsory card $name. You must provide one!"
-        push!(captured, name => m.captures)
+        push!(matched, name => m.match)
     end
     for regex in (K_POINTS_AUTOMATIC_BLOCK_REGEX, K_POINTS_GAMMA_BLOCK_REGEX, K_POINTS_SPECIAL_BLOCK_REGEX)
         m = match(regex, str)
-        isnothing(m.captures) ? continue : push!(captured, :KPointsCard => m.captures)
+        isnothing(m) ? continue : push!(matched, :KPointsCard => m.match)
     end
-    @assert !haskey(captured, :KPointsCard) "No `K_POINTS` card found! You must provide one!"
-    for (name, regex) in zip((:CellParametersCard), (CELL_PARAMETERS_BLOCK_REGEX,))
+    @assert haskey(matched, :KPointsCard) "No `K_POINTS` card found! You must provide one!"
+    for (name, regex) in zip((:CellParametersCard,), (CELL_PARAMETERS_BLOCK_REGEX,))
         m = match(regex, str)
         # These are not compulsory cards, match failures will be allowed.
-        push!(captured, name => m.captures)
+        isnothing(m) ? continue : push!(matched, name => m.match)
     end
+    return matched
 end # function findcards
 
 end
