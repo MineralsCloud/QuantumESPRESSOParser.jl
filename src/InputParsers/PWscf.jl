@@ -21,7 +21,7 @@ using QuantumESPRESSOBase.Namelists.PWscf
 using QuantumESPRESSOParsers
 using QuantumESPRESSOParsers.InputParsers.Namelists
 
-export findnamelists, parsenamelists
+export findnamelists, parsenamelists, findcards
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
@@ -163,5 +163,24 @@ function parsenamelists(str::AbstractString)
     dict = findnamelists(str)
     return [parse(eval(key), value) for (key, value) in dict]
 end # function parsenamelists
+
+function findcards(str::AbstractString)
+    captured = Dict{Symbol,String}()
+    for (name, regex) in zip((:AtomicSpeciesCard, :AtomicPositionsCard), (ATOMIC_SPECIES_BLOCK_REGEX, ATOMIC_POSITIONS_BLOCK_REGEX))
+        m = match(regex, str)
+        @assert !isnothing(m) "Cannot find compulsory card $name. You must provide one!"
+        push!(captured, name => m.captures)
+    end
+    for regex in (K_POINTS_AUTOMATIC_BLOCK_REGEX, K_POINTS_GAMMA_BLOCK_REGEX, K_POINTS_SPECIAL_BLOCK_REGEX)
+        m = match(regex, str)
+        isnothing(m.captures) ? continue : push!(captured, :KPointsCard => m.captures)
+    end
+    @assert !haskey(captured, :KPointsCard) "No `K_POINTS` card found! You must provide one!"
+    for (name, regex) in zip((:CellParametersCard), (CELL_PARAMETERS_BLOCK_REGEX,))
+        m = match(regex, str)
+        # These are not compulsory cards, match failures will be allowed.
+        push!(captured, name => m.captures)
+    end
+end # function findcards
 
 end
