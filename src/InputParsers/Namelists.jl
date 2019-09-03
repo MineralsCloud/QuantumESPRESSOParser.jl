@@ -17,7 +17,7 @@ using Fortran90Namelists.FortranToJulia: FortranData
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
 
-using QuauntumExpressoParsers.InputLexers.Namelists
+using QuantumESPRESSOParsers.InputLexers.Namelists
 
 function Base.parse(T::Type{<:Namelist}, content::AbstractString)
     regex = r"([\w\d]+)(?:\((\d+)\))?"
