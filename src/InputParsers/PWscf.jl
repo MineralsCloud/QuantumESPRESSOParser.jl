@@ -17,6 +17,7 @@ using MLStyle: @match
 
 using QuantumESPRESSOBase.Namelists: Namelist, to_dict
 using QuantumESPRESSOBase.Namelists.PWscf
+using QuantumESPRESSOBase.Inputs.PWscf
 
 using QuantumESPRESSOParsers
 using QuantumESPRESSOParsers.InputParsers.Namelists
