@@ -1,5 +1,6 @@
 module QuantumESPRESSOParsers
 
+include("prelude.jl")
 include("io.jl")
 include("Utils.jl")
 include("InputLexers/InputLexers.jl")
