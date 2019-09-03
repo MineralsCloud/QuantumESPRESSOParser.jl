@@ -189,4 +189,15 @@ function parsecards(str::AbstractString)
     return [parse(eval(key), value) for (key, value) in dict]
 end # function parsecards
 
+function Base.parse(::Type{PWscfInput}, str::AbstractString)
+    dict = Dict()
+    for v in values(parsenamelists(str))
+        dict[name(typeof(v))] = v
+    end
+    for v in values(parsecards(str))
+        dict[name(typeof(v))] = v
+    end
+    return PWscfInput(; dict...)
+end # function Base.parse
+
 end
