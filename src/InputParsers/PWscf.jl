@@ -21,7 +21,7 @@ using QuantumESPRESSOBase.Namelists.PWscf
 using QuantumESPRESSOParsers
 using QuantumESPRESSOParsers.InputParsers.Namelists
 
-export findnamelists, parsenamelists, findcards
+export findnamelists, parsenamelists, findcards, parsecards
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
@@ -183,5 +183,10 @@ function findcards(str::AbstractString)
     end
     return matched
 end # function findcards
+
+function parsecards(str::AbstractString)
+    dict = findcards(str)
+    return [parse(eval(key), value) for (key, value) in dict]
+end # function parsecards
 
 end
