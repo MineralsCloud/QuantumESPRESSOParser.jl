@@ -15,6 +15,7 @@ using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 using MLStyle: @match
 
+using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Namelists: Namelist, to_dict
 using QuantumESPRESSOBase.Namelists.PWscf
 using QuantumESPRESSOBase.Inputs.PWscf
