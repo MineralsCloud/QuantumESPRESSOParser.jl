@@ -35,7 +35,7 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[Fortran90Namelists]]
 deps = ["Compat", "IterTools", "Parameters"]
-git-tree-sha1 = "5b4cf3e5ba15c9fb676dc36ccb953f3251a0d529"
+git-tree-sha1 = "fafcbccc55fb8f9dc79fee9de1fab1762c8b6684"
 repo-rev = "develop"
 repo-url = "git@github.com:singularitti/Fortran90Namelists.jl.git"
 uuid = "8fb689aa-71ff-4044-8071-0cffc910b57d"
