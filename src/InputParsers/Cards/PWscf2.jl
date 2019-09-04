@@ -18,6 +18,9 @@ const ATOMIC_SPECIES_ITEM_REGEX = r"""
 ^ [ \t]* (?P<name>\S+) [ \t]+ (?P<mass>\S+) [ \t]+ (?P<pseudo>\S+)
     [ \t]* $\n?
 """mx
+const K_POINTS_SPECIAL_ITEM_REGEX = r"""
+^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
+"""mx
 
 function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
     data = AtomicSpecies[]
@@ -27,6 +30,10 @@ function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
         push!(data, AtomicSpecies(atom, mass, pseudopotential))
     end
     return AtomicSpeciesCard(data)
+end # function Base.parse
+
+function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
+
 end # function Base.parse
 
 end
