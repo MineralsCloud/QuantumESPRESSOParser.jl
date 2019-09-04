@@ -11,6 +11,6 @@ julia>
 """
 module Cards
 
-include("PWscf.jl")
+include("PWscf2.jl")
 
 end
