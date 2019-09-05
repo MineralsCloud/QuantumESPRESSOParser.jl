@@ -208,7 +208,6 @@ function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
     end
     return AtomicSpeciesCard(data)
 end # function Base.parse
-
 function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
     m = match(ATOMIC_POSITIONS_BLOCK_REGEX, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
@@ -227,12 +226,12 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
         # The `if_pos` field is optionally given by users. If they do not give, we provide the default values `1`.
         if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
         # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
-        atom, pos = string(captured[1]), map(x -> parse(Float64, FortranData(x)), [captured[2], captured[5], captured[8]])
+        atom, pos = string(captured[1]),
+            map(x -> parse(Float64, FortranData(x)), [captured[2], captured[5], captured[8]])
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
     return AtomicPositionsCard(option, data)
 end # function Base.parse
-
 function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
     m = match(K_POINTS_GAMMA_BLOCK_REGEX, str)
     !isnothing(m) && return KPointsCard("gamma", [GammaPoint()])
@@ -260,7 +259,6 @@ function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
 
     @info "Cannot find card `K_POINTS`!"
 end # function Base.parse
-
 function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK_REGEX, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`

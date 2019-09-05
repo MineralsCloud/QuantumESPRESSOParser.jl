@@ -38,7 +38,7 @@ const NAMELIST_ITEM_REGEX = r"""
 
 function findnamelists(str::AbstractString)
     captured = map(x -> x.captures, eachmatch(QuantumESPRESSOParsers.NAMELIST_BLOCK_REGEX, str))
-    dict = Dict{Symbol, String}()
+    dict = Dict{Symbol,String}()
     for (name, content) in captured
         @match uppercase(name) begin
             "CONTROL" => push!(dict, :ControlNamelist => content)
@@ -58,7 +58,7 @@ end # function parsenamelists
 
 function lexnamelist(content::AbstractString)
     captured = map(x -> x.captures, eachmatch(NAMELIST_ITEM_REGEX, content))
-    dict = Dict{String, Any}()
+    dict = Dict{String,Any}()
     for (key, value) in captured
         dict[key] = value
     end
@@ -77,7 +77,7 @@ function Base.parse(T::Type{<:Namelist}, content::AbstractString)
         if !isnothing(captures[2])  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
             # If `celldm` occurs before, push the new value, else create a vector of pairs.
             i = parse(Int, captures[2])
-            v = parse(typeintersect(eltype(fieldtype(T, k)), Union{Int, Float64}), v)
+            v = parse(typeintersect(eltype(fieldtype(T, k)), Union{Int,Float64}), v)
             result[k] = (haskey(result, k) ? fillbyindex!(result[k], i, v) : fillbyindex!([], i, v))
         else  # Cases like `ntyp = 2`
             result[k] = parse(fieldtype(T, k), v)
@@ -89,9 +89,9 @@ end # function parsenamelist
 
 function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     if isempty(x)
-        x = Vector{Union{Missing, T}}(missing, index)
+        x = Vector{Union{Missing,T}}(missing, index)
     else
-        index > length(x) && append!(x, Vector{Union{Missing, T}}(missing, index - length(x)))
+        index > length(x) && append!(x, Vector{Union{Missing,T}}(missing, index - length(x)))
     end
     x[index] = value
     return x
