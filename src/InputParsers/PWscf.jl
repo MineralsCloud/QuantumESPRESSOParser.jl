@@ -179,6 +179,25 @@ const ATOMIC_POSITIONS_ITEM_REGEX = r"""
 const K_POINTS_SPECIAL_ITEM_REGEX = r"""
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
 """mx
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+const CELL_PARAMETERS_ITEM_REGEX = r"""
+^                        # Linestart
+[ \t]*                   # Optional white space
+(?P<x>                   # Get x
+    [\-|\+]? ( \d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+[ \t]+
+(?P<y>                   # Get y
+    [\-|\+]? (\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+[ \t]+
+(?P<z>                   # Get z
+    [\-|\+]? (\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+"""mx
 
 function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
     data = AtomicSpecies[]
@@ -240,6 +259,25 @@ function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
     end
 
     @info "Cannot find card `K_POINTS`!"
+end # function Base.parse
+
+function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
+    m = match(CELL_PARAMETERS_BLOCK_REGEX, str)
+    # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
+    isnothing(m) && return nothing
+    option = string(m.captures[1])
+    if isnothing(option)
+        @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
+        @info "'bohr' is assumed."
+        option = "bohr"
+    end
+    content = m.captures[2]
+    data = Matrix{Float64}(undef, 3, 3)
+    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_REGEX, content))
+        captured = matched.captures
+        data[i, :] = map(x -> parse(Float64, FortranData(x)), [captured[1], captured[4], captured[7]])
+    end
+    return CellParametersCard(option, data)
 end # function Base.parse
 
 end
