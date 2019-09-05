@@ -149,6 +149,32 @@ const ATOMIC_SPECIES_ITEM_REGEX = r"""
 ^ [ \t]* (?P<name>\S+) [ \t]+ (?P<mass>\S+) [ \t]+ (?P<pseudo>\S+)
     [ \t]* $\n?
 """mx
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+const ATOMIC_POSITIONS_ITEM_REGEX = r"""
+^                                       # Linestart
+[ \t]*                                  # Optional white space
+(?P<name>[A-Za-z]+[A-Za-z0-9]{0,2})\s+   # get the symbol, max 3 chars, starting with a char
+(?P<x>                                  # Get x
+    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+[ \t]+
+(?P<y>                                  # Get y
+    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+[ \t]+
+(?P<z>                                  # Get z
+    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+[ \t]*
+(?P<fx>[01]?)                           # Get fx
+[ \t]*
+(?P<fy>[01]?)                           # Get fx
+[ \t]*
+(?P<fz>[01]?)                           # Get fx
+"""mx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_SPECIAL_ITEM_REGEX = r"""
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
@@ -164,8 +190,32 @@ function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
     return AtomicSpeciesCard(data)
 end # function Base.parse
 
+function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
+    m = match(ATOMIC_POSITIONS_BLOCK_REGEX, str)
+    # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
+    @assert !isnothing(m) "Cannot find card `ATOMIC_POSITIONS`! Check your input!"
+    option = m.captures[1]
+    if isnothing(option)
+        @warn "Not specifying units is DEPRECATED and will no longer be allowed in the future!"
+        @info "No option is specified, 'alat' is assumed."
+        option = "alat"
+    end
+    content = m.captures[2]
+    data = AtomicPosition{String,Vector{<:Real},Vector{Int}}[]
+    for matched in eachmatch(ATOMIC_POSITIONS_ITEM_REGEX, content)
+        # The `matched` cannot be a `nothing` since we have tested by the block regular expression
+        captured = m.captures
+        # The `if_pos` field is optionally given by users. If they do not give, we provide the default values `1`.
+        if_pos = map(x -> ifelse(isnothing(x), 1, Base.Fix1(parse, Int)), FortranData.(captured[4:end]))
+        # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
+        atom, pos = matched[1], map(Base.Fix1(parse, Float64), FortranData.(captured[2:4]))
+        push!(data, AtomicPosition(atom, pos, if_pos))
+    end
+    return AtomicPositionsCard(option, data)
+end # function Base.parse
+
 function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
-    
+
 end # function Base.parse
 
 end
