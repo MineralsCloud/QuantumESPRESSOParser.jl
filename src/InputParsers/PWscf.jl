@@ -18,6 +18,7 @@ using MLStyle: @match
 using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Namelists: Namelist, to_dict
 using QuantumESPRESSOBase.Namelists.PWscf
+using QuantumESPRESSOBase.Cards.PWscf
 using QuantumESPRESSOBase.Inputs.PWscf
 
 using QuantumESPRESSOParsers
@@ -145,6 +146,13 @@ const K_POINTS_AUTOMATIC_BLOCK_REGEX = r"""
 const K_POINTS_GAMMA_BLOCK_REGEX = r"""
 ^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* $\n
 """imx
+const ATOMIC_SPECIES_ITEM_REGEX = r"""
+^ [ \t]* (?P<name>\S+) [ \t]+ (?P<mass>\S+) [ \t]+ (?P<pseudo>\S+)
+    [ \t]* $\n?
+"""mx
+const K_POINTS_SPECIAL_ITEM_REGEX = r"""
+^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
+"""mx
 
 function findnamelists(str::AbstractString)
     captured = map(x -> x.captures, eachmatch(QuantumESPRESSOParsers.NAMELIST_BLOCK_REGEX, str))
@@ -200,6 +208,20 @@ function Base.parse(::Type{PWscfInput}, str::AbstractString)
         dict[name(typeof(v))] = v
     end
     return PWscfInput(; dict...)
+end # function Base.parse
+
+function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
+    data = AtomicSpecies[]
+    for m in eachmatch(ATOMIC_SPECIES_ITEM_REGEX, str)
+        captured = m.captures
+        atom, mass, pseudopotential = string(captured[1]), parse(Float64, FortranData(captured[2])), string(captured[3])
+        push!(data, AtomicSpecies(atom, mass, pseudopotential))
+    end
+    return AtomicSpeciesCard(data)
+end # function Base.parse
+
+function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
+    
 end # function Base.parse
 
 end
