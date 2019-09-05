@@ -24,8 +24,6 @@ using QuantumESPRESSOBase.Inputs.PWscf
 using QuantumESPRESSOParsers
 using QuantumESPRESSOParsers.InputParsers.Namelists
 
-export findnamelists, parsenamelists, findcards, parsecards
-
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
 ^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
@@ -155,62 +153,6 @@ const ATOMIC_SPECIES_ITEM_REGEX = r"""
 const K_POINTS_SPECIAL_ITEM_REGEX = r"""
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
 """mx
-
-function findnamelists(str::AbstractString)
-    captured = map(x -> x.captures, eachmatch(QuantumESPRESSOParsers.NAMELIST_BLOCK_REGEX, str))
-    dict = Dict{Symbol, String}()
-    for (name, content) in captured
-        @match uppercase(name) begin
-            "CONTROL" => push!(dict, :ControlNamelist => content)
-            "SYSTEM" => push!(dict, :SystemNamelist => content)
-            "ELECTRONS" => push!(dict, :ElectronsNamelist => content)
-            "CELL" => push!(dict, :CellNamelist => content)
-            "IONS" => push!(dict, :IonsNamelist => content)
-        end
-    end
-    return dict
-end # function findnamelists
-
-function parsenamelists(str::AbstractString)
-    dict = findnamelists(str)
-    return [parse(eval(key), value) for (key, value) in dict]
-end # function parsenamelists
-
-function findcards(str::AbstractString)
-    matched = Dict{Symbol,String}()
-    for (name, regex) in zip((:AtomicSpeciesCard, :AtomicPositionsCard), (ATOMIC_SPECIES_BLOCK_REGEX, ATOMIC_POSITIONS_BLOCK_REGEX))
-        m = match(regex, str)
-        @assert !isnothing(m) "Cannot find compulsory card $name. You must provide one!"
-        push!(matched, name => m.match)
-    end
-    for regex in (K_POINTS_AUTOMATIC_BLOCK_REGEX, K_POINTS_GAMMA_BLOCK_REGEX, K_POINTS_SPECIAL_BLOCK_REGEX)
-        m = match(regex, str)
-        isnothing(m) ? continue : push!(matched, :KPointsCard => m.match)
-    end
-    @assert haskey(matched, :KPointsCard) "No `K_POINTS` card found! You must provide one!"
-    for (name, regex) in zip((:CellParametersCard,), (CELL_PARAMETERS_BLOCK_REGEX,))
-        m = match(regex, str)
-        # These are not compulsory cards, match failures will be allowed.
-        isnothing(m) ? continue : push!(matched, name => m.match)
-    end
-    return matched
-end # function findcards
-
-function parsecards(str::AbstractString)
-    dict = findcards(str)
-    return [parse(eval(key), value) for (key, value) in dict]
-end # function parsecards
-
-function Base.parse(::Type{PWscfInput}, str::AbstractString)
-    dict = Dict()
-    for v in values(parsenamelists(str))
-        dict[name(typeof(v))] = v
-    end
-    for v in values(parsecards(str))
-        dict[name(typeof(v))] = v
-    end
-    return PWscfInput(; dict...)
-end # function Base.parse
 
 function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
     data = AtomicSpecies[]
