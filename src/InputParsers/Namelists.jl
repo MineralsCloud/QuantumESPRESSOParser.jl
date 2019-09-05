@@ -13,6 +13,7 @@ module Namelists
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
+using MLStyle: @match
 
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
