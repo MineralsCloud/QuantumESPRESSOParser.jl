@@ -215,7 +215,31 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
 end # function Base.parse
 
 function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
+    m = match(K_POINTS_GAMMA_BLOCK_REGEX, str)
+    !isnothing(m) && return KPointsCard("gamma", [GammaPoint()])
 
+    m = match(K_POINTS_AUTOMATIC_BLOCK_REGEX, str)
+    if !isnothing(m)
+        data = map(x -> parse(Int, FortranData(x)), m.captures)
+        return KPointsCard("automatic", [MonkhorstPackGrid(data[1:3], data[4:6])])
+    end
+
+    m = match(K_POINTS_SPECIAL_BLOCK_REGEX, str)
+    if !isnothing(m)
+        option = m.captures[1]
+        captured = m.captures[2]
+        data = SpecialKPoint[]
+        for matched in eachmatch(K_POINTS_SPECIAL_ITEM_REGEX, captured)
+            # TODO: Match `nks`
+            point = @match map(x -> parse(Float64, FortranData(x)), matched.captures) begin
+                [coordinates..., weight] => SpecialKPoint(coordinates, weight)
+            end
+            push!(data, point)
+        end
+        return KPointsCard(option, data)
+    end
+
+    @info "Cannot find card `K_POINTS`!"
 end # function Base.parse
 
 end
