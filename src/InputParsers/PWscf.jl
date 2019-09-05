@@ -201,14 +201,14 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
         option = "alat"
     end
     content = m.captures[2]
-    data = AtomicPosition{String,Vector{<:Real},Vector{Int}}[]
+    data = AtomicPosition{String,Vector{Float64},Vector{Int}}[]
     for matched in eachmatch(ATOMIC_POSITIONS_ITEM_REGEX, content)
         # The `matched` cannot be a `nothing` since we have tested by the block regular expression
-        captured = m.captures
+        captured = matched.captures
         # The `if_pos` field is optionally given by users. If they do not give, we provide the default values `1`.
-        if_pos = map(x -> ifelse(isnothing(x), 1, Base.Fix1(parse, Int)), FortranData.(captured[4:end]))
+        if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
         # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
-        atom, pos = matched[1], map(Base.Fix1(parse, Float64), FortranData.(captured[2:4]))
+        atom, pos = string(matched[1]), map(x -> parse(Float64, FortranData(x)), [captured[2], captured[5], captured[8]])
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
     return AtomicPositionsCard(option, data)
