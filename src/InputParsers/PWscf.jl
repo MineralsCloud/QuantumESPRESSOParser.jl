@@ -125,7 +125,7 @@ const ATOMIC_SPECIES_BLOCK_REGEX = r"""
  )+
 )
 """imx
-# This regex is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_SPECIAL_BLOCK_REGEX = r"""
 ^ [ \t]* K_POINTS [ \t]*
     [{(]? [ \t]* (?P<type>\S+?)? [ \t]* [)}]? [ \t]* $\n
@@ -136,20 +136,22 @@ const K_POINTS_SPECIAL_BLOCK_REGEX = r"""
  )+
 )
 """imx
-# This regex is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_AUTOMATIC_BLOCK_REGEX = r"""
 ^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* automatic [ \t]* [)}]? [ \t]* $\n
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+)
     [ \t]+ (\S+) [ \t]* $\n?
 """imx
-# This regex is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_GAMMA_BLOCK_REGEX = r"""
 ^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* $\n
 """imx
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_SPECIES_ITEM_REGEX = r"""
 ^ [ \t]* (?P<name>\S+) [ \t]+ (?P<mass>\S+) [ \t]+ (?P<pseudo>\S+)
     [ \t]* $\n?
 """mx
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_SPECIAL_ITEM_REGEX = r"""
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
 """mx
