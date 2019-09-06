@@ -37,7 +37,7 @@ const NAMELIST_ITEM_REGEX = r"""
 """mx
 
 function findnamelists(str::AbstractString)
-    captured = map(x -> x.captures, eachmatch(QuantumESPRESSOParsers.NAMELIST_BLOCK_REGEX, str))
+    captured = map(x -> x.captures, eachmatch(NAMELIST_BLOCK_REGEX, str))
     dict = Dict{Symbol,String}()
     for (name, content) in captured
         @match uppercase(name) begin
