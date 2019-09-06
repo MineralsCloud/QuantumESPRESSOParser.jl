@@ -51,11 +51,6 @@ function findnamelists(str::AbstractString)
     return dict
 end # function findnamelists
 
-function parsenamelists(str::AbstractString)
-    dict = findnamelists(str)
-    return [parse(eval(key), value) for (key, value) in dict]
-end # function parsenamelists
-
 function lexnamelist(content::AbstractString)
     captured = map(x -> x.captures, eachmatch(NAMELIST_ITEM_REGEX, content))
     dict = Dict{String,Any}()
@@ -65,6 +60,10 @@ function lexnamelist(content::AbstractString)
     return dict
 end # function lexnamelist
 
+function Base.parse(T::Type{Namelist}, str::AbstractString)
+    dict = findnamelists(str)
+    return [parse(eval(key), value) for (key, value) in dict]
+end # function Base.parse
 function Base.parse(T::Type{<:Namelist}, content::AbstractString)
     regex = r"([\w\d]+)(?:\((\d+)\))?"
     dict = lexnamelist(content)
