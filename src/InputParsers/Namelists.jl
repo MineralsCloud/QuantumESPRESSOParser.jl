@@ -13,74 +13,85 @@ module Namelists
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
+using MLStyle: @match
 
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
 
-export read_namelist
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+const NAMELIST_BLOCK_REGEX = r"""
+^ [ \t]* &(\S+) [ \t]* $\n  # match line w/ nmlst tag; save nmlst name
+(
+ [\S\s]*?                # match any line non-greedily
+)                        # save the group of text between nmlst
+^ [ \t]* / [ \t]* $\n    # match line w/ "/" as only non-whitespace char
+"""mx
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+const NAMELIST_ITEM_REGEX = r"""
+[ \t]* (\S+?) [ \t]*  # match and store key
+=               # equals sign separates key and value
+[ \t]* (\S+?) [ \t]*  # match and store value
+[\n,]           # return or comma separates "key = value" pairs
+"""mx
 
-function read_title_line(title_line, regex)
-    m = match(regex, title_line)
-    if isnothing(m)
-        # The first line should be '&<NAMELIST>', if it is not, either the regular expression
-        # wrong or something worse happened.
-        error("No match found in $(title_line)!")
-    else
-        namelist_name = m.captures[1]  # The first parenthesized subgroup will be `namelist_name`.
+function findnamelists(str::AbstractString)
+    captured = map(x -> x.captures, eachmatch(NAMELIST_BLOCK_REGEX, str))
+    dict = Dict{Symbol,String}()
+    for (name, content) in captured
+        @match uppercase(name) begin
+            "CONTROL" => push!(dict, :ControlNamelist => content)
+            "SYSTEM" => push!(dict, :SystemNamelist => content)
+            "ELECTRONS" => push!(dict, :ElectronsNamelist => content)
+            "CELL" => push!(dict, :CellNamelist => content)
+            "IONS" => push!(dict, :IonsNamelist => content)
+        end
     end
-    return lowercase(namelist_name)
-end  # function read_title_line
+    return dict
+end # function findnamelists
 
-function read_namelist(lines)
-    result = Dict()
-    namelist_name = read_title_line(first(lines), r"&(\w+)"i)
-    regex = r"\s*([\w\d]+)(?:\((.*)\))?\s*=\s*([^,\n]*)"i
-    T = Dict(
-        "control" => ControlNamelist,
-        "system" => SystemNamelist,
-        "electrons" => ElectronsNamelist,
-        "ions" => IonsNamelist,
-        "cell" => CellNamelist
-    )[namelist_name]
-    for line in Iterators.drop(lines, 1)  # Drop the title line
-        str = strip(line)
-        # Use '=' as the delimiter, split the stripped line into a key and a value.
-        # Skip this line if a line starts with '!' (comment) or this line is empty ('').
-        isempty(str) || any(startswith(str, x) for x in ('!', '/')) && continue
+function lexnamelist(content::AbstractString)
+    captured = map(x -> x.captures, eachmatch(NAMELIST_ITEM_REGEX, content))
+    dict = Dict{String,Any}()
+    for (key, value) in captured
+        dict[key] = value
+    end
+    return dict
+end # function lexnamelist
 
-        m = match(regex, str)
-        isnothing(m) && error("Matching not found!")
-        captures = m.captures
+function Base.parse(T::Type{Namelist}, str::AbstractString)
+    dict = findnamelists(str)
+    return [parse(eval(key), value) for (key, value) in dict]
+end # function Base.parse
+function Base.parse(T::Type{<:Namelist}, content::AbstractString)
+    regex = r"([\w\d]+)(?:\((\d+)\))?"
+    dict = lexnamelist(content)
+    result = Dict{Symbol,Any}()
+    for (key, value) in dict
+        captures = match(regex, key).captures
         k = Symbol(string(captures[1]))
-        # TODO: Does not match "ibrav = 2, celldm(1) =10.20, nat=  2, ntyp= 1,"
-        if !isnothing(captures[2])  # An entry with multiple values, e.g., `celldm[2] = 3.0`.
-            val = parse(Float64, FortranData(string(captures[3])))
+        v = FortranData(string(value))
+        # We need to parse a `FortranData` from `value` as type of the field of the namelist `T`.
+        if !isnothing(captures[2])  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
             # If `celldm` occurs before, push the new value, else create a vector of pairs.
-            index = parse(Int, captures[2])
-            haskey(result, k) ? result[k] = fillbyindex!(result[k], Pair(index, val)) : result[k] = fillbyindex!([], Pair(index, val))
-        else
-            v = FortranData(string(captures[3]))
-            # `result` is a `Dict{Symbol,Any}`, we need to parse `FortranData` from QuantumESPRESSO's input
-            # as type of the field of the namelist.
+            i = parse(Int, captures[2])
+            v = parse(typeintersect(eltype(fieldtype(T, k)), Union{Int,Float64}), v)
+            result[k] = (haskey(result, k) ? fillbyindex!(result[k], i, v) : fillbyindex!([], i, v))
+        else  # Cases like `ntyp = 2`
             result[k] = parse(fieldtype(T, k), v)
         end
     end
-    dict = merge(to_dict(T()), result)
-    return T((dict[f] for f in fieldnames(T))...)
-end  # function read_namelist
+    final = merge(to_dict(T()), result)
+    return T((final[f] for f in fieldnames(T))...)
+end # function parsenamelist
 
-function fillbyindex!(x::AbstractVector, p::Pair{Int, T}) where {T}
-    index, value = p
+function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     if isempty(x)
-        x = Vector{Union{Missing, T}}(missing, index)
+        x = Vector{Union{Missing,T}}(missing, index)
     else
-        if index > length(x)
-            append!(x, Vector{Union{Missing, T}}(missing, index - length(x)))
-        else
-        end
+        index > length(x) && append!(x, Vector{Union{Missing,T}}(missing, index - length(x)))
     end
     x[index] = value
     return x
-end
+end # function fillbyindex!
 
 end
