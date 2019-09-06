@@ -200,9 +200,13 @@ const CELL_PARAMETERS_ITEM_REGEX = r"""
 """mx
 
 function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
+    m = match(ATOMIC_SPECIES_BLOCK_REGEX, str)
+    # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
+    @assert !isnothing(m) "Cannot find card `ATOMIC_SPECIES`! Check your input!"
+    content = m.captures[1]
     data = AtomicSpecies[]
-    for m in eachmatch(ATOMIC_SPECIES_ITEM_REGEX, str)
-        captured = m.captures
+    for matched in eachmatch(ATOMIC_SPECIES_ITEM_REGEX, content)
+        captured = matched.captures
         atom, mass, pseudopotential = string(captured[1]), parse(Float64, FortranData(captured[2])), string(captured[3])
         push!(data, AtomicSpecies(atom, mass, pseudopotential))
     end
