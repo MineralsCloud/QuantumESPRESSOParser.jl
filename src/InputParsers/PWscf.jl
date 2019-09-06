@@ -18,7 +18,9 @@ using MLStyle: @match
 using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Namelists: Namelist, to_dict
 using QuantumESPRESSOBase.Namelists.PWscf
+using QuantumESPRESSOBase.Cards
 using QuantumESPRESSOBase.Cards.PWscf
+using QuantumESPRESSOBase.Inputs
 using QuantumESPRESSOBase.Inputs.PWscf
 
 using QuantumESPRESSOParsers
@@ -280,6 +282,24 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
         data[i, :] = map(x -> parse(Float64, FortranData(x)), [captured[1], captured[4], captured[7]])
     end
     return CellParametersCard(option, data)
+end # function Base.parse
+function Base.parse(::Type{Card}, str::AbstractString)
+    return filter(!isnothing, [
+        parse(AtomicSpeciesCard, str),
+        parse(AtomicPositionsCard, str),
+        parse(KPointsCard, str),
+        parse(CellParametersCard, str)]
+    )
+end # function Base.parse
+function Base.parse(::Type{PWscfInput}, str::AbstractString)
+    dict = Dict{Symbol,InputEntry}()
+    for v in parse(Namelist, str)
+        dict[name(typeof(v))] = v
+    end
+    for v in parse(Card, str)
+        dict[name(typeof(v))] = v
+    end
+    return PWscfInput(; dict...)
 end # function Base.parse
 
 end
