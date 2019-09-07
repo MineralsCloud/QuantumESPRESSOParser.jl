@@ -80,8 +80,7 @@ function Base.parse(T::Type{<:Namelist}, content::AbstractString)
             result[k] = parse(fieldtype(T, k), v)
         end
     end
-    final = merge(to_dict(T()), result)
-    return T((final[f] for f in fieldnames(T))...)
+    return T(T(), result)
 end # function parsenamelist
 
 function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
