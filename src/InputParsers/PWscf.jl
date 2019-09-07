@@ -299,7 +299,7 @@ function Base.parse(::Type{PWscfInput}, str::AbstractString)
     for v in parse(Card, str)
         dict[name(typeof(v))] = v
     end
-    return PWscfInput(; dict...)
+    return PWscfInput(cell_parameters = nothing; dict...)
 end # function Base.parse
 
 end
