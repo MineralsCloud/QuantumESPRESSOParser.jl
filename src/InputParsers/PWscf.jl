@@ -250,7 +250,11 @@ function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
 
     m = match(K_POINTS_SPECIAL_BLOCK_REGEX, str)
     if !isnothing(m)
-        option = m.captures[1]
+        if isnothing(m.captures[1])
+            option = "tpiba"
+        else
+            option = m.captures[1]
+        end
         captured = m.captures[2]
         data = SpecialKPoint[]
         for matched in eachmatch(K_POINTS_SPECIAL_ITEM_REGEX, captured)
