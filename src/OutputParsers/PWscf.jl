@@ -18,7 +18,7 @@ using Compat: isnothing
 using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
-export read_total_energy, read_qe_version, read_processors_num, read_fft_dimensions, read_cell_parameters, isjobdone
+export read_stress, read_total_energy, read_qe_version, read_processors_num, read_fft_dimensions, read_cell_parameters, isjobdone
 
 const CELL_PARAMETERS_BLOCK_REGEX = r"""
 ^ [ \t]*
@@ -53,6 +53,22 @@ const CELL_PARAMETERS_ITEM_REGEX = r"""
     ([E|e|d|D][+|-]?\d+)?
 )
 """mx
+const STRESS_BLOCK_REGEX = r"""
+^[ \t]*
+total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
+\(kbar\)\s+P=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?)
+[\n]
+(
+(?:
+\s*
+(?:
+[\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?[ \t]*
+){6}
+){3}
+)
+"""imx
 const JOB_DONE_REGEX = r"JOB DONE\."i
 
 const PATTERNS = [
@@ -73,22 +89,25 @@ const PATTERNS = [
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
 ]
 
-# function parse_stress(lines)
-#     stress_atomic = zeros(3, 3)
-#     stress_kbar = zeros(3, 3)
-#     stress = Dict("atomic" => stress_atomic, "kbar" => stress_kbar)
-#     for line in lines
-#         if occursin("total   stress", line)
-#             for i in 1:3  # Read a 3x3 matrix
-#                 readline()
-#                 sp = split(line)
-#                 stress_atomic[i][:] = map(x -> parse(Float64, FortranData(x)), sp)[1:3]
-#                 stress_kbar[i][:] = map(x -> parse(Float64, FortranData(x)), sp)[4:6]
-#             end
-#         end
-#     end
-#     return stress
-# end # function parse_stress
+function read_stress(str::AbstractString)
+    pressures = Float64[]
+    atomic_stresses = Matrix[]
+    kbar_stresses = Matrix[]
+    for m in eachmatch(STRESS_BLOCK_REGEX, str)
+        pressure, content = m.captures[1], m.captures[3]
+        push!(pressures, parse(Float64, pressure))
+
+        stress_atomic = Matrix{Float64}(undef, 3, 3)
+        stress_kbar = Matrix{Float64}(undef, 3, 3)
+        for (i, line) in enumerate(split(content, '\n'))
+            tmp = map(x -> parse(Float64, x), split(strip(line), " ", keepempty = false))
+            stress_atomic[i, :], stress_kbar[i, :] = tmp[1:3], tmp[4:6]
+        end
+        push!(atomic_stresses, stress_atomic)
+        push!(kbar_stresses, stress_kbar)
+    end
+    return pressures, atomic_stresses, kbar_stresses
+end # function parse_stress
 
 function read_cell_parameters(str::AbstractString)
     cell_parameters = Matrix[]
