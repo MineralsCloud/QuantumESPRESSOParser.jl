@@ -20,6 +20,20 @@ using QuantumESPRESSOParsers.OutputParsers
 
 export parse_total_energy, parse_qe_version, parse_processors_num, parse_fft_dimensions
 
+const CELL_PARAMETERS_BLOCK_REGEX = r"""
+^ [ \t]*
+CELL_PARAMETERS [ \t]*
+\(?\w+\s*=\s*[\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?\)? \s* [\n]
+(
+\s*
+(
+[\-|\+]? ( \d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?\s*
+){3}[\n]
+){3}
+"""imx
+
 const PATTERNS = [
     r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
     r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
@@ -58,6 +72,18 @@ const PATTERNS = [
 #     end
 #     return stress
 # end # function parse_stress
+
+function read_cell_parameters(str::AbstractString)
+    m = match(CELL_PARAMETERS_BLOCK_REGEX, str)
+    isnothing(m) && return nothing
+
+    option = string(m.captures[1])
+    if isnothing(option)
+        @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
+        @info "'bohr' is assumed."
+        option = "bohr"
+    end
+end # function read_cell_parameters
 
 function parse_total_energy(line::AbstractString)
     m = match(r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i, line)
