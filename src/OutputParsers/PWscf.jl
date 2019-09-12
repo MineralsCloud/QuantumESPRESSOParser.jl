@@ -91,8 +91,8 @@ const PATTERNS = [
 
 function read_stress(str::AbstractString)
     pressures = Float64[]
-    atomic_stresses = Matrix[]
-    kbar_stresses = Matrix[]
+    atomic_stresses = Matrix{Float64}[]
+    kbar_stresses = Matrix{Float64}[]
     for m in eachmatch(STRESS_BLOCK_REGEX, str)
         pressure, content = m.captures[1], m.captures[3]
         push!(pressures, parse(Float64, pressure))
@@ -110,7 +110,7 @@ function read_stress(str::AbstractString)
 end # function parse_stress
 
 function read_cell_parameters(str::AbstractString)
-    cell_parameters = Matrix[]
+    cell_parameters = Matrix{Float64}[]
     for m in eachmatch(CELL_PARAMETERS_BLOCK_REGEX, str)
         alat = parse(Float64, m.captures[1])
         content = m.captures[3]
