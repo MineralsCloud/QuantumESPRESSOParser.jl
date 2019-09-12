@@ -105,7 +105,7 @@ function read_cell_parameters(str::AbstractString)
             captured = matched.captures
             data[i, :] = map(x -> parse(Float64, FortranData(x)), [captured[1], captured[4], captured[7]])
         end
-        push!(cell_parameters, data)
+        push!(cell_parameters, alat * data)
     end
     return cell_parameters
 end # function read_cell_parameters
