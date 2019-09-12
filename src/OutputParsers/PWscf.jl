@@ -18,25 +18,7 @@ using Compat: isnothing
 using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
-export mark_lines, mark_ranges, parse_total_energy, parse_qe_version, parse_processors_num, parse_fft_dimensions
-
-function mark_lines(patterns, lines)
-    marks = LineNumber[]
-    patterns = copy(PATTERNS)  # Cannot use `PATTERNS` directly, it will be modified!
-    for (n, line) in enumerate(lines)
-        for (i, p) in enumerate(patterns)
-            if occursin(p, line)
-                push!(marks, LineNumber(n))
-                deleteat!(patterns, i)
-            end
-        end
-    end
-    marks
-end # function mark_lines
-
-function mark_ranges(patterns, lines)
-    [LineRange(r) for r in split_to_ranges(collect(getfield(x, :n) for x in mark_lines(patterns, lines)))]
-end # function mark_ranges
+export parse_total_energy, parse_qe_version, parse_processors_num, parse_fft_dimensions
 
 const PATTERNS = [
     r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
