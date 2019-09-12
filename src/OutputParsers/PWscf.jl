@@ -57,17 +57,14 @@ const JOB_DONE_REGEX = r"JOB DONE\."i
 
 const PATTERNS = [
     r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
-    r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
     r"Parallelization info"i,
     r"bravais-lattice index"i,
     r"(\d+)\s*Sym\. Ops\., with inversion, found"i,
     r"number of k points=\s*(\d+)\s*(.*)width \(Ry\)=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)"i,
-    r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
     r"starting charge(.*), renormalised to(.*)"i,
     r"total cpu time spent up to now is\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*secs"i,
     r"End of self-consistent calculation"i,
     r"the Fermi energy is\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*ev"i,
-    r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i,
     r"The total energy is the sum of the following terms:"i,
     r"convergence has been achieved in\s*(\d+)\s*iterations"i,
     r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
