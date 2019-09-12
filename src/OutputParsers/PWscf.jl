@@ -18,7 +18,7 @@ using Compat: isnothing
 using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
-export read_total_energy, read_qe_version, read_processors_num, read_fft_dimensions, read_cell_parameters
+export read_total_energy, read_qe_version, read_processors_num, read_fft_dimensions, read_cell_parameters, isjobdone
 
 const CELL_PARAMETERS_BLOCK_REGEX = r"""
 ^ [ \t]*
@@ -53,6 +53,7 @@ const CELL_PARAMETERS_ITEM_REGEX = r"""
     ([E|e|d|D][+|-]?\d+)?
 )
 """mx
+const JOB_DONE_REGEX = r"JOB DONE\."i
 
 const PATTERNS = [
     r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
@@ -73,7 +74,6 @@ const PATTERNS = [
     r"Computing stress \(Cartesian axis\) and pressure"i,
     r"Writing output data file\s*(.*)"i,
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
-    r"JOB DONE\."i
 ]
 
 # function parse_stress(lines)
@@ -137,5 +137,7 @@ function read_fft_dimensions(line::AbstractString)
     isnothing(m) && error("Match error!")
     return map(x -> parse(Int, FortranData(x)), m.captures)
 end # function read_fft_dimensions
+
+isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE_REGEX, str))
 
 end
