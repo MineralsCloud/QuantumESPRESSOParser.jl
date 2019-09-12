@@ -18,7 +18,7 @@ using Compat: isnothing
 using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
-export parse_total_energy, parse_qe_version, parse_processors_num, parse_fft_dimensions, read_cell_parameters
+export read_total_energy, read_qe_version, read_processors_num, read_fft_dimensions, read_cell_parameters
 
 const CELL_PARAMETERS_BLOCK_REGEX = r"""
 ^ [ \t]*
@@ -110,29 +110,29 @@ function read_cell_parameters(str::AbstractString)
     return cell_parameters
 end # function read_cell_parameters
 
-function parse_total_energy(line::AbstractString)
+function read_total_energy(line::AbstractString)
     m = match(r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i, line)
     isnothing(m) && error("Match error!")
     return parse(Float64, FortranData(m.captures[1]))
-end # function parse_total_energy
+end # function read_total_energy
 
-function parse_qe_version(line::AbstractString)
+function read_qe_version(line::AbstractString)
     m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, line)
     isnothing(m) && error("Match error!")
     return "$(parse(Float64, FortranData(m.captures[1])))"
-end # function parse_qe_version
+end # function read_qe_version
 
-function parse_processors_num(line::AbstractString)
+function read_processors_num(line::AbstractString)
     m = match(r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i, line)
     isnothing(m) && error("Match error!")
     isnothing(m.captures) && return "Serial version"
     return m.captures[1], parse(Int, m.captures[2])
-end # function parse_processors_num
+end # function read_processors_num
 
-function parse_fft_dimensions(line::AbstractString)
+function read_fft_dimensions(line::AbstractString)
     m = match(r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i, line)
     isnothing(m) && error("Match error!")
     return map(x -> parse(Int, FortranData(x)), m.captures)
-end # function parse_fft_dimensions
+end # function read_fft_dimensions
 
 end
