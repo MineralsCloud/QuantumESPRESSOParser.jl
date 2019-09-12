@@ -112,7 +112,6 @@ end # function parse_stress
 function read_cell_parameters(str::AbstractString)
     cell_parameters = Matrix[]
     for m in eachmatch(CELL_PARAMETERS_BLOCK_REGEX, str)
-        isnothing(m) && continue
         alat = parse(Float64, m.captures[1])
         content = m.captures[3]
 
@@ -129,7 +128,6 @@ end # function read_cell_parameters
 function read_total_energy(str::AbstractString)
     result = Float64[]
     for m in eachmatch(r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i, str)
-        isnothing(m) && continue
         push!(result, parse(Float64, FortranData(m.captures[1])))
     end
     return result
