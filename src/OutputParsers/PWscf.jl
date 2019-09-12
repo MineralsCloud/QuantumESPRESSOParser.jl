@@ -84,7 +84,6 @@ const PATTERNS = [
     r"The total energy is the sum of the following terms:"i,
     r"convergence has been achieved in\s*(\d+)\s*iterations"i,
     r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
-    r"Computing stress \(Cartesian axis\) and pressure"i,
     r"Writing output data file\s*(.*)"i,
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
 ]
