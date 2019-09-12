@@ -110,10 +110,13 @@ function read_cell_parameters(str::AbstractString)
     return cell_parameters
 end # function read_cell_parameters
 
-function read_total_energy(line::AbstractString)
-    m = match(r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i, line)
-    isnothing(m) && error("Match error!")
-    return parse(Float64, FortranData(m.captures[1]))
+function read_total_energy(str::AbstractString)
+    result = Float64[]
+    for m in eachmatch(r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i, str)
+        isnothing(m) && continue
+        push!(result, parse(Float64, FortranData(m.captures[1])))
+    end
+    return result
 end # function read_total_energy
 
 function read_qe_version(line::AbstractString)
