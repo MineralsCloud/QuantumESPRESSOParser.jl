@@ -15,7 +15,6 @@ using Fortran90Namelists.FortranToJulia
 
 using Compat: isnothing
 
-using QuantumESPRESSOParsers.Utils
 using QuantumESPRESSOParsers.OutputParsers
 
 export read_stress, read_total_energy, read_qe_version, read_processors_num, read_fft_dimensions, read_cell_parameters, isjobdone
