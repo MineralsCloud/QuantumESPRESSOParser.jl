@@ -31,6 +31,12 @@ const HEAD_BLOCK_REGEX = r"""
 const BRAVAIS_LATTICE_INDEX_REGEX = r"bravais-lattice index\s+=\s*(-?\d+)"i
 const LATTICE_PARAMETER_REGEX = r"lattice\s+parameter\s+\(alat\)\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\w+"ix
 const UNIT_CELL_VOLUME_REGEX = r"unit-cell\s+volume\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\("ix
+const NUMBER_OF_ATMOS_CELL_REGEX = r"number\s+of\s+atoms/cell\/s+=\s*(-?\d+)"i
+const NUMBER_OF_ATOMIC_TYPES_REGEX = r"number\s+of\s+atomic\s+types\s*=\s*(-?\d+)"i
+const NUMBER_OF_ELECTRONS_REGEX = r"number\s+of\s+electrons\s*=\s*(-?\d+[\.]\d+)"i
+const NUMBER_OF_KOHN_SHAM_STATES_REGEX = r"number\s+of\s+Kohn-Sham\s+states\s*=\s*(-?\d+)"i
+const KINETIC_ENERGY_CUTOFF_REGEX = r"kinetic-energy\s+cutoff\s*=\s*(-?\d+[\.]\d+)\s*Ry"i
+const CHARGE_DENSITY_CUTOFF_REGEX = r"charge\s+density\s+cutoff\s*=\s*(-?\d+[\.]\d+)\s*Ry"i
 const CONVERGENCE_THRESHOLD_REGEX = r"convergence\s+threshold\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    [E|e|d|D][+|-]?\d+)"ix
 const CELL_PARAMETERS_BLOCK_REGEX = r"""
 ^ [ \t]*
@@ -110,6 +116,18 @@ function read_head(str::AbstractString)
     isnothing(m) || (dict["lattice parameter"] = parse(Float64, FortranData(m.captures[1])))
     m = match(UNIT_CELL_VOLUME_REGEX, str)
     isnothing(m) || (dict["unit-cell volume"] = parse(Float64, FortranData(m.captures[1])))
+    m = match(NUMBER_OF_ATMOS_CELL_REGEX, str)
+    isnothing(m) || (dict["number of atoms/cell"] = parse(Int, m.captures[1]))
+    m = match(NUMBER_OF_ATOMIC_TYPES_REGEX, str)
+    isnothing(m) || (dict["number of atomic types"] = parse(Int, m.captures[1]))
+    m = match(NUMBER_OF_ELECTRONS_REGEX, str)
+    isnothing(m) || (dict["number of electrons"] = parse(Float64, m.captures[1]))
+    m = match(NUMBER_OF_KOHN_SHAM_STATES_REGEX, str)
+    isnothing(m) || (dict["number of Kohn-Sham states"] = parse(Int, m.captures[1]))
+    m = match(KINETIC_ENERGY_CUTOFF_REGEX, str)
+    isnothing(m) || (dict["kinetic energy cutoff"] = parse(Float64, FortranData(m.captures[1])))
+    m = match(CHARGE_DENSITY_CUTOFF_REGEX, str)
+    isnothing(m) || (dict["charge density cutoff"] = parse(Float64, FortranData(m.captures[1])))
     m = match(CONVERGENCE_THRESHOLD_REGEX, str)
     isnothing(m) || (dict["convergence threshold"] = parse(
         Float64,
