@@ -31,13 +31,17 @@ const HEAD_BLOCK_REGEX = r"""
 const BRAVAIS_LATTICE_INDEX_REGEX = r"bravais-lattice index\s+=\s*(-?\d+)"i
 const LATTICE_PARAMETER_REGEX = r"lattice\s+parameter\s+\(alat\)\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\w+"ix
 const UNIT_CELL_VOLUME_REGEX = r"unit-cell\s+volume\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\("ix
-const NUMBER_OF_ATMOS_CELL_REGEX = r"number\s+of\s+atoms/cell\/s+=\s*(-?\d+)"i
+const NUMBER_OF_ATMOS_CELL_REGEX = r"number\s+of\s+atoms\/cell\s+=\s*(-?\d+)"i
 const NUMBER_OF_ATOMIC_TYPES_REGEX = r"number\s+of\s+atomic\s+types\s*=\s*(-?\d+)"i
 const NUMBER_OF_ELECTRONS_REGEX = r"number\s+of\s+electrons\s*=\s*(-?\d+[\.]\d+)"i
 const NUMBER_OF_KOHN_SHAM_STATES_REGEX = r"number\s+of\s+Kohn-Sham\s+states\s*=\s*(-?\d+)"i
 const KINETIC_ENERGY_CUTOFF_REGEX = r"kinetic-energy\s+cutoff\s*=\s*(-?\d+[\.]\d+)\s*Ry"i
 const CHARGE_DENSITY_CUTOFF_REGEX = r"charge\s+density\s+cutoff\s*=\s*(-?\d+[\.]\d+)\s*Ry"i
 const CONVERGENCE_THRESHOLD_REGEX = r"convergence\s+threshold\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    [E|e|d|D][+|-]?\d+)"ix
+const MIXING_BETA_REGEX = r"mixing\s+beta\s+=\s*([+-]?(?:\d*\.\d+|\d+\.?\d*)([ED][+-]?\d+)?)"i
+const NUMBER_OF_ITERATIONS_USED_REGEX = r"number of iterations used\s*=\s*(\d+)\s*plain\s*(\d*)mixing"i
+const EXCHANGE_CORRELATION_REGEX = r"Exchange-correlation\s*=\s*(.*)"i
+const NSTEP_REGEX = r"nstep\s+=\s*(\d+)"i
 const CELL_PARAMETERS_BLOCK_REGEX = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
@@ -133,6 +137,14 @@ function read_head(str::AbstractString)
         Float64,
         FortranData(m.captures[1])
     ))
+    m = match(MIXING_BETA_REGEX, str)
+    isnothing(m) || (dict["mixing beta"] = parse(Float64, FortranData(m.captures[1])))
+    m = match(NUMBER_OF_ITERATIONS_USED_REGEX, str)
+    isnothing(m) || (dict["number of iterations used"] = parse(Int, m.captures[1]))
+    m = match(EXCHANGE_CORRELATION_REGEX, str)
+    isnothing(m) || (dict["Exchange-correlation"] = m.captures[1] |> string)
+    m = match(NSTEP_REGEX, str)
+    isnothing(m) || (dict["nstep"] = parse(Int, m.captures[1]))
     return dict
 end # function read_head
 
