@@ -88,7 +88,6 @@ const JOB_DONE_REGEX = r"JOB DONE\."i
 const PATTERNS = [
     r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
     r"Parallelization info"i,
-    r"bravais-lattice index"i,
     r"(\d+)\s*Sym\. Ops\., with inversion, found"i,
     r"number of k points=\s*(\d+)\s*(.*)width \(Ry\)=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)"i,
     r"starting charge(.*), renormalised to(.*)"i,
