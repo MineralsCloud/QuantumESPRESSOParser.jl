@@ -75,7 +75,8 @@ function Base.parse(T::Type{<:Namelist}, content::AbstractString)
             # If `celldm` occurs before, push the new value, else create a vector of pairs.
             i = parse(Int, captures[2])
             v = parse(typeintersect(eltype(fieldtype(T, k)), Union{Int,Float64}), v)
-            result[k] = (haskey(result, k) ? fillbyindex!(result[k], i, v) : fillbyindex!([], i, v))
+            result[k] = (haskey(result, k) ? fillbyindex!(result[k], i, v) :
+                         fillbyindex!([], i, v))
         else  # Cases like `ntyp = 2`
             result[k] = parse(fieldtype(T, k), v)
         end
@@ -87,7 +88,10 @@ function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     if isempty(x)
         x = Vector{Union{Missing,T}}(missing, index)
     else
-        index > length(x) && append!(x, Vector{Union{Missing,T}}(missing, index - length(x)))
+        index > length(x) && append!(
+            x,
+            Vector{Union{Missing,T}}(missing, index - length(x))
+        )
     end
     x[index] = value
     return x

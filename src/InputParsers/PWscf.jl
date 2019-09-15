@@ -214,7 +214,9 @@ function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
     data = AtomicSpecies[]
     for matched in eachmatch(ATOMIC_SPECIES_ITEM_REGEX, content)
         captured = matched.captures
-        atom, mass, pseudopotential = string(captured[1]), parse(Float64, FortranData(captured[2])), string(captured[3])
+        atom, mass, pseudopotential = string(captured[1]),
+            parse(Float64, FortranData(captured[2])),
+            string(captured[3])
         push!(data, AtomicSpecies(atom, mass, pseudopotential))
     end
     return AtomicSpeciesCard(data)
@@ -238,7 +240,10 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
         if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
         # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
         atom, pos = string(captured[1]),
-            map(x -> parse(Float64, FortranData(x)), [captured[2], captured[5], captured[8]])
+            map(
+                x -> parse(Float64, FortranData(x)),
+                [captured[2], captured[5], captured[8]]
+            )
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
     return AtomicPositionsCard(option, data)
@@ -288,16 +293,22 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
     data = Matrix{Float64}(undef, 3, 3)
     for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_REGEX, content))
         captured = matched.captures
-        data[i, :] = map(x -> parse(Float64, FortranData(x)), [captured[1], captured[4], captured[7]])
+        data[i, :] = map(
+            x -> parse(Float64, FortranData(x)),
+            [captured[1], captured[4], captured[7]]
+        )
     end
     return CellParametersCard(option, data)
 end # function Base.parse
 function Base.parse(::Type{Card}, str::AbstractString)
-    return filter(!isnothing, [
-        parse(AtomicSpeciesCard, str),
-        parse(AtomicPositionsCard, str),
-        parse(KPointsCard, str),
-        parse(CellParametersCard, str)]
+    return filter(
+        !isnothing,
+        [
+         parse(AtomicSpeciesCard, str),
+         parse(AtomicPositionsCard, str),
+         parse(KPointsCard, str),
+         parse(CellParametersCard, str)
+        ]
     )
 end # function Base.parse
 function Base.parse(::Type{PWscfInput}, str::AbstractString)
