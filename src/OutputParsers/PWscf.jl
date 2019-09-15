@@ -150,7 +150,10 @@ function read_cell_parameters(str::AbstractString)
         data = Matrix{Float64}(undef, 3, 3)
         for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_REGEX, content))
             captured = matched.captures
-            data[i, :] = map(x -> parse(Float64, FortranData(x)), [captured[1], captured[4], captured[7]])
+            data[i, :] = map(
+                x -> parse(Float64, FortranData(x)),
+                [captured[1], captured[4], captured[7]]
+            )
         end
         push!(cell_parameters, alat * data)
     end
@@ -159,7 +162,10 @@ end # function read_cell_parameters
 
 function read_total_energy(str::AbstractString)
     result = Float64[]
-    for m in eachmatch(r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i, str)
+    for m in eachmatch(
+        r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i,
+        str
+    )
         push!(result, parse(Float64, FortranData(m.captures[1])))
     end
     return result
@@ -172,14 +178,20 @@ function read_qe_version(line::AbstractString)
 end # function read_qe_version
 
 function read_processors_num(line::AbstractString)
-    m = match(r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i, line)
+    m = match(
+        r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
+        line
+    )
     isnothing(m) && error("Match error!")
     isnothing(m.captures) && return "Serial version"
     return m.captures[1], parse(Int, m.captures[2])
 end # function read_processors_num
 
 function read_fft_dimensions(line::AbstractString)
-    m = match(r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i, line)
+    m = match(
+        r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
+        line
+    )
     isnothing(m) && error("Match error!")
     return map(x -> parse(Int, FortranData(x)), m.captures)
 end # function read_fft_dimensions
