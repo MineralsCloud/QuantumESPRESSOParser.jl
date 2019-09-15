@@ -15,8 +15,6 @@ using Fortran90Namelists.FortranToJulia
 
 using Compat: isnothing
 
-using QuantumESPRESSOParsers.OutputParsers
-
 export read_head,
        read_stress,
        read_total_energy,
