@@ -17,8 +17,23 @@ using Compat: isnothing
 
 using QuantumESPRESSOParsers.OutputParsers
 
-export read_stress, read_total_energy, read_qe_version, read_processors_num, read_fft_dimensions, read_cell_parameters, isjobdone
+export read_head,
+       read_stress,
+       read_total_energy,
+       read_qe_version,
+       read_processors_num,
+       read_fft_dimensions,
+       read_cell_parameters,
+       isjobdone
 
+const HEAD_BLOCK_REGEX = r"""
+(bravais-lattice[\s\w\d\.\(\)\-\/_=^\[\]]+?)  # Match block start with "bravais-lattice", `+?` means un-greedy matching
+(?=^\s*celldm)                                # Do not match any of the "celldm" pattern, must be un-greedy
+"""imx
+const BRAVAIS_LATTICE_INDEX_REGEX = r"bravais-lattice index\s+=\s*(-?\d+)"i
+const LATTICE_PARAMETER_REGEX = r"lattice\s+parameter\s+\(alat\)\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\w+"ix
+const UNIT_CELL_VOLUME_REGEX = r"unit-cell\s+volume\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\("ix
+const CONVERGENCE_THRESHOLD_REGEX = r"convergence\s+threshold\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    [E|e|d|D][+|-]?\d+)"ix
 const CELL_PARAMETERS_BLOCK_REGEX = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
@@ -73,7 +88,6 @@ const JOB_DONE_REGEX = r"JOB DONE\."i
 const PATTERNS = [
     r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
     r"Parallelization info"i,
-    r"bravais-lattice index"i,
     r"(\d+)\s*Sym\. Ops\., with inversion, found"i,
     r"number of k points=\s*(\d+)\s*(.*)width \(Ry\)=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)"i,
     r"starting charge(.*), renormalised to(.*)"i,
@@ -86,6 +100,25 @@ const PATTERNS = [
     r"Writing output data file\s*(.*)"i,
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
 ]
+
+function read_head(str::AbstractString)
+    m = match(HEAD_BLOCK_REGEX, str)
+    isnothing(m) && return
+    content = m.captures[1]
+    dict = Dict{String,Any}()
+    m = match(BRAVAIS_LATTICE_INDEX_REGEX, content)
+    isnothing(m) || (dict["bravais-lattice index"] = parse(Int, m.captures[1]))
+    m = match(LATTICE_PARAMETER_REGEX, str)
+    isnothing(m) || (dict["lattice parameter"] = parse(Float64, FortranData(m.captures[1])))
+    m = match(UNIT_CELL_VOLUME_REGEX, str)
+    isnothing(m) || (dict["unit-cell volume"] = parse(Float64, FortranData(m.captures[1])))
+    m = match(CONVERGENCE_THRESHOLD_REGEX, str)
+    isnothing(m) || (dict["convergence threshold"] = parse(
+        Float64,
+        FortranData(m.captures[1])
+    ))
+    return dict
+end # function read_head
 
 function read_stress(str::AbstractString)
     pressures = Float64[]
@@ -116,7 +149,10 @@ function read_cell_parameters(str::AbstractString)
         data = Matrix{Float64}(undef, 3, 3)
         for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_REGEX, content))
             captured = matched.captures
-            data[i, :] = map(x -> parse(Float64, FortranData(x)), [captured[1], captured[4], captured[7]])
+            data[i, :] = map(
+                x -> parse(Float64, FortranData(x)),
+                [captured[1], captured[4], captured[7]]
+            )
         end
         push!(cell_parameters, alat * data)
     end
@@ -125,7 +161,10 @@ end # function read_cell_parameters
 
 function read_total_energy(str::AbstractString)
     result = Float64[]
-    for m in eachmatch(r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i, str)
+    for m in eachmatch(
+        r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i,
+        str
+    )
         push!(result, parse(Float64, FortranData(m.captures[1])))
     end
     return result
@@ -138,14 +177,20 @@ function read_qe_version(line::AbstractString)
 end # function read_qe_version
 
 function read_processors_num(line::AbstractString)
-    m = match(r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i, line)
+    m = match(
+        r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
+        line
+    )
     isnothing(m) && error("Match error!")
     isnothing(m.captures) && return "Serial version"
     return m.captures[1], parse(Int, m.captures[2])
 end # function read_processors_num
 
 function read_fft_dimensions(line::AbstractString)
-    m = match(r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i, line)
+    m = match(
+        r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
+        line
+    )
     isnothing(m) && error("Match error!")
     return map(x -> parse(Int, FortranData(x)), m.captures)
 end # function read_fft_dimensions
