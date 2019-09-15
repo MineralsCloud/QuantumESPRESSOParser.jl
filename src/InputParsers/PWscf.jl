@@ -19,12 +19,17 @@ using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Namelists: Namelist, to_dict
 using QuantumESPRESSOBase.Namelists.PWscf
 using QuantumESPRESSOBase.Cards
-using QuantumESPRESSOBase.Cards.PWscf
+using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
+                                       AtomicSpeciesCard,
+                                       AtomicPosition,
+                                       AtomicPositionsCard,
+                                       KPointsCard,
+                                       GammaPoint,
+                                       MonkhorstPackGrid,
+                                       SpecialKPoint,
+                                       CellParametersCard
 using QuantumESPRESSOBase.Inputs
 using QuantumESPRESSOBase.Inputs.PWscf
-
-using QuantumESPRESSOParsers
-using QuantumESPRESSOParsers.InputParsers.Namelists
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
