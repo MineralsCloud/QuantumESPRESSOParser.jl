@@ -17,8 +17,23 @@ using Compat: isnothing
 
 using QuantumESPRESSOParsers.OutputParsers
 
-export read_stress, read_total_energy, read_qe_version, read_processors_num, read_fft_dimensions, read_cell_parameters, isjobdone
+export read_head,
+       read_stress,
+       read_total_energy,
+       read_qe_version,
+       read_processors_num,
+       read_fft_dimensions,
+       read_cell_parameters,
+       isjobdone
 
+const HEAD_BLOCK_REGEX = r"""
+(bravais-lattice[\s\w\d\.\(\)\-\/_=^\[\]]+?)  # Match block start with "bravais-lattice", `+?` means un-greedy matching
+(?=^\s*celldm)                                # Do not match any of the "celldm" pattern, must be un-greedy
+"""imx
+const BRAVAIS_LATTICE_INDEX_REGEX = r"bravais-lattice index\s+=\s*(-?\d+)"i
+const LATTICE_PARAMETER_REGEX = r"lattice\s+parameter\s+\(alat\)\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\w+"ix
+const UNIT_CELL_VOLUME_REGEX = r"unit-cell\s+volume\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\("ix
+const CONVERGENCE_THRESHOLD_REGEX = r"convergence\s+threshold\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    [E|e|d|D][+|-]?\d+)"ix
 const CELL_PARAMETERS_BLOCK_REGEX = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
@@ -86,6 +101,25 @@ const PATTERNS = [
     r"Writing output data file\s*(.*)"i,
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
 ]
+
+function read_head(str::AbstractString)
+    m = match(HEAD_BLOCK_REGEX, str)
+    isnothing(m) && return
+    content = m.captures[1]
+    dict = Dict{String,Any}()
+    m = match(BRAVAIS_LATTICE_INDEX_REGEX, content)
+    isnothing(m) || (dict["bravais-lattice index"] = parse(Int, m.captures[1]))
+    m = match(LATTICE_PARAMETER_REGEX, str)
+    isnothing(m) || (dict["lattice parameter"] = parse(Float64, FortranData(m.captures[1])))
+    m = match(UNIT_CELL_VOLUME_REGEX, str)
+    isnothing(m) || (dict["unit-cell volume"] = parse(Float64, FortranData(m.captures[1])))
+    m = match(CONVERGENCE_THRESHOLD_REGEX, str)
+    isnothing(m) || (dict["convergence threshold"] = parse(
+        Float64,
+        FortranData(m.captures[1])
+    ))
+    return dict
+end # function read_head
 
 function read_stress(str::AbstractString)
     pressures = Float64[]
