@@ -15,13 +15,13 @@ using Fortran90Namelists.FortranToJulia
 
 using Compat: isnothing
 
-export read_head,
-       read_stress,
-       read_total_energy,
-       read_qe_version,
-       read_processors_num,
-       read_fft_dimensions,
-       read_cell_parameters,
+export parse_head,
+       parse_stress,
+       parse_total_energy,
+       parse_qe_version,
+       parse_processors_num,
+       parse_fft_dimensions,
+       parse_cell_parameters,
        isjobdone
 
 const HEAD_BLOCK_REGEX = r"""
@@ -109,7 +109,7 @@ const PATTERNS = [
     r"This run was terminated on:\s*(.*)\s+(\w+)"i,
 ]
 
-function read_head(str::AbstractString)
+function parse_head(str::AbstractString)
     m = match(HEAD_BLOCK_REGEX, str)
     isnothing(m) && return
     content = m.captures[1]
@@ -148,7 +148,7 @@ function read_head(str::AbstractString)
     return dict
 end # function read_head
 
-function read_stress(str::AbstractString)
+function parse_stress(str::AbstractString)
     pressures = Float64[]
     atomic_stresses = Matrix{Float64}[]
     kbar_stresses = Matrix{Float64}[]
@@ -168,7 +168,7 @@ function read_stress(str::AbstractString)
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
 
-function read_cell_parameters(str::AbstractString)
+function parse_cell_parameters(str::AbstractString)
     cell_parameters = Matrix{Float64}[]
     for m in eachmatch(CELL_PARAMETERS_BLOCK_REGEX, str)
         alat = parse(Float64, m.captures[1])
@@ -187,7 +187,7 @@ function read_cell_parameters(str::AbstractString)
     return cell_parameters
 end # function read_cell_parameters
 
-function read_total_energy(str::AbstractString)
+function parse_total_energy(str::AbstractString)
     result = Float64[]
     for m in eachmatch(
         r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i,
@@ -198,13 +198,13 @@ function read_total_energy(str::AbstractString)
     return result
 end # function read_total_energy
 
-function read_qe_version(line::AbstractString)
+function parse_qe_version(line::AbstractString)
     m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, line)
     isnothing(m) && error("Match error!")
     return "$(parse(Float64, FortranData(m.captures[1])))"
 end # function read_qe_version
 
-function read_processors_num(line::AbstractString)
+function parse_processors_num(line::AbstractString)
     m = match(
         r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
         line
@@ -214,7 +214,7 @@ function read_processors_num(line::AbstractString)
     return m.captures[1], parse(Int, m.captures[2])
 end # function read_processors_num
 
-function read_fft_dimensions(line::AbstractString)
+function parse_fft_dimensions(line::AbstractString)
     m = match(
         r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
         line
