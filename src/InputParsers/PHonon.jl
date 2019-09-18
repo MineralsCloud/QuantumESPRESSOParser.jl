@@ -49,34 +49,25 @@ function Base.parse(::Type{<:QPointsSpecsCard}, str::AbstractString)
 end # function Base.parse
 
 function Base.parse(::Type{PHononInput}, str::AbstractString)
-    dict = Dict{Symbol,InputEntry}()
-    dict[name(PHNamelist)] = parse(PHNamelist, str)
-    dict[:q_points] = parse(QPointsSpecsCard, str)
-    return PHononInput(dict...)
+    inputph = parse(PHNamelist, str)
+    q_points = parse(QPointsSpecsCard, str)
+    return PHononInput(inputph, q_points)
 end # function Base.parse
 
-content=raw"""
+function Base.parse(::Type{Q2RInput}, str::AbstractString)
+    input = parse(Q2RNamelist, str)
+    return Q2RInput(input)
+end # function Base.parse
 
+function Base.parse(::Type{MatdynInput}, str::AbstractString)
+    input = parse(MatdynNamelist, str)
+    q_points = parse(QPointsSpecsCard, str)
+    return MatdynInput(input, q_points)
+end # function Base.parse
 
-&inputph
-
-outdir='./tmp'
-prefix='MgSiO3'
-epsil=.true.
-fildyn='dynmat'
-tr2_ph=1.0d-14
-ldisp=.true.
-amass(1)=24.30500
-amass(2)=28.08600
-amass(3)=15.99900
-nq1=4,nq2=4,nq3=4
-/
-qPointsSpecs
-3
-1 2 3 1
-1 2 3 1
-1 2 3 1
-"""
-parse(PHononInput,content)
+function Base.parse(::Type{DynmatInput}, str::AbstractString)
+    input = parse(DynmatNamelist, str)
+    return DynmatInput(input)
+end # function Base.parse
 
 end
