@@ -25,8 +25,8 @@ export parse_head,
        isjobdone
 
 const HEAD_BLOCK_REGEX = r"""
-(bravais-lattice[\s\w\d\.\(\)\-\/_=^\[\]]+?)  # Match block start with "bravais-lattice", `+?` means un-greedy matching
-(?=^\s*celldm)                                # Do not match any of the "celldm" pattern, must be un-greedy
+(bravais-lattice[\s\w\d\.\(\)\-\/_=^\[\]:,]+?)  # Match block start with "bravais-lattice", `+?` means un-greedy matching
+#(?=^\s*celldm)                                # Do not match any of the "celldm" pattern, must be un-greedy
 """imx
 const BRAVAIS_LATTICE_INDEX_REGEX = r"bravais-lattice index\s+=\s*(-?\d+)"i
 const LATTICE_PARAMETER_REGEX = r"lattice\s+parameter\s+\(alat\)\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\w+"ix
