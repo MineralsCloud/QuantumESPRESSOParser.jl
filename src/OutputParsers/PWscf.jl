@@ -255,21 +255,25 @@ function parse_cell_parameters(str::AbstractString)
 end # function read_cell_parameters
 
 function parse_atomic_positions(str::AbstractString)
-    data = AtomicPosition{String,Vector{Float64},Vector{Int}}[]
-    m = match(ATOMIC_POSITIONS_BLOCK_REGEX, str)
-    unit = string(m.captures[1])
-    content = m.captures[2]
-    for matched in eachmatch(ATOMIC_POSITIONS_ITEM_REGEX, content)
-        captured = matched.captures
-        if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
-        atom, pos = string(captured[1]),
-            map(
-                x -> parse(Float64, FortranData(x)),
-                [captured[3], captured[6], captured[9]]
-            )
-        push!(data, AtomicPosition(atom, pos, if_pos))
-    end
-    return AtomicPositionsCard(unit, data)
+    atomic_positions = AtomicPositionsCard[]
+    for m in eachmatch(ATOMIC_POSITIONS_BLOCK_REGEX, str)
+        unit = string(m.captures[1])
+        content = m.captures[2]
+        data = AtomicPosition[]
+
+        for matched in eachmatch(ATOMIC_POSITIONS_ITEM_REGEX, content)
+            captured = matched.captures
+            if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
+            atom, pos = string(captured[1]),
+                map(
+                    x -> parse(Float64, FortranData(x)),
+                    [captured[3], captured[6], captured[9]]
+                )
+            push!(data, AtomicPosition(atom, pos, if_pos))
+        end
+        push!(atomic_positions, AtomicPositionsCard(unit, data))
+    end    
+    return atomic_positions
 end
 
 function parse_total_energy(str::AbstractString)
