@@ -12,7 +12,7 @@ julia>
 module PWscf
 
 using Fortran90Namelists.FortranToJulia
-
+using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
 
 export parse_head,
@@ -22,6 +22,7 @@ export parse_head,
        parse_processors_num,
        parse_fft_dimensions,
        parse_cell_parameters,
+       parse_atomic_positions,
        isjobdone
 
 const HEAD_BLOCK_REGEX = r"""
@@ -74,6 +75,72 @@ const CELL_PARAMETERS_ITEM_REGEX = r"""
     [\-|\+]? (\d*[\.]\d+ | \d+[\.]?\d*)
     ([E|e|d|D][+|-]?\d+)?
 )
+"""mx
+const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
+^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
+[{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\n    # The units are after the string in optional brackets
+(?P<block>                                      # This is the block of positions
+    (
+        (
+            \s*                                 # White space in front of the element spec is ok
+            (
+                [A-Za-z]+[A-Za-z0-9]{0,2}       # Element spec
+                (
+                    \s+                         # White space in front of the number
+                    [-|+]?                      # Plus or minus in front of the number (optional)
+                    (
+                        (
+                            \d*                 # optional decimal in the beginning .0001 is ok, for example
+                            [\.]                # There has to be a dot followed by
+                            \d+                 # at least one decimal
+                        )
+                        |                       # OR
+                        (
+                            \d+                 # at least one decimal, followed by
+                            [\.]?               # an optional dot ( both 1 and 1. are fine)
+                            \d*                 # And optional number of decimals (1.00001)
+                        )                        # followed by optional decimals
+                    )
+                    ([E|e|d|D][+|-]?\d+)?       # optional exponents E+03, e-05
+                ){3}                            # I expect three float values
+                ((\s+[0-1]){3}\s*)?             # Followed by optional ifpos
+                \s*                             # Followed by optional white space
+                |
+                \#.*                            # If a line is commented out, that is also ok
+                |
+                \!.*                            # Comments also with excl. mark in fortran
+            )
+            |                                   # OR
+            \s*                                 # A line only containing white space
+         )
+        [\n]                                    # line break at the end
+    )+                                          # A positions block should be one or more lines
+)
+"""imx
+const ATOMIC_POSITIONS_ITEM_REGEX = r"""
+^                                       # Linestart
+[ \t]*                                  # Optional white space
+(?P<name>[A-Za-z]+[A-Za-z0-9]{0,2})\s+   # get the symbol, max 3 chars, starting with a char
+(?P<x>                                  # Get x
+    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+[ \t]+
+(?P<y>                                  # Get y
+    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+[ \t]+
+(?P<z>                                  # Get z
+    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
+    ([E|e|d|D][+|-]?\d+)?
+)
+[ \t]*
+(?P<fx>[01]?)                           # Get fx
+[ \t]*
+(?P<fy>[01]?)                           # Get fx
+[ \t]*
+(?P<fz>[01]?)                           # Get fx
 """mx
 const STRESS_BLOCK_REGEX = r"""
 ^[ \t]*
@@ -186,6 +253,24 @@ function parse_cell_parameters(str::AbstractString)
     end
     return cell_parameters
 end # function read_cell_parameters
+
+function parse_atomic_positions(str::AbstractString)
+    data = AtomicPosition{String,Vector{Float64},Vector{Int}}[]
+    m = match(ATOMIC_POSITIONS_BLOCK_REGEX, str)
+    unit = string(m.captures[1])
+    content = m.captures[2]
+    for matched in eachmatch(ATOMIC_POSITIONS_ITEM_REGEX, content)
+        captured = matched.captures
+        if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
+        atom, pos = string(captured[1]),
+            map(
+                x -> parse(Float64, FortranData(x)),
+                [captured[3], captured[6], captured[9]]
+            )
+        push!(data, AtomicPosition(atom, pos, if_pos))
+    end
+    return AtomicPositionsCard(unit, data)
+end
 
 function parse_total_energy(str::AbstractString)
     result = Float64[]
