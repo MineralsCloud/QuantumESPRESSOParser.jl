@@ -28,7 +28,7 @@ const Q_POINTS_SPECIAL_BLOCK_REGEX = r"""
 
 const Q_POINTS_SPECIAL_ITEM_REGEX = r"""
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
-"""mx
+"""ix
 
 function Base.parse(::Type{<:QPointsSpecsCard}, str::AbstractString)
     m = match(Q_POINTS_SPECIAL_BLOCK_REGEX, str)
