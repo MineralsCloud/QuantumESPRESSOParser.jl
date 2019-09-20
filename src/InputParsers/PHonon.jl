@@ -27,8 +27,16 @@ const Q_POINTS_SPECIAL_BLOCK_REGEX = r"""
 """imx
 
 const Q_POINTS_SPECIAL_ITEM_REGEX = r"""
-^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
-"""ix
+^ [ \t]* 
+([\-|\+]?(?:\d*[\.]\d+ | \d+[\.]?\d*)
+    (?:[E|e|d|D][+|-]?\d+)?)\s+
+([\-|\+]?(?:\d*[\.]\d+ | \d+[\.]?\d*)
+    (?:[E|e|d|D][+|-]?\d+)?)\s+
+([\-|\+]?(?:\d*[\.]\d+ | \d+[\.]?\d*)
+    (?:[E|e|d|D][+|-]?\d+)?)\s+
+([\-|\+]?(?:\d*[\.]\d+ | \d+[\.]?\d*)
+    (?:[E|e|d|D][+|-]?\d+)?)\s*
+"""imx
 
 function Base.parse(::Type{<:QPointsSpecsCard}, str::AbstractString)
     m = match(Q_POINTS_SPECIAL_BLOCK_REGEX, str)
@@ -44,7 +52,6 @@ function Base.parse(::Type{<:QPointsSpecsCard}, str::AbstractString)
         end
         return QPointsSpecsCard(data)
     end
-
     @info "Cannot find card `Q_POINTS`!"
 end # function Base.parse
 
