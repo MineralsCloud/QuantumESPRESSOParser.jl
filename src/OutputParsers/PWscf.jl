@@ -34,7 +34,10 @@ const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "br
 # 'bravais-lattice index     = ',I12
 const BRAVAIS_LATTICE_INDEX = Regex(raw"(bravais-lattice index)\s*=\s*" * INTEGER, "i")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
-const LATTICE_PARAMETER = Regex(raw"(lattice parameter \(alat\))\s*=\s*" * FIXED_POINT_REAL, "i")
+const LATTICE_PARAMETER = Regex(
+    raw"(lattice parameter \(alat\))\s*=\s*" * FIXED_POINT_REAL,
+    "i",
+)
 # 'unit-cell volume          = ',F12.4,' (a.u.)^3'
 const UNIT_CELL_VOLUME = Regex(raw"(unit-cell volume)\s+=\s*" * FIXED_POINT_REAL, "i")
 # 'number of atoms/cell      = ',I12
@@ -42,21 +45,41 @@ const NUMBER_OF_ATOMS_PER_CELL = Regex(raw"(number of atoms\/cell)\s+=\s*" * INT
 # 'number of atomic types    = ',I12
 const NUMBER_OF_ATOMIC_TYPES = Regex(raw"(number of atomic types)\s*=\s*" * INTEGER, "i")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = Regex(raw"(number of electrons)\s*=\s*" * FIXED_POINT_REAL * raw"(?:\(up:\s*" * FIXED_POINT_REAL * raw", down:\s*" * FIXED_POINT_REAL * raw"\))?")
+const NUMBER_OF_ELECTRONS = Regex(raw"(number of electrons)\s*=\s*" * FIXED_POINT_REAL *
+                                  raw"(?:\(up:\s*" * FIXED_POINT_REAL * raw", down:\s*" *
+                                  FIXED_POINT_REAL * raw"\))?")
 # 'number of Kohn-Sham states= ',I12
-const NUMBER_OF_KOHN_SHAM_STATES = Regex(raw"(number of Kohn-Sham states)\s*=\s*" * INTEGER, "i")
+const NUMBER_OF_KOHN_SHAM_STATES = Regex(
+    raw"(number of Kohn-Sham states)\s*=\s*" * INTEGER,
+    "i",
+)
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
-const KINETIC_ENERGY_CUTOFF = Regex(raw"(kinetic-energy cutoff)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry", "i")
+const KINETIC_ENERGY_CUTOFF = Regex(
+    raw"(kinetic-energy cutoff)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry",
+    "i",
+)
 # 'charge density cutoff     = ',F12.4,'  Ry'
-const CHARGE_DENSITY_CUTOFF = Regex(raw"(charge density cutoff)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry", "i")
+const CHARGE_DENSITY_CUTOFF = Regex(
+    raw"(charge density cutoff)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry",
+    "i",
+)
 # 'cutoff for Fock operator  = ',F12.4,'  Ry'
-const CUTOFF_FOR_FOCK_OPERATOR = Regex(raw"(cutoff for Fock operator)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry", "i")
+const CUTOFF_FOR_FOCK_OPERATOR = Regex(
+    raw"(cutoff for Fock operator)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry",
+    "i",
+)
 # 'convergence threshold     = ',1PE12.1
-const CONVERGENCE_THRESHOLD = Regex(raw"(convergence threshold)\s*=\s*" * REAL_WITH_EXPONENT, "i")
+const CONVERGENCE_THRESHOLD = Regex(
+    raw"(convergence threshold)\s*=\s*" * REAL_WITH_EXPONENT,
+    "i",
+)
 # 'mixing beta               = ',0PF12.4
 const MIXING_BETA = Regex(raw"(mixing beta)\s*=\s*" * FIXED_POINT_REAL, "i")
 # 'number of iterations used = ',I12,2X,A,' mixing'
-const NUMBER_OF_ITERATIONS_USED = Regex(raw"(number of iterations used)\s*=\s*" * INTEGER, "i")
+const NUMBER_OF_ITERATIONS_USED = Regex(
+    raw"(number of iterations used)\s*=\s*" * INTEGER,
+    "i",
+)
 const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
 # "nstep                     = ",I12
 const NSTEP = Regex(raw"(nstep)\s*=\s*" * INTEGER, "i")
@@ -206,25 +229,31 @@ function parse_head(str::AbstractString)
         end
     end # function _parse_item
 
-    _parse_item(Base.Fix1(parse, Int), [
-        BRAVAIS_LATTICE_INDEX
-        NUMBER_OF_ATOMS_PER_CELL
-        NUMBER_OF_ATOMIC_TYPES
-        NUMBER_OF_KOHN_SHAM_STATES
-        NUMBER_OF_ITERATIONS_USED
-        NSTEP
-    ])
+    _parse_item(
+        x -> parse(Int, x),
+        [
+         BRAVAIS_LATTICE_INDEX
+         NUMBER_OF_ATOMS_PER_CELL
+         NUMBER_OF_ATOMIC_TYPES
+         NUMBER_OF_KOHN_SHAM_STATES
+         NUMBER_OF_ITERATIONS_USED
+         NSTEP
+        ],
+    )
 
-    _parse_item(Base.Fix1(parse, Float64), [
-        LATTICE_PARAMETER
-        UNIT_CELL_VOLUME
-        NUMBER_OF_ELECTRONS  # TODO: This one is special.
-        KINETIC_ENERGY_CUTOFF
-        CHARGE_DENSITY_CUTOFF
-        CUTOFF_FOR_FOCK_OPERATOR
-        CONVERGENCE_THRESHOLD
-        MIXING_BETA
-    ])
+    _parse_item(
+        x -> parse(Float64, x),
+        [
+         LATTICE_PARAMETER
+         UNIT_CELL_VOLUME
+         NUMBER_OF_ELECTRONS  # TODO: This one is special.
+         KINETIC_ENERGY_CUTOFF
+         CHARGE_DENSITY_CUTOFF
+         CUTOFF_FOR_FOCK_OPERATOR
+         CONVERGENCE_THRESHOLD
+         MIXING_BETA
+        ],
+    )
 
     _parse_item(string, [EXCHANGE_CORRELATION])
 
@@ -262,7 +291,7 @@ function parse_cell_parameters(str::AbstractString)
             captured = matched.captures
             data[i, :] = map(
                 x -> parse(Float64, FortranData(x)),
-                [captured[1], captured[4], captured[7]]
+                [captured[1], captured[4], captured[7]],
             )
         end
         push!(cell_parameters, alat * data)
@@ -279,11 +308,14 @@ function parse_atomic_positions(str::AbstractString)
 
         for matched in eachmatch(ATOMIC_POSITIONS_ITEM, content)
             captured = matched.captures
-            if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
+            if_pos = map(
+                x -> isempty(x) ? 1 : parse(Int, FortranData(x)),
+                captured[11:13],
+            )
             atom, pos = string(captured[1]),
                 map(
                     x -> parse(Float64, FortranData(x)),
-                    [captured[3], captured[6], captured[9]]
+                    [captured[3], captured[6], captured[9]],
                 )
             push!(data, AtomicPosition(atom, pos, if_pos))
         end
@@ -296,7 +328,7 @@ function parse_total_energy(str::AbstractString)
     result = Float64[]
     for m in eachmatch(
         r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i,
-        str
+        str,
     )
         push!(result, parse(Float64, FortranData(m.captures[1])))
     end
@@ -312,7 +344,7 @@ end # function read_qe_version
 function parse_processors_num(line::AbstractString)
     m = match(
         r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
-        line
+        line,
     )
     isnothing(m) && error("Match error!")
     isnothing(m.captures) && return "Serial version"
@@ -322,7 +354,7 @@ end # function read_processors_num
 function parse_fft_dimensions(line::AbstractString)
     m = match(
         r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
-        line
+        line,
     )
     isnothing(m) && error("Match error!")
     return map(x -> parse(Int, FortranData(x)), m.captures)
