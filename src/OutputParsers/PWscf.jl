@@ -365,26 +365,26 @@ function parse_total_energy(str::AbstractString)
     return result
 end # function parse_total_energy
 
-function parse_qe_version(line::AbstractString)
-    m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, line)
+function parse_qe_version(str::AbstractString)
+    m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, str)
     isnothing(m) && error("Match error!")
     return "$(parse(Float64, FortranData(m.captures[1])))"
 end # function parse_qe_version
 
-function parse_processors_num(line::AbstractString)
+function parse_processors_num(str::AbstractString)
     m = match(
         r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
-        line,
+        str,
     )
     isnothing(m) && error("Match error!")
     isnothing(m.captures) && return "Serial version"
     return m.captures[1], parse(Int, m.captures[2])
 end # function parse_processors_num
 
-function parse_fft_dimensions(line::AbstractString)
+function parse_fft_dimensions(str::AbstractString)
     m = match(
         r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
-        line,
+        str,
     )
     isnothing(m) && error("Match error!")
     return map(x -> parse(Int, FortranData(x)), m.captures)
