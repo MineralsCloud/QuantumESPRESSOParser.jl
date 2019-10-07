@@ -385,8 +385,7 @@ function parse_fft_dimensions(str::AbstractString)
         r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
         str,
     )
-    isnothing(m) && error("Match error!")
-    return map(x -> parse(Int, FortranData(x)), m.captures)
+    !isnothing(m) ? map(x -> parse(Int, x), m.captures) : return
 end # function parse_fft_dimensions
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
