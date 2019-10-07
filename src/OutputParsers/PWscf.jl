@@ -375,9 +375,9 @@ function parse_processors_num(str::AbstractString)
         r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
         str,
     )
-    isnothing(m) && error("Match error!")
+    isnothing(m) && return
     isnothing(m.captures) && return "Serial version"
-    return m.captures[1], parse(Int, m.captures[2])
+    return string(m.captures[1]), parse(Int, m.captures[2])
 end # function parse_processors_num
 
 function parse_fft_dimensions(str::AbstractString)
