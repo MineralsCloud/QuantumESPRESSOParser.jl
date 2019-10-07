@@ -25,10 +25,7 @@ export parse_head,
        parse_atomic_positions,
        isjobdone
 
-const HEAD_BLOCK_REGEX = r"""
-(bravais-lattice[\s\w\d\.\(\)\-\/_=^\[\]:,]+?)  # Match block start with "bravais-lattice", `+?` means un-greedy matching
-(?=^\s*celldm)                                  # Do not match any of the "celldm" pattern, must be un-greedy
-"""imx
+const HEAD_BLOCK_REGEX = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
 const BRAVAIS_LATTICE_INDEX_REGEX = r"bravais-lattice index\s+=\s*(-?\d+)"i
 const LATTICE_PARAMETER_REGEX = r"lattice\s+parameter\s+\(alat\)\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\w+"ix
 const UNIT_CELL_VOLUME_REGEX = r"unit-cell\s+volume\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\("ix
