@@ -42,7 +42,7 @@ const NUMBER_OF_ATOMS_PER_CELL = Regex(raw"(number of atoms\/cell)\s+=\s*" * INT
 # 'number of atomic types    = ',I12
 const NUMBER_OF_ATOMIC_TYPES = Regex(raw"(number of atomic types)\s*=\s*" * INTEGER, "i")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = r"number\s+of\s+electrons\s*=\s*(-?\d+[\.]\d+)"i
+const NUMBER_OF_ELECTRONS = Regex(raw"(number of electrons)\s*=\s*" * FIXED_POINT_REAL * raw"(?:\(up:\s*" * FIXED_POINT_REAL * ", down:\s*" * FIXED_POINT_REAL * "\))?")
 # 'number of Kohn-Sham states= ',I12
 const NUMBER_OF_KOHN_SHAM_STATES = Regex(raw"(number of Kohn-Sham states)\s*=\s*" * INTEGER, "i")
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
