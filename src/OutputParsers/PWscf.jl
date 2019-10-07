@@ -367,8 +367,7 @@ end # function parse_total_energy
 
 function parse_qe_version(str::AbstractString)
     m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, str)
-    isnothing(m) && error("Match error!")
-    return "$(parse(Float64, FortranData(m.captures[1])))"
+    !isnothing(m) ? string(m.captures[1]) : return
 end # function parse_qe_version
 
 function parse_processors_num(str::AbstractString)
