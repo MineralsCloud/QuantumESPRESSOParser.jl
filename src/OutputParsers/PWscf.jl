@@ -16,6 +16,7 @@ using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
 
 export parse_head,
+       parse_parallelization_info,
        parse_stress,
        parse_total_energy,
        parse_qe_version,
@@ -83,6 +84,11 @@ const NUMBER_OF_ITERATIONS_USED = Regex(
 const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
 # "nstep                     = ",I12
 const NSTEP = Regex(raw"(nstep)\s*=\s*" * INTEGER, "i")
+const PARALLELIZATION_INFO_BLOCK = r"""Parallelization info
+\s*--------------------
+\s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+(\X+?)
+\s*bravais-lattice index"""im
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
@@ -256,6 +262,21 @@ function parse_head(str::AbstractString)
     _parse_by(string, [EXCHANGE_CORRELATION])
     return dict
 end # function parse_head
+
+function parse_parallelization_info(str::AbstractString)
+    sticks, gvecs = Dict{String,NamedTuple}(), Dict{String,NamedTuple}()
+    content = first(match(PARALLELIZATION_INFO_BLOCK, str).captures)
+
+    for line in split(content, '\n')
+        # The following format is from https://github.com/QEF/q-e/blob/7357cdb/Modules/fft_base.f90#L73-L90.
+        # "Min",4X,2I8,I7,12X,2I9,I8
+        sp = split(strip(line), r"\s+")
+        numbers = map(x -> parse(Int, x), sp[2:7])
+        push!(sticks, sp[1] => (dense = numbers[1], smooth = numbers[2], PW = numbers[3]))
+        push!(gvecs, sp[1] => (dense = numbers[4], smooth = numbers[5], PW = numbers[6]))
+    end
+    return sticks, gvecs
+end # function parse_parallelization_info
 
 function parse_stress(str::AbstractString)
     pressures = Float64[]
