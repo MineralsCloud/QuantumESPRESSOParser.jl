@@ -220,16 +220,16 @@ function parse_head(str::AbstractString)
     dict = Dict{String,Any}()
     content = first(match(HEAD_BLOCK, str).captures)
 
-    function _parse_item(f::Function, r::AbstractVector)
+    function _parse_by(f::Function, r::AbstractVector)
         for regex in r
             m = match(regex, content)
             if !isnothing(m)
-                dict[m.captures[1]] = f(m.captures[2])
+                push!(dict, m.captures[1] => f(m.captures[2]))
             end
         end
     end # function _parse_item
 
-    _parse_item(
+    _parse_by(
         x -> parse(Int, x),
         [
          BRAVAIS_LATTICE_INDEX
@@ -240,8 +240,7 @@ function parse_head(str::AbstractString)
          NSTEP
         ],
     )
-
-    _parse_item(
+    _parse_by(
         x -> parse(Float64, x),
         [
          LATTICE_PARAMETER
@@ -254,9 +253,7 @@ function parse_head(str::AbstractString)
          MIXING_BETA
         ],
     )
-
-    _parse_item(string, [EXCHANGE_CORRELATION])
-
+    _parse_by(string, [EXCHANGE_CORRELATION])
     return dict
 end # function read_head
 
