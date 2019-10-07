@@ -224,7 +224,13 @@ const PATTERNS = [
 
 function parse_head(str::AbstractString)
     dict = Dict{String,Any}()
-    content = first(match(HEAD_BLOCK, str).captures)
+    m = match(HEAD_BLOCK, str)
+    if isnothing(m)
+        @info("The head message is not found!")
+        return
+    else
+        content = first(m.captures)
+    end
 
     function _parse_by(f::Function, r::AbstractVector)
         for regex in r
@@ -265,7 +271,13 @@ end # function parse_head
 
 function parse_parallelization_info(str::AbstractString)
     sticks, gvecs = Dict{String,NamedTuple}(), Dict{String,NamedTuple}()
-    content = first(match(PARALLELIZATION_INFO_BLOCK, str).captures)
+    m = match(PARALLELIZATION_INFO_BLOCK, str)
+    if isnothing(m)
+        @info("The parallelization info is not found!")
+        return
+    else
+        content = first(m.captures)
+    end
 
     for line in split(content, '\n')
         # The following format is from https://github.com/QEF/q-e/blob/7357cdb/Modules/fft_base.f90#L73-L90.
