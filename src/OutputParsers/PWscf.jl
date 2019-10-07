@@ -25,22 +25,42 @@ export parse_head,
        parse_atomic_positions,
        isjobdone
 
-const HEAD_BLOCK_REGEX = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
-const BRAVAIS_LATTICE_INDEX_REGEX = r"bravais-lattice index\s+=\s*(-?\d+)"i
-const LATTICE_PARAMETER_REGEX = r"lattice\s+parameter\s+\(alat\)\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\w+"ix
-const UNIT_CELL_VOLUME_REGEX = r"unit-cell\s+volume\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\("ix
-const NUMBER_OF_ATMOS_CELL_REGEX = r"number\s+of\s+atoms\/cell\s+=\s*(-?\d+)"i
-const NUMBER_OF_ATOMIC_TYPES_REGEX = r"number\s+of\s+atomic\s+types\s*=\s*(-?\d+)"i
-const NUMBER_OF_ELECTRONS_REGEX = r"number\s+of\s+electrons\s*=\s*(-?\d+[\.]\d+)"i
-const NUMBER_OF_KOHN_SHAM_STATES_REGEX = r"number\s+of\s+Kohn-Sham\s+states\s*=\s*(-?\d+)"i
-const KINETIC_ENERGY_CUTOFF_REGEX = r"kinetic-energy\s+cutoff\s*=\s*(-?\d+[\.]\d+)\s*Ry"i
-const CHARGE_DENSITY_CUTOFF_REGEX = r"charge\s+density\s+cutoff\s*=\s*(-?\d+[\.]\d+)\s*Ry"i
-const CONVERGENCE_THRESHOLD_REGEX = r"convergence\s+threshold\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    [E|e|d|D][+|-]?\d+)"ix
-const MIXING_BETA_REGEX = r"mixing\s+beta\s+=\s*([+-]?(?:\d*\.\d+|\d+\.?\d*)([ED][+-]?\d+)?)"i
-const NUMBER_OF_ITERATIONS_USED_REGEX = r"number of iterations used\s*=\s*(\d+)\s*plain\s*(\d*)mixing"i
-const EXCHANGE_CORRELATION_REGEX = r"Exchange-correlation\s*=\s*(.*)"i
-const NSTEP_REGEX = r"nstep\s+=\s*(\d+)"i
-const CELL_PARAMETERS_BLOCK_REGEX = r"""
+# See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
+const INTEGER = raw"([+-]?\d+)"
+const FIXED_POINT_REAL = raw"[-+]?(\d*\.\d+|\d+\.?\d*)"
+const REAL_WITH_EXPONENT = raw"[-+]?(\d*\.\d+|\d+\.?\d*)(?:[eE]([-+]?[0-9]+))?"
+# The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
+const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
+# 'bravais-lattice index     = ',I12
+const BRAVAIS_LATTICE_INDEX = Regex(raw"(bravais-lattice index)\s*=\s*" * INTEGER, "i")
+# 'lattice parameter (alat)  = ',F12.4,'  a.u.'
+const LATTICE_PARAMETER = Regex(raw"(lattice parameter \(alat\))\s*=\s*" * FIXED_POINT_REAL, "i")
+# 'unit-cell volume          = ',F12.4,' (a.u.)^3'
+const UNIT_CELL_VOLUME = Regex(raw"(unit-cell volume)\s+=\s*" * FIXED_POINT_REAL, "i")
+# 'number of atoms/cell      = ',I12
+const NUMBER_OF_ATOMS_PER_CELL = Regex(raw"(number of atoms\/cell)\s+=\s*" * INTEGER, "i")
+# 'number of atomic types    = ',I12
+const NUMBER_OF_ATOMIC_TYPES = Regex(raw"(number of atomic types)\s*=\s*" * INTEGER, "i")
+# 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
+const NUMBER_OF_ELECTRONS = r"number\s+of\s+electrons\s*=\s*(-?\d+[\.]\d+)"i
+# 'number of Kohn-Sham states= ',I12
+const NUMBER_OF_KOHN_SHAM_STATES = Regex(raw"(number of Kohn-Sham states)\s*=\s*" * INTEGER, "i")
+# 'kinetic-energy cutoff     = ',F12.4,'  Ry'
+const KINETIC_ENERGY_CUTOFF = Regex(raw"(kinetic-energy cutoff)\s*=\s*" * FIXED_POINT_REAL * "\s+Ry", "i")
+# 'charge density cutoff     = ',F12.4,'  Ry'
+const CHARGE_DENSITY_CUTOFF = Regex(raw"(charge density cutoff)\s*=\s*" * FIXED_POINT_REAL * "\s+Ry", "i")
+# 'cutoff for Fock operator  = ',F12.4,'  Ry'
+const CUTOFF_FOR_FOCK_OPERATOR = Regex(raw"(cutoff for Fock operator)\s*=\s*" * FIXED_POINT_REAL * "\s+Ry", "i")
+# 'convergence threshold     = ',1PE12.1
+const CONVERGENCE_THRESHOLD = Regex(raw"(convergence threshold)\s*=\s*" * REAL_WITH_EXPONENT, "i")
+# 'mixing beta               = ',0PF12.4
+const MIXING_BETA = Regex(raw"(mixing beta)\s*=\s*" * FIXED_POINT_REAL, "i")
+# 'number of iterations used = ',I12,2X,A,' mixing'
+const NUMBER_OF_ITERATIONS_USED = Regex(raw"(number of iterations used)\s*=\s*" * INTEGER, "i")
+const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
+# "nstep                     = ",I12
+const NSTEP = Regex(raw"(nstep)\s*=\s*" * INTEGER, "i")
+const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
 \(?\w+\s*=\s*[\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
@@ -55,7 +75,7 @@ CELL_PARAMETERS [ \t]*
 ){3}
 )
 """imx
-const CELL_PARAMETERS_ITEM_REGEX = r"""
+const CELL_PARAMETERS_ITEM = r"""
 ^                        # Linestart
 [ \t]*                   # Optional white space
 (?P<x>                   # Get x
@@ -73,7 +93,7 @@ const CELL_PARAMETERS_ITEM_REGEX = r"""
     ([E|e|d|D][+|-]?\d+)?
 )
 """mx
-const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
+const ATOMIC_POSITIONS_BLOCK = r"""
 ^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
 [{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\n    # The units are after the string in optional brackets
 (?P<block>                                      # This is the block of positions
@@ -114,7 +134,7 @@ const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
     )+                                          # A positions block should be one or more lines
 )
 """imx
-const ATOMIC_POSITIONS_ITEM_REGEX = r"""
+const ATOMIC_POSITIONS_ITEM = r"""
 ^                                       # Linestart
 [ \t]*                                  # Optional white space
 (?P<name>[A-Za-z]+[A-Za-z0-9]{0,2})\s+   # get the symbol, max 3 chars, starting with a char
@@ -139,7 +159,7 @@ const ATOMIC_POSITIONS_ITEM_REGEX = r"""
 [ \t]*
 (?P<fz>[01]?)                           # Get fx
 """mx
-const STRESS_BLOCK_REGEX = r"""
+const STRESS_BLOCK = r"""
 ^[ \t]*
 total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
 \(kbar\)\s+P=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)
@@ -155,7 +175,7 @@ total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
 ){3}
 )
 """imx
-const JOB_DONE_REGEX = r"JOB DONE\."i
+const JOB_DONE = r"JOB DONE\."i
 
 const PATTERNS = [
     r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
@@ -174,41 +194,42 @@ const PATTERNS = [
 ]
 
 function parse_head(str::AbstractString)
-    m = match(HEAD_BLOCK_REGEX, str)
+    m = match(HEAD_BLOCK, str)
     isnothing(m) && return
     content = m.captures[1]
     dict = Dict{String,Any}()
-    m = match(BRAVAIS_LATTICE_INDEX_REGEX, content)
-    isnothing(m) || (dict["bravais-lattice index"] = parse(Int, m.captures[1]))
-    m = match(LATTICE_PARAMETER_REGEX, content)
+    for regex in [
+        BRAVAIS_LATTICE_INDEX
+        NUMBER_OF_ATOMS_PER_CELL
+        NUMBER_OF_ATOMIC_TYPES
+        NUMBER_OF_KOHN_SHAM_STATES
+        NUMBER_OF_ITERATIONS_USED
+        NSTEP
+    ]
+        m = match(regex, content)
+        if !isnothing(m)
+            dict[m.captures[1]] = parse(Int, m.captures[2])
+        end
+    end
+    m = match(LATTICE_PARAMETER, content)
     isnothing(m) || (dict["lattice parameter"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(UNIT_CELL_VOLUME_REGEX, content)
+    m = match(UNIT_CELL_VOLUME, content)
     isnothing(m) || (dict["unit-cell volume"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(NUMBER_OF_ATMOS_CELL_REGEX, content)
-    isnothing(m) || (dict["number of atoms/cell"] = parse(Int, m.captures[1]))
-    m = match(NUMBER_OF_ATOMIC_TYPES_REGEX, content)
-    isnothing(m) || (dict["number of atomic types"] = parse(Int, m.captures[1]))
-    m = match(NUMBER_OF_ELECTRONS_REGEX, content)
+    m = match(NUMBER_OF_ELECTRONS, content)
     isnothing(m) || (dict["number of electrons"] = parse(Float64, m.captures[1]))
-    m = match(NUMBER_OF_KOHN_SHAM_STATES_REGEX, content)
-    isnothing(m) || (dict["number of Kohn-Sham states"] = parse(Int, m.captures[1]))
-    m = match(KINETIC_ENERGY_CUTOFF_REGEX, content)
+    m = match(KINETIC_ENERGY_CUTOFF, content)
     isnothing(m) || (dict["kinetic energy cutoff"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(CHARGE_DENSITY_CUTOFF_REGEX, content)
+    m = match(CHARGE_DENSITY_CUTOFF, content)
     isnothing(m) || (dict["charge density cutoff"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(CONVERGENCE_THRESHOLD_REGEX, content)
+    m = match(CONVERGENCE_THRESHOLD, content)
     isnothing(m) || (dict["convergence threshold"] = parse(
         Float64,
         FortranData(m.captures[1])
     ))
-    m = match(MIXING_BETA_REGEX, content)
+    m = match(MIXING_BETA, content)
     isnothing(m) || (dict["mixing beta"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(NUMBER_OF_ITERATIONS_USED_REGEX, content)
-    isnothing(m) || (dict["number of iterations used"] = parse(Int, m.captures[1]))
-    m = match(EXCHANGE_CORRELATION_REGEX, content)
+    m = match(EXCHANGE_CORRELATION, content)
     isnothing(m) || (dict["Exchange-correlation"] = m.captures[1] |> string)
-    m = match(NSTEP_REGEX, content)
-    isnothing(m) || (dict["nstep"] = parse(Int, m.captures[1]))
     return dict
 end # function read_head
 
@@ -216,7 +237,7 @@ function parse_stress(str::AbstractString)
     pressures = Float64[]
     atomic_stresses = Matrix{Float64}[]
     kbar_stresses = Matrix{Float64}[]
-    for m in eachmatch(STRESS_BLOCK_REGEX, str)
+    for m in eachmatch(STRESS_BLOCK, str)
         pressure, content = m.captures[1], m.captures[3]
         push!(pressures, parse(Float64, pressure))
 
@@ -234,12 +255,12 @@ end # function parse_stress
 
 function parse_cell_parameters(str::AbstractString)
     cell_parameters = Matrix{Float64}[]
-    for m in eachmatch(CELL_PARAMETERS_BLOCK_REGEX, str)
+    for m in eachmatch(CELL_PARAMETERS_BLOCK, str)
         alat = parse(Float64, m.captures[1])
         content = m.captures[3]
 
         data = Matrix{Float64}(undef, 3, 3)
-        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_REGEX, content))
+        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
             captured = matched.captures
             data[i, :] = map(
                 x -> parse(Float64, FortranData(x)),
@@ -253,12 +274,12 @@ end # function read_cell_parameters
 
 function parse_atomic_positions(str::AbstractString)
     atomic_positions = AtomicPositionsCard[]
-    for m in eachmatch(ATOMIC_POSITIONS_BLOCK_REGEX, str)
+    for m in eachmatch(ATOMIC_POSITIONS_BLOCK, str)
         unit = string(m.captures[1])
         content = m.captures[2]
         data = AtomicPosition[]
 
-        for matched in eachmatch(ATOMIC_POSITIONS_ITEM_REGEX, content)
+        for matched in eachmatch(ATOMIC_POSITIONS_ITEM, content)
             captured = matched.captures
             if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
             atom, pos = string(captured[1]),
@@ -309,6 +330,6 @@ function parse_fft_dimensions(line::AbstractString)
     return map(x -> parse(Int, FortranData(x)), m.captures)
 end # function read_fft_dimensions
 
-isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE_REGEX, str))
+isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
 end
