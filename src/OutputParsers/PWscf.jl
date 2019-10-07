@@ -27,7 +27,7 @@ export parse_head,
 
 const HEAD_BLOCK_REGEX = r"""
 (bravais-lattice[\s\w\d\.\(\)\-\/_=^\[\]:,]+?)  # Match block start with "bravais-lattice", `+?` means un-greedy matching
-#(?=^\s*celldm)                                # Do not match any of the "celldm" pattern, must be un-greedy
+(?=^\s*celldm)                                  # Do not match any of the "celldm" pattern, must be un-greedy
 """imx
 const BRAVAIS_LATTICE_INDEX_REGEX = r"bravais-lattice index\s+=\s*(-?\d+)"i
 const LATTICE_PARAMETER_REGEX = r"lattice\s+parameter\s+\(alat\)\s+=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)    ([E|e|d|D][+|-]?\d+)?)\s*\w+"ix
@@ -183,34 +183,34 @@ function parse_head(str::AbstractString)
     dict = Dict{String,Any}()
     m = match(BRAVAIS_LATTICE_INDEX_REGEX, content)
     isnothing(m) || (dict["bravais-lattice index"] = parse(Int, m.captures[1]))
-    m = match(LATTICE_PARAMETER_REGEX, str)
+    m = match(LATTICE_PARAMETER_REGEX, content)
     isnothing(m) || (dict["lattice parameter"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(UNIT_CELL_VOLUME_REGEX, str)
+    m = match(UNIT_CELL_VOLUME_REGEX, content)
     isnothing(m) || (dict["unit-cell volume"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(NUMBER_OF_ATMOS_CELL_REGEX, str)
+    m = match(NUMBER_OF_ATMOS_CELL_REGEX, content)
     isnothing(m) || (dict["number of atoms/cell"] = parse(Int, m.captures[1]))
-    m = match(NUMBER_OF_ATOMIC_TYPES_REGEX, str)
+    m = match(NUMBER_OF_ATOMIC_TYPES_REGEX, content)
     isnothing(m) || (dict["number of atomic types"] = parse(Int, m.captures[1]))
-    m = match(NUMBER_OF_ELECTRONS_REGEX, str)
+    m = match(NUMBER_OF_ELECTRONS_REGEX, content)
     isnothing(m) || (dict["number of electrons"] = parse(Float64, m.captures[1]))
-    m = match(NUMBER_OF_KOHN_SHAM_STATES_REGEX, str)
+    m = match(NUMBER_OF_KOHN_SHAM_STATES_REGEX, content)
     isnothing(m) || (dict["number of Kohn-Sham states"] = parse(Int, m.captures[1]))
-    m = match(KINETIC_ENERGY_CUTOFF_REGEX, str)
+    m = match(KINETIC_ENERGY_CUTOFF_REGEX, content)
     isnothing(m) || (dict["kinetic energy cutoff"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(CHARGE_DENSITY_CUTOFF_REGEX, str)
+    m = match(CHARGE_DENSITY_CUTOFF_REGEX, content)
     isnothing(m) || (dict["charge density cutoff"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(CONVERGENCE_THRESHOLD_REGEX, str)
+    m = match(CONVERGENCE_THRESHOLD_REGEX, content)
     isnothing(m) || (dict["convergence threshold"] = parse(
         Float64,
         FortranData(m.captures[1])
     ))
-    m = match(MIXING_BETA_REGEX, str)
+    m = match(MIXING_BETA_REGEX, content)
     isnothing(m) || (dict["mixing beta"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(NUMBER_OF_ITERATIONS_USED_REGEX, str)
+    m = match(NUMBER_OF_ITERATIONS_USED_REGEX, content)
     isnothing(m) || (dict["number of iterations used"] = parse(Int, m.captures[1]))
-    m = match(EXCHANGE_CORRELATION_REGEX, str)
+    m = match(EXCHANGE_CORRELATION_REGEX, content)
     isnothing(m) || (dict["Exchange-correlation"] = m.captures[1] |> string)
-    m = match(NSTEP_REGEX, str)
+    m = match(NSTEP_REGEX, content)
     isnothing(m) || (dict["nstep"] = parse(Int, m.captures[1]))
     return dict
 end # function read_head
@@ -272,7 +272,7 @@ function parse_atomic_positions(str::AbstractString)
             push!(data, AtomicPosition(atom, pos, if_pos))
         end
         push!(atomic_positions, AtomicPositionsCard(unit, data))
-    end    
+    end
     return atomic_positions
 end
 
