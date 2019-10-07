@@ -227,7 +227,7 @@ function parse_head(str::AbstractString)
                 push!(dict, m.captures[1] => f(m.captures[2]))
             end
         end
-    end # function _parse_item
+    end # function _parse_by
 
     _parse_by(
         x -> parse(Int, x),
@@ -255,7 +255,7 @@ function parse_head(str::AbstractString)
     )
     _parse_by(string, [EXCHANGE_CORRELATION])
     return dict
-end # function read_head
+end # function parse_head
 
 function parse_stress(str::AbstractString)
     pressures = Float64[]
@@ -294,7 +294,7 @@ function parse_cell_parameters(str::AbstractString)
         push!(cell_parameters, alat * data)
     end
     return cell_parameters
-end # function read_cell_parameters
+end # function parse_cell_parameters
 
 function parse_atomic_positions(str::AbstractString)
     atomic_positions = AtomicPositionsCard[]
@@ -319,7 +319,7 @@ function parse_atomic_positions(str::AbstractString)
         push!(atomic_positions, AtomicPositionsCard(unit, data))
     end
     return atomic_positions
-end
+end # parse_atomic_positions
 
 function parse_total_energy(str::AbstractString)
     result = Float64[]
@@ -330,13 +330,13 @@ function parse_total_energy(str::AbstractString)
         push!(result, parse(Float64, FortranData(m.captures[1])))
     end
     return result
-end # function read_total_energy
+end # function parse_total_energy
 
 function parse_qe_version(line::AbstractString)
     m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, line)
     isnothing(m) && error("Match error!")
     return "$(parse(Float64, FortranData(m.captures[1])))"
-end # function read_qe_version
+end # function parse_qe_version
 
 function parse_processors_num(line::AbstractString)
     m = match(
@@ -346,7 +346,7 @@ function parse_processors_num(line::AbstractString)
     isnothing(m) && error("Match error!")
     isnothing(m.captures) && return "Serial version"
     return m.captures[1], parse(Int, m.captures[2])
-end # function read_processors_num
+end # function parse_processors_num
 
 function parse_fft_dimensions(line::AbstractString)
     m = match(
@@ -355,7 +355,7 @@ function parse_fft_dimensions(line::AbstractString)
     )
     isnothing(m) && error("Match error!")
     return map(x -> parse(Int, FortranData(x)), m.captures)
-end # function read_fft_dimensions
+end # function parse_fft_dimensions
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
