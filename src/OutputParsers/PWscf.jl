@@ -27,8 +27,8 @@ export parse_head,
 
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
 const INTEGER = raw"([+-]?\d+)"
-const FIXED_POINT_REAL = raw"[-+]?(\d*\.\d+|\d+\.?\d*)"
-const REAL_WITH_EXPONENT = raw"[-+]?(\d*\.\d+|\d+\.?\d*)(?:[eE]([-+]?[0-9]+))?"
+const FIXED_POINT_REAL = raw"([-+]?\d*\.\d+|\d+\.?\d*)"
+const REAL_WITH_EXPONENT = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)"
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
@@ -42,15 +42,15 @@ const NUMBER_OF_ATOMS_PER_CELL = Regex(raw"(number of atoms\/cell)\s+=\s*" * INT
 # 'number of atomic types    = ',I12
 const NUMBER_OF_ATOMIC_TYPES = Regex(raw"(number of atomic types)\s*=\s*" * INTEGER, "i")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = Regex(raw"(number of electrons)\s*=\s*" * FIXED_POINT_REAL * raw"(?:\(up:\s*" * FIXED_POINT_REAL * ", down:\s*" * FIXED_POINT_REAL * "\))?")
+const NUMBER_OF_ELECTRONS = Regex(raw"(number of electrons)\s*=\s*" * FIXED_POINT_REAL * raw"(?:\(up:\s*" * FIXED_POINT_REAL * raw", down:\s*" * FIXED_POINT_REAL * raw"\))?")
 # 'number of Kohn-Sham states= ',I12
 const NUMBER_OF_KOHN_SHAM_STATES = Regex(raw"(number of Kohn-Sham states)\s*=\s*" * INTEGER, "i")
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
-const KINETIC_ENERGY_CUTOFF = Regex(raw"(kinetic-energy cutoff)\s*=\s*" * FIXED_POINT_REAL * "\s+Ry", "i")
+const KINETIC_ENERGY_CUTOFF = Regex(raw"(kinetic-energy cutoff)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry", "i")
 # 'charge density cutoff     = ',F12.4,'  Ry'
-const CHARGE_DENSITY_CUTOFF = Regex(raw"(charge density cutoff)\s*=\s*" * FIXED_POINT_REAL * "\s+Ry", "i")
+const CHARGE_DENSITY_CUTOFF = Regex(raw"(charge density cutoff)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry", "i")
 # 'cutoff for Fock operator  = ',F12.4,'  Ry'
-const CUTOFF_FOR_FOCK_OPERATOR = Regex(raw"(cutoff for Fock operator)\s*=\s*" * FIXED_POINT_REAL * "\s+Ry", "i")
+const CUTOFF_FOR_FOCK_OPERATOR = Regex(raw"(cutoff for Fock operator)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry", "i")
 # 'convergence threshold     = ',1PE12.1
 const CONVERGENCE_THRESHOLD = Regex(raw"(convergence threshold)\s*=\s*" * REAL_WITH_EXPONENT, "i")
 # 'mixing beta               = ',0PF12.4
@@ -194,42 +194,40 @@ const PATTERNS = [
 ]
 
 function parse_head(str::AbstractString)
-    m = match(HEAD_BLOCK, str)
-    isnothing(m) && return
-    content = m.captures[1]
     dict = Dict{String,Any}()
-    for regex in [
+    content = first(match(HEAD_BLOCK, str).captures)
+
+    function _parse_item(f::Function, r::AbstractVector)
+        for regex in r
+            m = match(regex, content)
+            if !isnothing(m)
+                dict[m.captures[1]] = f(m.captures[2])
+            end
+        end
+    end # function _parse_item
+
+    _parse_item(Base.Fix1(parse, Int), [
         BRAVAIS_LATTICE_INDEX
         NUMBER_OF_ATOMS_PER_CELL
         NUMBER_OF_ATOMIC_TYPES
         NUMBER_OF_KOHN_SHAM_STATES
         NUMBER_OF_ITERATIONS_USED
         NSTEP
-    ]
-        m = match(regex, content)
-        if !isnothing(m)
-            dict[m.captures[1]] = parse(Int, m.captures[2])
-        end
-    end
-    m = match(LATTICE_PARAMETER, content)
-    isnothing(m) || (dict["lattice parameter"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(UNIT_CELL_VOLUME, content)
-    isnothing(m) || (dict["unit-cell volume"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(NUMBER_OF_ELECTRONS, content)
-    isnothing(m) || (dict["number of electrons"] = parse(Float64, m.captures[1]))
-    m = match(KINETIC_ENERGY_CUTOFF, content)
-    isnothing(m) || (dict["kinetic energy cutoff"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(CHARGE_DENSITY_CUTOFF, content)
-    isnothing(m) || (dict["charge density cutoff"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(CONVERGENCE_THRESHOLD, content)
-    isnothing(m) || (dict["convergence threshold"] = parse(
-        Float64,
-        FortranData(m.captures[1])
-    ))
-    m = match(MIXING_BETA, content)
-    isnothing(m) || (dict["mixing beta"] = parse(Float64, FortranData(m.captures[1])))
-    m = match(EXCHANGE_CORRELATION, content)
-    isnothing(m) || (dict["Exchange-correlation"] = m.captures[1] |> string)
+    ])
+
+    _parse_item(Base.Fix1(parse, Float64), [
+        LATTICE_PARAMETER
+        UNIT_CELL_VOLUME
+        NUMBER_OF_ELECTRONS  # TODO: This one is special.
+        KINETIC_ENERGY_CUTOFF
+        CHARGE_DENSITY_CUTOFF
+        CUTOFF_FOR_FOCK_OPERATOR
+        CONVERGENCE_THRESHOLD
+        MIXING_BETA
+    ])
+
+    _parse_item(string, [EXCHANGE_CORRELATION])
+
     return dict
 end # function read_head
 
