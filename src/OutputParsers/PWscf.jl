@@ -220,20 +220,22 @@ const SELF_CONSISTENT_CALCULATION_BLOCK = r"Self-consistent Calculation(\X+?)End
 const ITERATION_BLOCK = r"(iteration #\X+?secs)\s*(total energy\X+?estimated scf accuracy    <.*)?"i
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
-const ITERATION_NUMBER_ITEM = Regex(raw"iteration #\s*" * INTEGER * raw"\s+ecut=\s*" * FIXED_POINT_REAL * raw" Ry\s+beta=\s*" * FIXED_POINT_REAL, "i")
+const ITERATION_NUMBER_ITEM = Regex(
+    raw"iteration #\s*" * INTEGER * raw"\s+ecut=\s*" * FIXED_POINT_REAL *
+    raw" Ry\s+beta=\s*" * FIXED_POINT_REAL,
+    "i",
+)
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
 # '     total cpu time spent up to now is ',F10.1,' secs'
-const TOTAL_CPU_TIME = Regex(raw"total cpu time spent up to now is\s*" * FIXED_POINT_REAL * raw"\s* secs", "i")
+const TOTAL_CPU_TIME = Regex(
+    raw"total cpu time spent up to now is\s*" * FIXED_POINT_REAL * raw"\s* secs",
+    "i",
+)
 const JOB_DONE = r"JOB DONE\."i
 
 const PATTERNS = [
-    r"Program PWSCF v\.(\d\.\d+\.?\d?)"i,
-    r"Parallelization info"i,
     r"(\d+)\s*Sym\. Ops\., with inversion, found"i,
-    r"number of k points=\s*(\d+)\s*(.*)width \(Ry\)=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)"i,
     r"starting charge(.*), renormalised to(.*)"i,
-    r"total cpu time spent up to now is\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*secs"i,
-    r"End of self-consistent calculation"i,
     r"the Fermi energy is\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*ev"i,
     r"The total energy is the sum of the following terms:"i,
     r"convergence has been achieved in\s*(\d+)\s*iterations"i,
@@ -379,10 +381,7 @@ function parse_atomic_positions(str::AbstractString)
 
         for matched in eachmatch(ATOMIC_POSITIONS_ITEM, content)
             captured = matched.captures
-            if_pos = map(
-                x -> isempty(x) ? 1 : parse(Int, FortranData(x)),
-                captured[11:13],
-            )
+            if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
             atom, pos = string(captured[1]),
                 map(
                     x -> parse(Float64, FortranData(x)),
@@ -410,9 +409,24 @@ function parse_scf_calculation(str::AbstractString)
 
             if !isnothing(n.captures[2])
                 body = n.captures[2]
-                e = parse(Float64, match(r"total energy\s+=\s*([-+]?\d*\.\d+|\d+\.?\d*)"i, body).captures[1])
-                hf = parse(Float64, match(r"Harris-Foulkes estimate\s+=\s*([-+]?\d*\.\d+|\d+\.?\d*)"i, body).captures[1])
-                ac = parse(Float64, match(Regex(raw"estimated scf accuracy\s+<\s*" * REAL_WITH_EXPONENT, "i"), body).captures[1])
+                e = parse(
+                    Float64,
+                    match(r"total energy\s+=\s*([-+]?\d*\.\d+|\d+\.?\d*)"i, body).captures[1],
+                )
+                hf = parse(
+                    Float64,
+                    match(
+                        r"Harris-Foulkes estimate\s+=\s*([-+]?\d*\.\d+|\d+\.?\d*)"i,
+                        body,
+                    ).captures[1],
+                )
+                ac = parse(
+                    Float64,
+                    match(
+                        Regex(raw"estimated scf accuracy\s+<\s*" * REAL_WITH_EXPONENT, "i"),
+                        body,
+                    ).captures[1],
+                )
                 d["total energy"] = e
                 d["Harris-Foulkes estimate"] = hf
                 d["estimated scf accuracy"] = ac

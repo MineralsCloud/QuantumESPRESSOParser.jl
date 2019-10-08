@@ -9,8 +9,7 @@ using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PHonon
 using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Cards
-using QuantumESPRESSOBase.Cards.PHonon: SpecialQPoint, 
-                                        QPointsSpecsCard
+using QuantumESPRESSOBase.Cards.PHonon: SpecialQPoint, QPointsSpecsCard
 using QuantumESPRESSOBase.Inputs
 using QuantumESPRESSOBase.Inputs.PHonon
 
