@@ -97,6 +97,8 @@ number of k points=\s*(\d+)\X+?
 \s*cryst\. coord\.\s*
 (\X+?)
 \s*Dense  grid"""im
+# The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
+# '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
 const K_POINTS_ITEM = r"k\(\s*(\d+)\s*\) = \(\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*\), wk =\s*([-+]?\d*\.\d+|\d+\.?\d*)"i
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
@@ -300,8 +302,6 @@ function parse_parallelization_info(str::AbstractString)
 end # function parse_parallelization_info
 
 function parse_k_points(str::AbstractString)
-    # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
-    # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
         @info("The k-points info is not found!")
