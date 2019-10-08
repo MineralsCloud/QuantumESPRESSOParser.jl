@@ -17,6 +17,7 @@ using Compat: isnothing
 
 export parse_head,
        parse_parallelization_info,
+       parse_k_points,
        parse_stress,
        parse_total_energy,
        parse_qe_version,
@@ -89,6 +90,14 @@ const PARALLELIZATION_INFO_BLOCK = r"""Parallelization info
 \s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
 (\X+?)
 \s*bravais-lattice index"""im
+const K_POINTS_BLOCK = r"""
+number of k points=\s*(\d+)\X+?
+\s*cart\. coord\. in units 2pi\/alat\s*
+(\X+?)
+\s*cryst\. coord\.\s*
+(\X+?)
+\s*Dense  grid"""im
+const K_POINTS_ITEM = r"k\(\s*(\d+)\s*\) = \(\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*\), wk =\s*([-+]?\d*\.\d+|\d+\.?\d*)"i
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
@@ -289,6 +298,29 @@ function parse_parallelization_info(str::AbstractString)
     end
     return sticks, gvecs
 end # function parse_parallelization_info
+
+function parse_k_points(str::AbstractString)
+    # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
+    # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
+    m = match(K_POINTS_BLOCK, str)
+    if isnothing(m)
+        @info("The k-points info is not found!")
+        return
+    else
+        nks, cartesian, crystal = m.captures
+    end
+    nks = parse(Int, nks)
+
+    cartesian_coordinates, crystal_coordinates = zeros(nks, 4), zeros(nks, 4)
+    for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, cartesian))
+        cartesian_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+    end
+    for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, crystal))
+        crystal_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+    end
+    @assert(size(cartesian_coordinates)[1] == size(crystal_coordinates)[1] == nks)
+    return cartesian_coordinates, crystal_coordinates
+end # function parse_k_points
 
 function parse_stress(str::AbstractString)
     pressures = Float64[]
