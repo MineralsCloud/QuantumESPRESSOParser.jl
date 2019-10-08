@@ -376,7 +376,7 @@ function parse_processors_num(str::AbstractString)
         str,
     )
     isnothing(m) && return
-    isnothing(m.captures) && return "Serial version"
+    isnothing(m.captures) && return "Serial version", 1
     return string(m.captures[1]), parse(Int, m.captures[2])
 end # function parse_processors_num
 
