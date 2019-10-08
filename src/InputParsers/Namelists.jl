@@ -91,7 +91,7 @@ function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     else
         index > length(x) && append!(
             x,
-            Vector{Union{Missing,T}}(missing, index - length(x))
+            Vector{Union{Missing,T}}(missing, index - length(x)),
         )
     end
     x[index] = value

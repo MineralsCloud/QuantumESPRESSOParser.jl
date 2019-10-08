@@ -242,7 +242,7 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
         atom, pos = string(captured[1]),
             map(
                 x -> parse(Float64, FortranData(x)),
-                [captured[2], captured[5], captured[8]]
+                [captured[2], captured[5], captured[8]],
             )
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
@@ -295,7 +295,7 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
         captured = matched.captures
         data[i, :] = map(
             x -> parse(Float64, FortranData(x)),
-            [captured[1], captured[4], captured[7]]
+            [captured[1], captured[4], captured[7]],
         )
     end
     return CellParametersCard(option, data)
@@ -307,8 +307,8 @@ function Base.parse(::Type{Card}, str::AbstractString)
          parse(AtomicSpeciesCard, str),
          parse(AtomicPositionsCard, str),
          parse(KPointsCard, str),
-         parse(CellParametersCard, str)
-        ]
+         parse(CellParametersCard, str),
+        ],
     )
 end # function Base.parse
 function Base.parse(::Type{PWscfInput}, str::AbstractString)
