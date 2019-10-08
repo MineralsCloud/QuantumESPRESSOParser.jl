@@ -25,6 +25,7 @@ export parse_head,
        parse_fft_dimensions,
        parse_cell_parameters,
        parse_atomic_positions,
+       parse_scf_calculation,
        isjobdone
 
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
@@ -215,6 +216,14 @@ total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
 ){3}
 )
 """imx
+const SELF_CONSISTENT_CALCULATION_BLOCK = r"Self-consistent Calculation(\X+?)End of self-consistent calculation"i
+const ITERATION_BLOCK = r"(iteration #\X+?secs)\s*(total energy\X+?estimated scf accuracy    <.*)?"i
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
+# '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
+const ITERATION_NUMBER_ITEM = Regex(raw"iteration #\s*" * INTEGER * raw"\s+ecut=\s*" * FIXED_POINT_REAL * raw" Ry\s+beta=\s*" * FIXED_POINT_REAL, "i")
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
+# '     total cpu time spent up to now is ',F10.1,' secs'
+const TOTAL_CPU_TIME = Regex(raw"total cpu time spent up to now is\s*" * FIXED_POINT_REAL * raw"\s* secs", "i")
 const JOB_DONE = r"JOB DONE\."i
 
 const PATTERNS = [
@@ -385,6 +394,35 @@ function parse_atomic_positions(str::AbstractString)
     end
     return atomic_positions
 end # parse_atomic_positions
+
+function parse_scf_calculation(str::AbstractString)
+    scf_calculations = []
+    for m in eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str)
+        iterations = Dict{String,Any}[]
+        for n in eachmatch(ITERATION_BLOCK, m.captures |> first)
+            d = Dict{String,Any}()
+            head = match(ITERATION_NUMBER_ITEM, n.captures[1])
+            isnothing(head) && continue
+            d["iteration"] = parse(Int, head.captures[1])
+            d["ecut"], d["beta"] = map(x -> parse(Float64, x), head.captures[2:3])
+            time = match(TOTAL_CPU_TIME, n.captures[1])
+            d["time"] = parse(Float64, time.captures[1])
+
+            if !isnothing(n.captures[2])
+                body = n.captures[2]
+                e = parse(Float64, match(r"total energy\s+=\s*([-+]?\d*\.\d+|\d+\.?\d*)"i, body).captures[1])
+                hf = parse(Float64, match(r"Harris-Foulkes estimate\s+=\s*([-+]?\d*\.\d+|\d+\.?\d*)"i, body).captures[1])
+                ac = parse(Float64, match(Regex(raw"estimated scf accuracy\s+<\s*" * REAL_WITH_EXPONENT, "i"), body).captures[1])
+                d["total energy"] = e
+                d["Harris-Foulkes estimate"] = hf
+                d["estimated scf accuracy"] = ac
+            end
+            push!(iterations, d)
+        end
+        push!(scf_calculations, iterations)
+    end
+    return scf_calculations
+end # function parse_scf_calculation
 
 function parse_total_energy(str::AbstractString)
     result = Float64[]
