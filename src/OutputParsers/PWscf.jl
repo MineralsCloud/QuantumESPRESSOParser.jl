@@ -20,7 +20,7 @@ export parse_head,
        parse_k_points,
        parse_stress,
        parse_total_energy,
-       parse_qe_version,
+       parse_version,
        parse_processors_num,
        parse_fft_dimensions,
        parse_cell_parameters,
@@ -39,6 +39,7 @@ const REAL_WITH_EXPONENT = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)
 
 # This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
 const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>\d+) processors)?"i
+const PWSCF_VERSION = r"Program PWSCF v\.(?<version>\d\.\d+\.?\d?)"i
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
@@ -474,10 +475,10 @@ function parse_total_energy(str::AbstractString)
     return result
 end # function parse_total_energy
 
-function parse_qe_version(str::AbstractString)
-    m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, str)
-    !isnothing(m) ? string(m.captures[1]) : return
-end # function parse_qe_version
+function parse_version(str::AbstractString)::Maybe{String}
+    m = match(PWSCF_VERSION, str)
+    !isnothing(m) ? m[:version] : return
+end # function parse_version
 
 function parse_processors_num(str::AbstractString)::Maybe{Tuple{String,Int}}
     m = match(PARALLEL_INFO, str)
