@@ -33,7 +33,7 @@ export parse_head,
 const Maybe{T} = Union{T,Nothing}
 
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
-const INTEGER = raw"([+-]?\d+)"
+const INTEGER = raw"([-+]?\d+)"
 const FIXED_POINT_REAL = raw"([-+]?\d*\.\d+|\d+\.?\d*)"
 const REAL_WITH_EXPONENT = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)"
 
@@ -42,7 +42,7 @@ const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, r
 const PWSCF_VERSION = r"Program PWSCF v\.(?<version>\d\.\d+\.?\d?)"i
 const FFT_DIMENSIONS = r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
-const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
+const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
 const BRAVAIS_LATTICE_INDEX = Regex(raw"(bravais-lattice index)\s*=\s*" * INTEGER, "i")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
