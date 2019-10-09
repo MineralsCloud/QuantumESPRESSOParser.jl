@@ -483,7 +483,7 @@ end # function parse_version
 function parse_processors_num(str::AbstractString)::Maybe{Tuple{String,Int}}
     m = match(PARALLEL_INFO, str)
     isnothing(m) && return
-    return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m.captures[2])
+    return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m[:num])
 end # function parse_processors_num
 
 function parse_fft_dimensions(str::AbstractString)
