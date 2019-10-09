@@ -29,10 +29,16 @@ export parse_head,
        parse_clock,
        isjobdone
 
+# From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
+const Maybe{T} = Union{T,Nothing}
+
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
 const INTEGER = raw"([+-]?\d+)"
 const FIXED_POINT_REAL = raw"([-+]?\d*\.\d+|\d+\.?\d*)"
 const REAL_WITH_EXPONENT = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)"
+
+# This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
+const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>\d+) processors)?"i
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
@@ -473,14 +479,10 @@ function parse_qe_version(str::AbstractString)
     !isnothing(m) ? string(m.captures[1]) : return
 end # function parse_qe_version
 
-function parse_processors_num(str::AbstractString)
-    m = match(
-        r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
-        str,
-    )
+function parse_processors_num(str::AbstractString)::Maybe{Tuple{String,Int}}
+    m = match(PARALLEL_INFO, str)
     isnothing(m) && return
-    isnothing(m.captures) && return "Serial version", 1
-    return string(m.captures[1]), parse(Int, m.captures[2])
+    return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m.captures[2])
 end # function parse_processors_num
 
 function parse_fft_dimensions(str::AbstractString)
