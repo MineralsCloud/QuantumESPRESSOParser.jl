@@ -26,6 +26,7 @@ export parse_head,
        parse_cell_parameters,
        parse_atomic_positions,
        parse_scf_calculation,
+       parse_clock,
        isjobdone
 
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
@@ -231,6 +232,24 @@ const TOTAL_CPU_TIME = Regex(
     raw"total cpu time spent up to now is\s*" * FIXED_POINT_REAL * raw"\s* secs",
     "i",
 )
+TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
+SUMMARY_TIME_BLOCK = r"""
+(init_run\s+:.*)
+\s*(electrons\s+:.*)
+\s*(update_pot\s+.*)?  # This does not always exist.
+\s*(forces\s+:.*)?     # This does not always exist.
+\s*(stress\s+:.*)?     # This does not always exist.
+"""imx
+TIME_ITEM = Regex(raw"\s*([\w\d:]+)\s+:\s*" * FIXED_POINT_REAL * raw"s\sCPU\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?\d+)\scalls\)", "i")
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
+INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"i
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
+ELECTRONS_TIME_BLOCK = r"Called by (?<head>electrons):(?<body>\X+?)^\s*$"im
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L78-L79.
+C_BANDS_TIME_BLOCK = r"Called by (?<head>c_bands):(?<body>\X+?)^\s*$"im
+GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
+PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
 const JOB_DONE = r"JOB DONE\."i
 
 const PATTERNS = [
@@ -471,6 +490,33 @@ function parse_fft_dimensions(str::AbstractString)
     )
     !isnothing(m) ? map(x -> parse(Int, x), m.captures) : return
 end # function parse_fft_dimensions
+
+function parse_clock(str::AbstractString)
+    m = match(TIME_BLOCK, str)
+    isnothing(m) && return
+    content = m.captures[1]
+
+    info = Dict{String,Any}()
+    for item in filter(!isnothing, match(SUMMARY_TIME_BLOCK, content).captures)
+        m = match(TIME_ITEM, item)
+        info[m[1]] = map(x -> parse(Float64, x), m.captures[2:4])
+    end
+    for regex in [
+        ELECTRONS_TIME_BLOCK
+        C_BANDS_TIME_BLOCK
+        GENERAL_ROUTINES_TIME_BLOCK
+        PARALLEL_ROUTINES_TIME_BLOCK
+    ]
+        d = Dict{String,Any}()
+        block = match(regex, content)
+        isnothing(block) && continue
+        for m in eachmatch(TIME_ITEM, block[:body])
+            d[m[1]] = map(x -> parse(Float64, x), m.captures[2:4])
+        end
+        info[block[:head]] = d
+    end
+    return info
+end # function parse_clock
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
