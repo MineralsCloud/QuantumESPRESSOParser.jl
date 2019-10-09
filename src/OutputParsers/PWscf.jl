@@ -35,7 +35,7 @@ const Maybe{T} = Union{T,Nothing}
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
 const INTEGER = raw"([-+]?\d+)"
 const FIXED_POINT_REAL = raw"([-+]?\d*\.\d+|\d+\.?\d*)"
-const REAL_WITH_EXPONENT = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)"
+const GENERAL_REAL = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)"
 
 # This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
 const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>\d+) processors)?"i
@@ -82,7 +82,7 @@ const CUTOFF_FOR_FOCK_OPERATOR = Regex(
 )
 # 'convergence threshold     = ',1PE12.1
 const CONVERGENCE_THRESHOLD = Regex(
-    raw"(convergence threshold)\s*=\s*" * REAL_WITH_EXPONENT,
+    raw"(convergence threshold)\s*=\s*" * GENERAL_REAL,
     "i",
 )
 # 'mixing beta               = ',0PF12.4
@@ -450,7 +450,7 @@ function parse_scf_calculation(str::AbstractString)
                 ac = parse(
                     Float64,
                     match(
-                        Regex(raw"estimated scf accuracy\s+<\s*" * REAL_WITH_EXPONENT, "i"),
+                        Regex(raw"estimated scf accuracy\s+<\s*" * GENERAL_REAL, "i"),
                         body,
                     ).captures[1],
                 )
