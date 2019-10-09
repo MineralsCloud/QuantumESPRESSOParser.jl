@@ -40,6 +40,7 @@ const REAL_WITH_EXPONENT = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)
 # This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
 const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>\d+) processors)?"i
 const PWSCF_VERSION = r"Program PWSCF v\.(?<version>\d\.\d+\.?\d?)"i
+const FFT_DIMENSIONS = r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
@@ -487,10 +488,7 @@ function parse_processors_num(str::AbstractString)::Maybe{Tuple{String,Int}}
 end # function parse_processors_num
 
 function parse_fft_dimensions(str::AbstractString)
-    m = match(
-        r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
-        str,
-    )
+    m = match(FFT_DIMENSIONS, str)
     !isnothing(m) ? map(x -> parse(Int, x), m.captures) : return
 end # function parse_fft_dimensions
 
