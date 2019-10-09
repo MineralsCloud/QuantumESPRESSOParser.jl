@@ -11,6 +11,7 @@ julia>
 """
 module PWscf
 
+# using Dates: DateTime, DateFormat
 using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
@@ -240,24 +241,25 @@ const TOTAL_CPU_TIME = Regex(
     raw"total cpu time spent up to now is\s*" * FIXED_POINT_REAL * raw"\s* secs",
     "i",
 )
-TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
+const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
-SUMMARY_TIME_BLOCK = r"""
+const SUMMARY_TIME_BLOCK = r"""
 (init_run\s+:.*)
 \s*(electrons\s+:.*)
 \s*(update_pot\s+.*)?  # This does not always exist.
 \s*(forces\s+:.*)?     # This does not always exist.
 \s*(stress\s+:.*)?     # This does not always exist.
 """imx
-TIME_ITEM = Regex(raw"\s*([\w\d:]+)\s+:\s*" * FIXED_POINT_REAL * raw"s\sCPU\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?\d+)\scalls\)", "i")
+const TIME_ITEM = Regex(raw"\s*([\w\d:]+)\s+:\s*" * FIXED_POINT_REAL * raw"s\sCPU\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?\d+)\scalls\)", "i")
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
-INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"i
+const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"im
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
-ELECTRONS_TIME_BLOCK = r"Called by (?<head>electrons):(?<body>\X+?)^\s*$"im
+const ELECTRONS_TIME_BLOCK = r"Called by (?<head>electrons):(?<body>\X+?)^\s*$"im
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L78-L79.
-C_BANDS_TIME_BLOCK = r"Called by (?<head>c_bands):(?<body>\X+?)^\s*$"im
-GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
-PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
+const C_BANDS_TIME_BLOCK = r"Called by (?<head>c_bands):(?<body>\X+?)^\s*$"im
+const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
+const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
+TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
 const JOB_DONE = r"JOB DONE\."i
 
 const PATTERNS = [
@@ -267,8 +269,6 @@ const PATTERNS = [
     r"The total energy is the sum of the following terms:"i,
     r"convergence has been achieved in\s*(\d+)\s*iterations"i,
     r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
-    r"Writing output data file\s*(.*)"i,
-    r"This run was terminated on:\s*(.*)\s+(\w+)"i,
 ]
 
 function parse_head(str::AbstractString)
@@ -516,6 +516,8 @@ function parse_clock(str::AbstractString)
         end
         info[block[:head]] = d
     end
+    # m = match(TERMINATED_DATE, content)
+    # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
     return info
 end # function parse_clock
 
