@@ -11,6 +11,7 @@ julia>
 """
 module PWscf
 
+# using Dates: DateTime, DateFormat
 using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
@@ -20,20 +21,29 @@ export parse_head,
        parse_k_points,
        parse_stress,
        parse_total_energy,
-       parse_qe_version,
+       parse_version,
        parse_processors_num,
        parse_fft_dimensions,
        parse_cell_parameters,
        parse_atomic_positions,
        parse_scf_calculation,
+       parse_clock,
        isjobdone
 
+# From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
+const Maybe{T} = Union{T,Nothing}
+
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
-const INTEGER = raw"([+-]?\d+)"
+const INTEGER = raw"([-+]?\d+)"
 const FIXED_POINT_REAL = raw"([-+]?\d*\.\d+|\d+\.?\d*)"
-const REAL_WITH_EXPONENT = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)"
+const GENERAL_REAL = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)"
+
+# This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
+const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>\d+) processors)?"i
+const PWSCF_VERSION = r"Program PWSCF v\.(?<version>\d\.\d+\.?\d?)"i
+const FFT_DIMENSIONS = r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
-const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" and any of the "celldm" pattern, `+?` means un-greedy matching (required)
+const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
 const BRAVAIS_LATTICE_INDEX = Regex(raw"(bravais-lattice index)\s*=\s*" * INTEGER, "i")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
@@ -73,7 +83,7 @@ const CUTOFF_FOR_FOCK_OPERATOR = Regex(
 )
 # 'convergence threshold     = ',1PE12.1
 const CONVERGENCE_THRESHOLD = Regex(
-    raw"(convergence threshold)\s*=\s*" * REAL_WITH_EXPONENT,
+    raw"(convergence threshold)\s*=\s*" * GENERAL_REAL,
     "i",
 )
 # 'mixing beta               = ',0PF12.4
@@ -231,6 +241,25 @@ const TOTAL_CPU_TIME = Regex(
     raw"total cpu time spent up to now is\s*" * FIXED_POINT_REAL * raw"\s* secs",
     "i",
 )
+const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
+const SUMMARY_TIME_BLOCK = r"""
+(init_run\s+:.*)
+\s*(electrons\s+:.*)
+\s*(update_pot\s+.*)?  # This does not always exist.
+\s*(forces\s+:.*)?     # This does not always exist.
+\s*(stress\s+:.*)?     # This does not always exist.
+"""imx
+const TIME_ITEM = Regex(raw"\s*([\w\d:]+)\s+:\s*" * FIXED_POINT_REAL * raw"s\sCPU\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?\d+)\scalls\)", "i")
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
+const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"im
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
+const ELECTRONS_TIME_BLOCK = r"Called by (?<head>electrons):(?<body>\X+?)^\s*$"im
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L78-L79.
+const C_BANDS_TIME_BLOCK = r"Called by (?<head>c_bands):(?<body>\X+?)^\s*$"im
+const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
+const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
+TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
 const JOB_DONE = r"JOB DONE\."i
 
 const PATTERNS = [
@@ -240,8 +269,6 @@ const PATTERNS = [
     r"The total energy is the sum of the following terms:"i,
     r"convergence has been achieved in\s*(\d+)\s*iterations"i,
     r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
-    r"Writing output data file\s*(.*)"i,
-    r"This run was terminated on:\s*(.*)\s+(\w+)"i,
 ]
 
 function parse_head(str::AbstractString)
@@ -423,7 +450,7 @@ function parse_scf_calculation(str::AbstractString)
                 ac = parse(
                     Float64,
                     match(
-                        Regex(raw"estimated scf accuracy\s+<\s*" * REAL_WITH_EXPONENT, "i"),
+                        Regex(raw"estimated scf accuracy\s+<\s*" * GENERAL_REAL, "i"),
                         body,
                     ).captures[1],
                 )
@@ -449,28 +476,50 @@ function parse_total_energy(str::AbstractString)
     return result
 end # function parse_total_energy
 
-function parse_qe_version(str::AbstractString)
-    m = match(r"Program PWSCF v\.(\d\.\d+\.?\d?)"i, str)
-    !isnothing(m) ? string(m.captures[1]) : return
-end # function parse_qe_version
+function parse_version(str::AbstractString)::Maybe{String}
+    m = match(PWSCF_VERSION, str)
+    !isnothing(m) ? m[:version] : return
+end # function parse_version
 
-function parse_processors_num(str::AbstractString)
-    m = match(
-        r"(?:Parallel version \((.*)\), running on\s+(\d+)\s+processor|Serial version)"i,
-        str,
-    )
+function parse_processors_num(str::AbstractString)::Maybe{Tuple{String,Int}}
+    m = match(PARALLEL_INFO, str)
     isnothing(m) && return
-    isnothing(m.captures) && return "Serial version", 1
-    return string(m.captures[1]), parse(Int, m.captures[2])
+    return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m[:num])
 end # function parse_processors_num
 
 function parse_fft_dimensions(str::AbstractString)
-    m = match(
-        r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i,
-        str,
-    )
+    m = match(FFT_DIMENSIONS, str)
     !isnothing(m) ? map(x -> parse(Int, x), m.captures) : return
 end # function parse_fft_dimensions
+
+function parse_clock(str::AbstractString)
+    m = match(TIME_BLOCK, str)
+    isnothing(m) && return
+    content = m.captures[1]
+
+    info = Dict{String,Any}()
+    for item in filter(!isnothing, match(SUMMARY_TIME_BLOCK, content).captures)
+        m = match(TIME_ITEM, item)
+        info[m[1]] = map(x -> parse(Float64, x), m.captures[2:4])
+    end
+    for regex in [
+        ELECTRONS_TIME_BLOCK
+        C_BANDS_TIME_BLOCK
+        GENERAL_ROUTINES_TIME_BLOCK
+        PARALLEL_ROUTINES_TIME_BLOCK
+    ]
+        d = Dict{String,Any}()
+        block = match(regex, content)
+        isnothing(block) && continue
+        for m in eachmatch(TIME_ITEM, block[:body])
+            d[m[1]] = map(x -> parse(Float64, x), m.captures[2:4])
+        end
+        info[block[:head]] = d
+    end
+    # m = match(TERMINATED_DATE, content)
+    # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
+    return info
+end # function parse_clock
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
