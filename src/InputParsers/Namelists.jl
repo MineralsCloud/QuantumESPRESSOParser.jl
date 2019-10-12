@@ -89,11 +89,11 @@ end # function parsenamelist
 
 function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     if isempty(x)
-        x = Vector{Union{Missing,T}}(missing, index)
+        x = Vector{Union{Nothing,T}}(nothing, index)
     else
         index > length(x) && append!(
             x,
-            Vector{Union{Missing,T}}(missing, index - length(x)),
+            Vector{Union{Nothing,T}}(nothing, index - length(x)),
         )
     end
     x[index] = value
