@@ -82,7 +82,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
             end
         end
     end
-    return isempty(result) ? nothing : T(T(), result)
+    return isempty(result) ? nothing : T(T(), result)  # TODO: This does not dynamically change
 end # function Base.parse
 
 function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
