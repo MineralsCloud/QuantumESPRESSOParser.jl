@@ -20,15 +20,6 @@ using QuantumESPRESSOBase.Namelists.CP
 using QuantumESPRESSOBase.Namelists.PHonon
 
 # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
-const NAMELIST_BLOCK =
-r"""
-^ [ \t]* &(\S+) [ \t]* $\n  # match line w/ nmlst tag; save nmlst name
-(
-    [\S\s]*?                # match any line non-greedily
-)                           # save the group of text between nmlst
-^ [ \t]* \/ [ \t]* $       # match line w/ "/" as only non-whitespace char
-"""mx
-# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
 const NAMELIST_ITEM =
 r"""
 [ \t]* (?<key> \S+? )(?: (?<kind> [\(%]) (?<index> \w+) \)? )? [ \t]*  # match and store key
@@ -56,23 +47,32 @@ const NAMELIST_HEADS = Dict{Any,String}(
 
 function Base.parse(T::Type{<:Namelist}, str::AbstractString)
     result = Dict{Symbol,Any}()
-    found = false
-    for nml in eachmatch(NAMELIST_BLOCK, str)
-        head, body = nml.captures
-        if occursin(uppercase(head), NAMELIST_HEADS[T])
-            found = true
-        else
-            continue
-        end
-        for m in eachmatch(NAMELIST_ITEM, body)
-            k = Symbol(m[:key])
-            v = FortranData(string(m[:value]))
+    head = NAMELIST_HEADS[T]
+    # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+    NAMELIST_BLOCK = Regex(
+        """
+        ^ [ \t]* &$head [ \t]* \$\n
+        (
+            [\\S\\s]*?
+        )
+        ^ [ \t]* / [ \t]* \$
+        """, 
+        "imx"
+    )
+    m = match(NAMELIST_BLOCK, str)
+    if isnothing(m)
+        @info("Namelist not found in string!")
+        return
+    else
+        for item in eachmatch(NAMELIST_ITEM, m[1])
+            k = Symbol(item[:key])
+            v = FortranData(string(item[:value]))
             # Parse a `FortranData` from `value` as type of the field of the namelist `T`
-            if isnothing(m[:index])  # Cases like `ntyp = 2`
+            if isnothing(item[:index])  # Cases like `ntyp = 2`
                 result[k] = parse(fieldtype(T, k), v)
             else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
-                if m[:kind] == '('
-                    i = parse(Int, m[:index])
+                if item[:kind] == '('
+                    i = parse(Int, item[:index])
                     v = parse(Float64, v)  # TODO: This is tricky.
                     result[k] = if haskey(result, k)
                         # If `celldm` occurs before, push the new value, else create a vector of pairs.
@@ -80,20 +80,15 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
                     else
                         fillbyindex!([], i, v)
                     end
-                else  # m[:kind] == '%'
-                    i = string(m[:index])
+                else  # item[:kind] == '%'
+                    i = string(item[:index])
                     # TODO: This is not finished!
                 end
             end
         end
     end
     return if isempty(result)
-        if found
-            @info("Namelist found, but it is empty!")
-        else
-            @info("Namelist not found in string!")
-        end
-        nothing
+        @info("Namelist found, but it is empty!")
     else
         T(T(), result)  # TODO: This does not dynamically change
     end
