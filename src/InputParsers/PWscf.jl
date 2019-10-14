@@ -300,26 +300,18 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
     end
     return CellParametersCard(option, data)
 end # function Base.parse
-function Base.parse(::Type{Card}, str::AbstractString)
-    return filter(
-        !isnothing,
-        [
-         parse(AtomicSpeciesCard, str),
-         parse(AtomicPositionsCard, str),
-         parse(KPointsCard, str),
-         parse(CellParametersCard, str),
-        ],
+function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
+    return PWscfInput(
+        control = parse(ControlNamelist),
+        system = parse(SystemNamelist, str),
+        electrons = parse(ElectronsNamelist, str),
+        ions = parse(IonsNamelist, str),
+        cell = parse(CellNamelist, str),
+        atomic_species = parse(AtomicSpeciesCard, str),
+        atomic_positions = parse(AtomicPositionsCard, str),
+        k_points = parse(KPointsCard, str),
+        cell_parameters = parse(CellParametersCard, str),
     )
-end # function Base.parse
-function Base.parse(::Type{PWscfInput}, str::AbstractString)
-    dict = Dict{Symbol,InputEntry}()
-    for v in parse(Namelist, str)
-        dict[name(typeof(v))] = v
-    end
-    for v in parse(Card, str)
-        dict[name(typeof(v))] = v
-    end
-    return PWscfInput(cell_parameters = nothing; dict...)
 end # function Base.parse
 
 end
