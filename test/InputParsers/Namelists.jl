@@ -15,7 +15,7 @@ using QuantumESPRESSOParsers.InputParsers.Namelists
     @test isnothing(parse(PWscf.ControlNamelist, "&control/"))
     @test isnothing(parse(PWscf.ControlNamelist, "&control\n/\n"))
     @test_logs((:info, "Namelist not found in string!"), parse(PWscf.ControlNamelist, " "))
-    @test_logs((:info, "Namelist found, but it is empty!"), parse(PWscf.ControlNamelist, "&control\n/"))
+    @test_logs((:info, "Namelist found, but it is empty! Default values will be used!"), parse(PWscf.ControlNamelist, "&control\n/"))
 end # testset
 
 @testset "Parse CP input" begin
