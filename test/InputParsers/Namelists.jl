@@ -1,5 +1,7 @@
 using Test
 
+using Compat: isnothing
+
 using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
@@ -7,6 +9,12 @@ using QuantumESPRESSOBase.Namelists.CP
 using QuantumESPRESSOBase.Namelists.PHonon
 
 using QuantumESPRESSOParsers.InputParsers.Namelists
+
+@testset "Parse empty string" begin
+    @test isnothing(parse(PWscf.SystemNamelist, " "))
+    @test isnothing(parse(PWscf.SystemNamelist, "&control/"))
+    @test isnothing(parse(PWscf.SystemNamelist, "&control\n/\n"))
+end # testset
 
 @testset "Parse CP input" begin
     # This data is from https://github.com/QEF/q-e/blob/master/CPV/examples/example01/run_example.
