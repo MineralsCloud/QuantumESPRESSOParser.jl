@@ -11,11 +11,16 @@ version = "0.6.2"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "3c3130d2f5ea1c40975c53ad667f58061964d8b4"
+git-tree-sha1 = "f2f1fed1e18b2bee83e215b775649d006e32a9f7"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaLang/Compat.jl.git"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "2.1.0"
+version = "2.2.0"
+
+[[ConstructionBase]]
+git-tree-sha1 = "e3efe0a0f49dcd294c8c73e897b4fdf891f0fbd3"
+uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
+version = "0.1.0"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
@@ -117,7 +122,7 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[QuantumESPRESSOBase]]
 deps = ["Compat", "DataStructures", "Fortran90Namelists", "JSON", "MLStyle", "Parameters", "Serialization", "Setfield"]
-git-tree-sha1 = "fdf2febb91d37354890dfa1ae1fbbda7e9ac8d2f"
+git-tree-sha1 = "d24cdaa0864294ec6aa611e4395c2c0ad2604ee8"
 repo-rev = "develop"
 repo-url = "git@github.com:MineralsCloud/QuantumESPRESSOBase.jl.git"
 uuid = "51b62caa-b28f-11e9-38c2-1f67cb498e05"
@@ -138,10 +143,10 @@ uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
 
 [[Setfield]]
-deps = ["MacroTools"]
-git-tree-sha1 = "1d8d1e5ecae03c6fad643328a98c9adbda6d8eee"
+deps = ["ConstructionBase", "MacroTools"]
+git-tree-sha1 = "48e02359e79fc1934905e96fc81f42678abf2b56"
 uuid = "efcf1570-3423-57d1-acb7-fd33fddbac46"
-version = "0.4.0"
+version = "0.5.0"
 
 [[SharedArrays]]
 deps = ["Distributed", "Mmap", "Random", "Serialization"]
