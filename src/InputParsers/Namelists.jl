@@ -36,20 +36,20 @@ r"""
 [ \t]* (?<value> \S+?) [ \t]*  # match and store value
 [\n,]                          # return or comma separates "key = value" pairs
 """mx
-const NAMELIST_HEADS = Dict{String,Any}(
-    "CONTROL" => ControlNamelist,
-    "SYSTEM" => SystemNamelist,
-    "ELECTRONS" => ElectronsNamelist,
-    "CELL" => CellNamelist,
-    "IONS" => IonsNamelist
+NAMELIST_HEADS = Dict{Any,String}(
+    PWscf.ControlNamelist => "CONTROL",
+    PWscf.SystemNamelist => "SYSTEM",
+    PWscf.ElectronsNamelist => "ELECTRONS",
+    PWscf.CellNamelist => "CELL",
+    PWscf.IonsNamelist => "IONS",
+    PHonon.PHNamelist => "INPUTPH",
 )
 
-function Base.parse(::Type{Namelist}, str::AbstractString)
-    namelists = Namelist[]
+function Base.parse(T::Type{<:Namelist}, str::AbstractString)
+    result = Dict{Symbol,Any}()
     for nml in eachmatch(NAMELIST_BLOCK, str)
         head, body = nml.captures
-        T = NAMELIST_HEADS[uppercase(head)]
-        result = Dict{Symbol,Any}()
+        !occursin(uppercase(head), NAMELIST_HEADS[T]) && continue
         for m in eachmatch(NAMELIST_ITEM, body)
             k = Symbol(m[:key])
             v = FortranData(string(m[:value]))
@@ -72,13 +72,9 @@ function Base.parse(::Type{Namelist}, str::AbstractString)
                 end
             end
         end
-        push!(namelists, T(T(), result))
     end
-    return namelists
+    return isempty(result) ? nothing : T(T(), result)
 end # function Base.parse
-function Base.parse(T::Type{<:Namelist}, str::AbstractString)
-    return filter(x -> isa(x, T), parse(Namelist, str))
-end # function parsenamelist
 
 function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     if isempty(x)
