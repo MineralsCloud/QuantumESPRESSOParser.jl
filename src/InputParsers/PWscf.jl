@@ -302,7 +302,7 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
 end # function Base.parse
 function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
     return PWscfInput(
-        control = parse(ControlNamelist),
+        control = parse(ControlNamelist, str),
         system = parse(SystemNamelist, str),
         electrons = parse(ElectronsNamelist, str),
         ions = parse(IonsNamelist, str),
