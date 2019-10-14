@@ -13,10 +13,10 @@ module Namelists
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
-using MLStyle: @match
 
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
+using QuantumESPRESSOBase.Namelists.CP
 using QuantumESPRESSOBase.Namelists.PHonon
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
@@ -36,13 +36,22 @@ r"""
 [ \t]* (?<value> \S+?) [ \t]*  # match and store value
 [\n,]                          # return or comma separates "key = value" pairs
 """mx
-NAMELIST_HEADS = Dict{Any,String}(
+const NAMELIST_HEADS = Dict{Any,String}(
     PWscf.ControlNamelist => "CONTROL",
     PWscf.SystemNamelist => "SYSTEM",
     PWscf.ElectronsNamelist => "ELECTRONS",
     PWscf.CellNamelist => "CELL",
     PWscf.IonsNamelist => "IONS",
-    PHonon.PHNamelist => "INPUTPH",
+    CP.ControlNamelist => "CONTROL",
+    CP.SystemNamelist => "SYSTEM",
+    CP.ElectronsNamelist => "ELECTRONS",
+    CP.CellNamelist => "CELL",
+    CP.IonsNamelist => "IONS",
+    WannierNamelist => "WANNIER",
+    PHNamelist => "INPUTPH",
+    Q2RNamelist => "INPUT",
+    MatdynNamelist => "INPUT",
+    DynmatNamelist => "INPUT",
 )
 
 function Base.parse(T::Type{<:Namelist}, str::AbstractString)
