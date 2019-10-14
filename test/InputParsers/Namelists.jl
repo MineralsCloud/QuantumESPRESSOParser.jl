@@ -1,6 +1,5 @@
 using Test
 
-using Parameters: type2dict
 using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
@@ -64,4 +63,41 @@ using QuantumESPRESSOParsers.InputParsers.Namelists
     system = parse(CP.SystemNamelist, str)
     electrons = parse(CP.ElectronsNamelist, str)
     ions = parse(CP.IonsNamelist, str)
+    # @test control == CP.ControlNamelist(
+    #     calculation = "cp",
+    #     restart_mode = "from_scratch",
+    #     nstep = 20,
+    #     iprint = 20,
+    #     isave = 20,
+    #     dt = 5.0,
+    #     ndr = 90,
+    #     ndw = 91,
+    #     pseudo_dir = raw"$PSEUDO_DIR/",
+    #     outdir = raw"$TMP_DIR/",
+    # )
+    # @test system == CP.SystemNamelist(
+    #     ibrav = 8,
+    #     celldm = [9.28990, 1.73206, 1.09955],
+    #     nat = 18,
+    #     ntyp = 2,
+    #     nbnd = 48,
+    #     nspin = 1,
+    #     ecutwfc = 20.0,
+    #     ecutrho = 150.0,
+    #     nr1b = 16,
+    #     nr2b = 16,
+    #     nr3b = 16,
+    #     qcutz = 150.0,
+    #     q2sigma = 2.0,
+    #     ecfixed = 16.0,
+    # )
+    # @test electrons = CP.ElectronsNamelist(
+    #     electron_dynamics = "damp",
+    #     electron_damping = 0.2,
+    #     startingwfc = "random",
+    #     ampre = 0.01,
+    #     emass = 700.0,
+    #     emass_cutoff = 3.0,
+    # )
+    # @test ions == CP.IonsNamelist(ion_dynamics = "none", ion_radius = [1.0, 1.0])
 end # testset
