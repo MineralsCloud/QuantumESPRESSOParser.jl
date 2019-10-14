@@ -56,9 +56,14 @@ const NAMELIST_HEADS = Dict{Any,String}(
 
 function Base.parse(T::Type{<:Namelist}, str::AbstractString)
     result = Dict{Symbol,Any}()
+    found = false
     for nml in eachmatch(NAMELIST_BLOCK, str)
         head, body = nml.captures
-        !occursin(uppercase(head), NAMELIST_HEADS[T]) && continue
+        if occursin(uppercase(head), NAMELIST_HEADS[T])
+            found = true
+        else
+            continue
+        end
         for m in eachmatch(NAMELIST_ITEM, body)
             k = Symbol(m[:key])
             v = FortranData(string(m[:value]))
@@ -82,7 +87,16 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
             end
         end
     end
-    return isempty(result) ? nothing : T(T(), result)  # TODO: This does not dynamically change
+    return if isempty(result)
+        if found
+            @info("Namelist found, but it is empty!")
+        else
+            @info("Namelist not found in string!")
+        end
+        nothing
+    else
+        T(T(), result)  # TODO: This does not dynamically change
+    end
 end # function Base.parse
 
 function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}

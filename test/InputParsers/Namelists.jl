@@ -11,9 +11,11 @@ using QuantumESPRESSOBase.Namelists.PHonon
 using QuantumESPRESSOParsers.InputParsers.Namelists
 
 @testset "Parse empty string" begin
-    @test isnothing(parse(PWscf.SystemNamelist, " "))
-    @test isnothing(parse(PWscf.SystemNamelist, "&control/"))
-    @test isnothing(parse(PWscf.SystemNamelist, "&control\n/\n"))
+    @test isnothing(parse(PWscf.ControlNamelist, " "))
+    @test isnothing(parse(PWscf.ControlNamelist, "&control/"))
+    @test isnothing(parse(PWscf.ControlNamelist, "&control\n/\n"))
+    @test_logs((:info, "Namelist not found in string!"), parse(PWscf.ControlNamelist, " "))
+    @test_logs((:info, "Namelist found, but it is empty!"), parse(PWscf.ControlNamelist, "&control\n/"))
 end # testset
 
 @testset "Parse CP input" begin
