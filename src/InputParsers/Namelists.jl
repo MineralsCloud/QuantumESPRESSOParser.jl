@@ -52,7 +52,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
     NAMELIST_BLOCK = Regex(
         """
         ^ [ \t]* &$head [ \t]* \$\n
-        (
+        (?<body>
             [\\S\\s]*?
         )
         ^ [ \t]* / [ \t]* \$
@@ -64,7 +64,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
         @info("Namelist not found in string!")
         return
     else
-        for item in eachmatch(NAMELIST_ITEM, m[1])
+        for item in eachmatch(NAMELIST_ITEM, m[:body])
             k = Symbol(item[:key])
             v = FortranData(string(item[:value]))
             # Parse a `FortranData` from `value` as type of the field of the namelist `T`
