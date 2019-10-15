@@ -15,10 +15,11 @@ using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 using MLStyle: @match
 
-using QuantumESPRESSOBase
-using QuantumESPRESSOBase.Namelists: Namelist, to_dict
-using QuantumESPRESSOBase.Namelists.PWscf
-using QuantumESPRESSOBase.Cards
+using QuantumESPRESSOBase.Namelists.PWscf: ControlNamelist,
+                                           SystemNamelist,
+                                           ElectronsNamelist,
+                                           IonsNamelist,
+                                           CellNamelist
 using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        AtomicSpeciesCard,
                                        AtomicPosition,
@@ -28,8 +29,7 @@ using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        MonkhorstPackGrid,
                                        SpecialKPoint,
                                        CellParametersCard
-using QuantumESPRESSOBase.Inputs
-using QuantumESPRESSOBase.Inputs.PWscf
+using QuantumESPRESSOBase.Inputs.PWscf: PWscfInput
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK = r"""
@@ -261,7 +261,7 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     isnothing(m) && return nothing
     option = string(m.captures[1])
-    if isnothing(option)
+    if isempty(option)
         @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
         @info "'bohr' is assumed."
         option = "bohr"
