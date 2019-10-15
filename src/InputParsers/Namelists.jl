@@ -20,13 +20,12 @@ using QuantumESPRESSOBase.Namelists.CP
 using QuantumESPRESSOBase.Namelists.PHonon
 
 # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
-const NAMELIST_ITEM =
-r"""
-[ \t]* (?<key> \S+? )(?: (?<kind> [\(%]) (?<index> \w+) \)? )? [ \t]*  # match and store key
-=                              # equals sign separates key and value
-[ \t]* (?<value> \S+?) [ \t]*  # match and store value
-[\n,]                          # return or comma separates "key = value" pairs
-"""mx
+const NAMELIST_ITEM = r"""
+                      [ \t]* (?<key> \S+? )(?: (?<kind> [\(%]) (?<index> \w+) \)? )? [ \t]*  # match and store key
+                      =                              # equals sign separates key and value
+                      [ \t]* (?<value> \S+?) [ \t]*  # match and store value
+                      [\n,]                          # return or comma separates "key = value" pairs
+                      """mx
 const NAMELIST_HEADS = Dict{Any,String}(
     PWscf.ControlNamelist => "CONTROL",
     PWscf.SystemNamelist => "SYSTEM",
@@ -49,16 +48,13 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
     result = Dict{Symbol,Any}()
     head = NAMELIST_HEADS[T]
     # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
-    NAMELIST_BLOCK = Regex(
-        """
-        ^ [ \t]* &$head [ \t]* \$\n
-        (?<body>
-            [\\S\\s]*?
-        )
-        ^ [ \t]* / [ \t]* \$
-        """, 
-        "imx"
-    )
+    NAMELIST_BLOCK = Regex("""
+                           ^ [ \t]* &$head [ \t]* \$\n
+                           (?<body>
+                               [\\S\\s]*?
+                           )
+                           ^ [ \t]* / [ \t]* \$
+                           """, "imx")
     m = match(NAMELIST_BLOCK, str)
     if isnothing(m)
         @info("Namelist not found in string!")
@@ -99,10 +95,7 @@ function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     if isempty(x)
         x = Vector{Union{Nothing,T}}(nothing, index)
     else
-        index > length(x) && append!(
-            x,
-            Vector{Union{Nothing,T}}(nothing, index - length(x)),
-        )
+        index > length(x) && append!(x, Vector{Union{Nothing,T}}(nothing, index - length(x)))
     end
     x[index] = value
     return x
