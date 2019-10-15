@@ -49,18 +49,18 @@ const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "br
 const BRAVAIS_LATTICE_INDEX = Regex("(bravais-lattice index)" * EQUAL_SIGN * INTEGER, "i")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
 const LATTICE_PARAMETER = Regex(
-    "(lattice parameter \(alat\))" * EQUAL_SIGN * FIXED_POINT_REAL,
+    raw"(lattice parameter \(alat\))" * EQUAL_SIGN * FIXED_POINT_REAL,
     "i",
 )
 # 'unit-cell volume          = ',F12.4,' (a.u.)^3'
 const UNIT_CELL_VOLUME = Regex("(unit-cell volume)" * EQUAL_SIGN * FIXED_POINT_REAL, "i")
 # 'number of atoms/cell      = ',I12
-const NUMBER_OF_ATOMS_PER_CELL = Regex("(number of atoms\/cell)" * EQUAL_SIGN * INTEGER, "i")
+const NUMBER_OF_ATOMS_PER_CELL = Regex(raw"(number of atoms\/cell)" * EQUAL_SIGN * INTEGER, "i")
 # 'number of atomic types    = ',I12
 const NUMBER_OF_ATOMIC_TYPES = Regex("(number of atomic types)" * EQUAL_SIGN * INTEGER, "i")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
 const NUMBER_OF_ELECTRONS = Regex("(number of electrons)" * EQUAL_SIGN * FIXED_POINT_REAL *
-                                  "(?:\(up:\\s*" * FIXED_POINT_REAL * ", down:\\s*" *
+                                  raw"(?:\(up:\s*" * FIXED_POINT_REAL * raw", down:\s*" *
                                   FIXED_POINT_REAL * raw"\))?")
 # 'number of Kohn-Sham states= ',I12
 const NUMBER_OF_KOHN_SHAM_STATES = Regex(
