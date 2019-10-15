@@ -15,10 +15,11 @@ using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 using MLStyle: @match
 
-using QuantumESPRESSOBase
-using QuantumESPRESSOBase.Namelists: Namelist, to_dict
-using QuantumESPRESSOBase.Namelists.PWscf
-using QuantumESPRESSOBase.Cards
+using QuantumESPRESSOBase.Namelists.PWscf: ControlNamelist,
+                                           SystemNamelist,
+                                           ElectronsNamelist,
+                                           IonsNamelist,
+                                           CellNamelist
 using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        AtomicSpeciesCard,
                                        AtomicPosition,
@@ -28,11 +29,10 @@ using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        MonkhorstPackGrid,
                                        SpecialKPoint,
                                        CellParametersCard
-using QuantumESPRESSOBase.Inputs
-using QuantumESPRESSOBase.Inputs.PWscf
+using QuantumESPRESSOBase.Inputs.PWscf: PWscfInput
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
-const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
+const ATOMIC_POSITIONS_BLOCK = r"""
 ^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
 [{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\n    # The units are after the string in optional brackets
 (?P<block>                                      # This is the block of positions
@@ -73,56 +73,33 @@ const ATOMIC_POSITIONS_BLOCK_REGEX = r"""
     )+                                          # A positions block should be one or more lines
 )
 """imx
-# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
-const CELL_PARAMETERS_BLOCK_REGEX = r"""
+# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
-[{(]? \s* (?P<units>[a-z]*) \s* [)}]? \s* [\n]
-(?P<block>
-(
-    (
-        \s*             # White space in front of the element spec is ok
-        (
-            # First number
-            (
-                [-|+]?   # Plus or minus in front of the number (optional)
-                (\d*     # optional decimal in the beginning .0001 is ok, for example
-                [\.]     # There has to be a dot followed by
-                \d+)     # at least one decimal
-                |        # OR
-                (\d+     # at least one decimal, followed by
-                [\.]?    # an optional dot
-                \d*)     # followed by optional decimals
-                ([E|e|d|D][+|-]?\d+)?  # optional exponents E+03, e-05, d0, D0
-            
-                (
-                    \s+      # White space between numbers
-                    [-|+]?   # Plus or minus in front of the number (optional)
-                    (\d*     # optional decimal in the beginning .0001 is ok, for example
-                    [\.]     # There has to be a dot followed by
-                    \d+)     # at least one decimal
-                    |        # OR
-                    (\d+     # at least one decimal, followed by
-                    [\.]?    # an optional dot
-                    \d*)     # followed by optional decimals
-                    ([E|e|d|D][+|-]?\d+)?  # optional exponents E+03, e-05, d0, D0
-                ){2}         # I expect three float values
-            )
-            |
-            \#
-            |
-            !            # If a line is commented out, that is also ok
-        )
-        .*               # I do not care what is after the comment or the vector
-        |                # OR
-        \s*              # A line only containing white space
-     )
-    [\n]                 # line break at the end
-){3}                     # I need exactly 3 vectors
+[{(]? \s* (?P<option>[a-z]*) \s* [)}]? \h* \v
+(?P<data>
+(?:
+    \s*              # White space in front of the element spec is ok
+    (?:
+        [-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[ED][-+]?[0-9]+)?  # First number
+        (?:
+        \s+          # White space between numbers
+        [-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[ED][-+]?[0-9]+)?
+        ){2}         # I expect 3 numbers
+        |
+        \#           # If a line is commented out, that is also ok
+        |
+        !            # If a line is commented out, that is also ok
+    )
+    .*               # I do not care what is after the comment or the vector
+    |                # Or
+    ^\s*$            # A line only containing white space
+){3}                 # I need exactly 3 vectors
 )
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
-const ATOMIC_SPECIES_BLOCK_REGEX = r"""
+const ATOMIC_SPECIES_BLOCK = r"""
 ^ [ \t]* ATOMIC_SPECIES [ \t]* $\n
 (?P<block>
  (?:
@@ -131,7 +108,7 @@ const ATOMIC_SPECIES_BLOCK_REGEX = r"""
 )
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
-const K_POINTS_SPECIAL_BLOCK_REGEX = r"""
+const K_POINTS_SPECIAL_BLOCK = r"""
 ^ [ \t]* K_POINTS [ \t]*
     [{(]? [ \t]* (?P<type>\S+?)? [ \t]* [)}]? [ \t]* $\n
 ^ [ \t]* \S+ [ \t]* $\n  # nks
@@ -142,22 +119,22 @@ const K_POINTS_SPECIAL_BLOCK_REGEX = r"""
 )
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
-const K_POINTS_AUTOMATIC_BLOCK_REGEX = r"""
+const K_POINTS_AUTOMATIC_BLOCK = r"""
 ^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* automatic [ \t]* [)}]? [ \t]* $\n
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+)
     [ \t]+ (\S+) [ \t]* $\n?
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
-const K_POINTS_GAMMA_BLOCK_REGEX = r"""
+const K_POINTS_GAMMA_BLOCK = r"""
 ^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* $\n
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
-const ATOMIC_SPECIES_ITEM_REGEX = r"""
+const ATOMIC_SPECIES_ITEM = r"""
 ^ [ \t]* (?P<name>\S+) [ \t]+ (?P<mass>\S+) [ \t]+ (?P<pseudo>\S+)
     [ \t]* $\n?
 """mx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
-const ATOMIC_POSITIONS_ITEM_REGEX = r"""
+const ATOMIC_POSITIONS_ITEM = r"""
 ^                                       # Linestart
 [ \t]*                                  # Optional white space
 (?P<name>[A-Za-z]+[A-Za-z0-9]{0,2})\s+   # get the symbol, max 3 chars, starting with a char
@@ -183,11 +160,11 @@ const ATOMIC_POSITIONS_ITEM_REGEX = r"""
 (?P<fz>[01]?)                           # Get fx
 """mx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
-const K_POINTS_SPECIAL_ITEM_REGEX = r"""
+const K_POINTS_SPECIAL_ITEM = r"""
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
 """mx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
-const CELL_PARAMETERS_ITEM_REGEX = r"""
+const CELL_PARAMETERS_ITEM = r"""
 ^                        # Linestart
 [ \t]*                   # Optional white space
 (?P<x>                   # Get x
@@ -207,12 +184,12 @@ const CELL_PARAMETERS_ITEM_REGEX = r"""
 """mx
 
 function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
-    m = match(ATOMIC_SPECIES_BLOCK_REGEX, str)
+    m = match(ATOMIC_SPECIES_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     @assert !isnothing(m) "Cannot find card `ATOMIC_SPECIES`! Check your input!"
     content = m.captures[1]
     data = AtomicSpecies[]
-    for matched in eachmatch(ATOMIC_SPECIES_ITEM_REGEX, content)
+    for matched in eachmatch(ATOMIC_SPECIES_ITEM, content)
         captured = matched.captures
         atom, mass, pseudopotential = string(captured[1]),
             parse(Float64, FortranData(captured[2])),
@@ -222,7 +199,7 @@ function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
     return AtomicSpeciesCard(data)
 end # function Base.parse
 function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
-    m = match(ATOMIC_POSITIONS_BLOCK_REGEX, str)
+    m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     @assert !isnothing(m) "Cannot find card `ATOMIC_POSITIONS`! Check your input!"
     option = string(m.captures[1])
@@ -233,7 +210,7 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
     end
     content = m.captures[2]
     data = AtomicPosition{String,Vector{Float64},Vector{Int}}[]
-    for matched in eachmatch(ATOMIC_POSITIONS_ITEM_REGEX, content)
+    for matched in eachmatch(ATOMIC_POSITIONS_ITEM, content)
         # The `matched` cannot be a `nothing` since we have tested by the block regular expression
         captured = matched.captures
         # The `if_pos` field is optionally given by users. If they do not give, we provide the default values `1`.
@@ -249,16 +226,16 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
     return AtomicPositionsCard(option, data)
 end # function Base.parse
 function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
-    m = match(K_POINTS_GAMMA_BLOCK_REGEX, str)
+    m = match(K_POINTS_GAMMA_BLOCK, str)
     !isnothing(m) && return KPointsCard("gamma", [GammaPoint()])
 
-    m = match(K_POINTS_AUTOMATIC_BLOCK_REGEX, str)
+    m = match(K_POINTS_AUTOMATIC_BLOCK, str)
     if !isnothing(m)
         data = map(x -> parse(Int, FortranData(x)), m.captures)
         return KPointsCard("automatic", [MonkhorstPackGrid(data[1:3], data[4:6])])
     end
 
-    m = match(K_POINTS_SPECIAL_BLOCK_REGEX, str)
+    m = match(K_POINTS_SPECIAL_BLOCK, str)
     if !isnothing(m)
         if isnothing(m.captures[1])
             option = "tpiba"
@@ -267,7 +244,7 @@ function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
         end
         captured = m.captures[2]
         data = SpecialKPoint[]
-        for matched in eachmatch(K_POINTS_SPECIAL_ITEM_REGEX, captured)
+        for matched in eachmatch(K_POINTS_SPECIAL_ITEM, captured)
             # TODO: Match `nks`
             point = @match map(x -> parse(Float64, FortranData(x)), matched.captures) begin
                 [coordinates..., weight] => SpecialKPoint(coordinates, weight)
@@ -280,18 +257,18 @@ function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
     @info "Cannot find card `K_POINTS`!"
 end # function Base.parse
 function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
-    m = match(CELL_PARAMETERS_BLOCK_REGEX, str)
+    m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     isnothing(m) && return nothing
     option = string(m.captures[1])
-    if isnothing(option)
+    if isempty(option)
         @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
         @info "'bohr' is assumed."
         option = "bohr"
     end
     content = m.captures[2]
     data = Matrix{Float64}(undef, 3, 3)
-    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_REGEX, content))
+    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
         captured = matched.captures
         data[i, :] = map(
             x -> parse(Float64, FortranData(x)),
@@ -300,26 +277,18 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
     end
     return CellParametersCard(option, data)
 end # function Base.parse
-function Base.parse(::Type{Card}, str::AbstractString)
-    return filter(
-        !isnothing,
-        [
-         parse(AtomicSpeciesCard, str),
-         parse(AtomicPositionsCard, str),
-         parse(KPointsCard, str),
-         parse(CellParametersCard, str),
-        ],
+function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
+    return PWscfInput(
+        control = parse(ControlNamelist, str),
+        system = parse(SystemNamelist, str),
+        electrons = parse(ElectronsNamelist, str),
+        ions = parse(IonsNamelist, str),
+        cell = parse(CellNamelist, str),
+        atomic_species = parse(AtomicSpeciesCard, str),
+        atomic_positions = parse(AtomicPositionsCard, str),
+        k_points = parse(KPointsCard, str),
+        cell_parameters = parse(CellParametersCard, str),
     )
-end # function Base.parse
-function Base.parse(::Type{PWscfInput}, str::AbstractString)
-    dict = Dict{Symbol,InputEntry}()
-    for v in parse(Namelist, str)
-        dict[name(typeof(v))] = v
-    end
-    for v in parse(Card, str)
-        dict[name(typeof(v))] = v
-    end
-    return PWscfInput(cell_parameters = nothing; dict...)
 end # function Base.parse
 
 end
