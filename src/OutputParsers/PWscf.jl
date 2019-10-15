@@ -37,6 +37,7 @@ const Maybe{T} = Union{T,Nothing}
 const INTEGER = raw"([-+]?[0-9]+)"
 const FIXED_POINT_REAL = raw"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"
 const GENERAL_REAL = raw"([-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[eE][-+]?[0-9]+)?)"
+const EQUAL_SIGN = raw"\s*=\s*"
 
 # This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
 const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>[0-9]+) processors)?"i
@@ -45,57 +46,57 @@ const FFT_DIMENSIONS = r"Dense  grid:\s*([0-9]+)\s*G-vectors     FFT dimensions:
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
-const BRAVAIS_LATTICE_INDEX = Regex(raw"(bravais-lattice index)\s*=\s*" * INTEGER, "i")
+const BRAVAIS_LATTICE_INDEX = Regex("(bravais-lattice index)" * EQUAL_SIGN * INTEGER, "i")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
 const LATTICE_PARAMETER = Regex(
-    raw"(lattice parameter \(alat\))\s*=\s*" * FIXED_POINT_REAL,
+    "(lattice parameter \(alat\))" * EQUAL_SIGN * FIXED_POINT_REAL,
     "i",
 )
 # 'unit-cell volume          = ',F12.4,' (a.u.)^3'
-const UNIT_CELL_VOLUME = Regex(raw"(unit-cell volume)\s+=\s*" * FIXED_POINT_REAL, "i")
+const UNIT_CELL_VOLUME = Regex("(unit-cell volume)" * EQUAL_SIGN * FIXED_POINT_REAL, "i")
 # 'number of atoms/cell      = ',I12
-const NUMBER_OF_ATOMS_PER_CELL = Regex(raw"(number of atoms\/cell)\s+=\s*" * INTEGER, "i")
+const NUMBER_OF_ATOMS_PER_CELL = Regex("(number of atoms\/cell)" * EQUAL_SIGN * INTEGER, "i")
 # 'number of atomic types    = ',I12
-const NUMBER_OF_ATOMIC_TYPES = Regex(raw"(number of atomic types)\s*=\s*" * INTEGER, "i")
+const NUMBER_OF_ATOMIC_TYPES = Regex("(number of atomic types)" * EQUAL_SIGN * INTEGER, "i")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = Regex(raw"(number of electrons)\s*=\s*" * FIXED_POINT_REAL *
-                                  raw"(?:\(up:\s*" * FIXED_POINT_REAL * raw", down:\s*" *
+const NUMBER_OF_ELECTRONS = Regex("(number of electrons)" * EQUAL_SIGN * FIXED_POINT_REAL *
+                                  "(?:\(up:\\s*" * FIXED_POINT_REAL * ", down:\\s*" *
                                   FIXED_POINT_REAL * raw"\))?")
 # 'number of Kohn-Sham states= ',I12
 const NUMBER_OF_KOHN_SHAM_STATES = Regex(
-    raw"(number of Kohn-Sham states)\s*=\s*" * INTEGER,
+    "(number of Kohn-Sham states)" * EQUAL_SIGN * INTEGER,
     "i",
 )
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
 const KINETIC_ENERGY_CUTOFF = Regex(
-    raw"(kinetic-energy cutoff)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry",
+    "(kinetic-energy cutoff)" * EQUAL_SIGN * FIXED_POINT_REAL * "\\s+Ry",
     "i",
 )
 # 'charge density cutoff     = ',F12.4,'  Ry'
 const CHARGE_DENSITY_CUTOFF = Regex(
-    raw"(charge density cutoff)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry",
+    "(charge density cutoff)" * EQUAL_SIGN * FIXED_POINT_REAL * "\\s+Ry",
     "i",
 )
 # 'cutoff for Fock operator  = ',F12.4,'  Ry'
 const CUTOFF_FOR_FOCK_OPERATOR = Regex(
-    raw"(cutoff for Fock operator)\s*=\s*" * FIXED_POINT_REAL * raw"\s+Ry",
+    "(cutoff for Fock operator)" * EQUAL_SIGN * FIXED_POINT_REAL * "\\s+Ry",
     "i",
 )
 # 'convergence threshold     = ',1PE12.1
 const CONVERGENCE_THRESHOLD = Regex(
-    raw"(convergence threshold)\s*=\s*" * GENERAL_REAL,
+    "(convergence threshold)" * EQUAL_SIGN * GENERAL_REAL,
     "i",
 )
 # 'mixing beta               = ',0PF12.4
-const MIXING_BETA = Regex(raw"(mixing beta)\s*=\s*" * FIXED_POINT_REAL, "i")
+const MIXING_BETA = Regex("(mixing beta)" * EQUAL_SIGN * FIXED_POINT_REAL, "i")
 # 'number of iterations used = ',I12,2X,A,' mixing'
 const NUMBER_OF_ITERATIONS_USED = Regex(
-    raw"(number of iterations used)\s*=\s*" * INTEGER,
+    "(number of iterations used)" * EQUAL_SIGN * INTEGER,
     "i",
 )
 const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
 # "nstep                     = ",I12
-const NSTEP = Regex(raw"(nstep)\s*=\s*" * INTEGER, "i")
+const NSTEP = Regex("(nstep)" * EQUAL_SIGN * INTEGER, "i")
 const PARALLELIZATION_INFO_BLOCK = r"""Parallelization info
 \s*--------------------
 \s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
@@ -231,14 +232,14 @@ const ITERATION_BLOCK = r"(iteration #\X+?secs)\s*(total energy\X+?estimated scf
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
 const ITERATION_NUMBER_ITEM = Regex(
-    raw"iteration #\s*" * INTEGER * raw"\s+ecut=\s*" * FIXED_POINT_REAL *
-    raw" Ry\s+beta=\s*" * FIXED_POINT_REAL,
+    "iteration #\\s*" * INTEGER * "\\s+ecut=\\s*" * FIXED_POINT_REAL *
+    " Ry\\s+beta=\\s*" * FIXED_POINT_REAL,
     "i",
 )
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
 # '     total cpu time spent up to now is ',F10.1,' secs'
 const TOTAL_CPU_TIME = Regex(
-    raw"total cpu time spent up to now is\s*" * FIXED_POINT_REAL * raw"\s* secs",
+    "total cpu time spent up to now is\\s*" * FIXED_POINT_REAL * "\\s* secs",
     "i",
 )
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
@@ -250,7 +251,7 @@ const SUMMARY_TIME_BLOCK = r"""
 \s*(forces\s+:.*)?     # This does not always exist.
 \s*(stress\s+:.*)?     # This does not always exist.
 """imx
-const TIME_ITEM = Regex(raw"\s*([\w[0-9]:]+)\s+:\s*" * FIXED_POINT_REAL * raw"s\sCPU\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)", "i")
+const TIME_ITEM = Regex(raw"\s*([\w[0-9]:]+)\s+:\s*" * FIXED_POINT_REAL * "s\\sCPU\\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)", "i")
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"im
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
