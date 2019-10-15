@@ -34,14 +34,14 @@ export parse_head,
 const Maybe{T} = Union{T,Nothing}
 
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
-const INTEGER = raw"([-+]?\d+)"
-const FIXED_POINT_REAL = raw"([-+]?\d*\.\d+|\d+\.?\d*)"
-const GENERAL_REAL = raw"([-+]?(?:\d*\.\d+|\d+\.?\d*)(?:[eE][-+]?[0-9]+)?)"
+const INTEGER = raw"([-+]?[0-9]+)"
+const FIXED_POINT_REAL = raw"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"
+const GENERAL_REAL = raw"([-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[eE][-+]?[0-9]+)?)"
 
 # This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
-const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>\d+) processors)?"i
-const PWSCF_VERSION = r"Program PWSCF v\.(?<version>\d\.\d+\.?\d?)"i
-const FFT_DIMENSIONS = r"Dense  grid:\s*(\d+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i
+const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>[0-9]+) processors)?"i
+const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"i
+const FFT_DIMENSIONS = r"Dense  grid:\s*([0-9]+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
@@ -102,7 +102,7 @@ const PARALLELIZATION_INFO_BLOCK = r"""Parallelization info
 (\X+?)
 \s*bravais-lattice index"""im
 const K_POINTS_BLOCK = r"""
-number of k points=\s*(\d+)\X+?
+number of k points=\s*([0-9]+)\X+?
 \s*cart\. coord\. in units 2pi\/alat\s*
 (\X+?)
 \s*cryst\. coord\.\s*
@@ -110,18 +110,18 @@ number of k points=\s*(\d+)\X+?
 \s*Dense  grid"""im
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-const K_POINTS_ITEM = r"k\(\s*(\d+)\s*\) = \(\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*([-+]?\d*\.\d+|\d+\.?\d*)\s*\), wk =\s*([-+]?\d*\.\d+|\d+\.?\d*)"i
+const K_POINTS_ITEM = r"k\(\s*([0-9]+)\s*\) = \(\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*\), wk =\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
-\(?\w+\s*=\s*[\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?\)? \s* [\n]
+\(?\w+\s*=\s*[\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?\)? \s* [\n]
 (
 (
 \s*
 (
-[\-|\+]? ( \d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?\s*
+[\-|\+]? ( [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?\s*
 ){3}[\n]
 ){3}
 )
@@ -130,18 +130,18 @@ const CELL_PARAMETERS_ITEM = r"""
 ^                        # Linestart
 [ \t]*                   # Optional white space
 (?P<x>                   # Get x
-    [\-|\+]? ( \d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?
+    [\-|\+]? ( [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?
 )
 [ \t]+
 (?P<y>                   # Get y
-    [\-|\+]? (\d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?
+    [\-|\+]? ([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?
 )
 [ \t]+
 (?P<z>                   # Get z
-    [\-|\+]? (\d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?
+    [\-|\+]? ([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?
 )
 """mx
 const ATOMIC_POSITIONS_BLOCK = r"""
@@ -158,18 +158,18 @@ const ATOMIC_POSITIONS_BLOCK = r"""
                     [-|+]?                      # Plus or minus in front of the number (optional)
                     (
                         (
-                            \d*                 # optional decimal in the beginning .0001 is ok, for example
+                            [0-9]*                 # optional decimal in the beginning .0001 is ok, for example
                             [\.]                # There has to be a dot followed by
-                            \d+                 # at least one decimal
+                            [0-9]+                 # at least one decimal
                         )
                         |                       # OR
                         (
-                            \d+                 # at least one decimal, followed by
+                            [0-9]+                 # at least one decimal, followed by
                             [\.]?               # an optional dot ( both 1 and 1. are fine)
-                            \d*                 # And optional number of decimals (1.00001)
+                            [0-9]*                 # And optional number of decimals (1.00001)
                         )                        # followed by optional decimals
                     )
-                    ([E|e|d|D][+|-]?\d+)?       # optional exponents E+03, e-05
+                    ([E|e|d|D][+|-]?[0-9]+)?       # optional exponents E+03, e-05
                 ){3}                            # I expect three float values
                 ((\s+[0-1]){3}\s*)?             # Followed by optional ifpos
                 \s*                             # Followed by optional white space
@@ -190,18 +190,18 @@ const ATOMIC_POSITIONS_ITEM = r"""
 [ \t]*                                  # Optional white space
 (?P<name>[A-Za-z]+[A-Za-z0-9]{0,2})\s+   # get the symbol, max 3 chars, starting with a char
 (?P<x>                                  # Get x
-    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?
+    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?
 )
 [ \t]+
 (?P<y>                                  # Get y
-    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?
+    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?
 )
 [ \t]+
 (?P<z>                                  # Get z
-    [\-|\+]?(\d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?
+    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?
 )
 [ \t]*
 (?P<fx>[01]?)                           # Get fx
@@ -213,15 +213,15 @@ const ATOMIC_POSITIONS_ITEM = r"""
 const STRESS_BLOCK = r"""
 ^[ \t]*
 total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
-\(kbar\)\s+P=\s*([\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?)
+\(kbar\)\s+P=\s*([\-|\+]? (?: [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?)
 [\n]
 (
 (?:
 \s*
 (?:
-[\-|\+]? (?: \d*[\.]\d+ | \d+[\.]?\d*)
-    ([E|e|d|D][+|-]?\d+)?[ \t]*
+[\-|\+]? (?: [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
+    ([E|e|d|D][+|-]?[0-9]+)?[ \t]*
 ){6}
 ){3}
 )
@@ -250,7 +250,7 @@ const SUMMARY_TIME_BLOCK = r"""
 \s*(forces\s+:.*)?     # This does not always exist.
 \s*(stress\s+:.*)?     # This does not always exist.
 """imx
-const TIME_ITEM = Regex(raw"\s*([\w\d:]+)\s+:\s*" * FIXED_POINT_REAL * raw"s\sCPU\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?\d+)\scalls\)", "i")
+const TIME_ITEM = Regex(raw"\s*([\w[0-9]:]+)\s+:\s*" * FIXED_POINT_REAL * raw"s\sCPU\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)", "i")
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"im
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
@@ -263,11 +263,11 @@ TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
 const JOB_DONE = r"JOB DONE\."i
 
 const PATTERNS = [
-    r"(\d+)\s*Sym\. Ops\., with inversion, found"i,
+    r"([0-9]+)\s*Sym\. Ops\., with inversion, found"i,
     r"starting charge(.*), renormalised to(.*)"i,
-    r"the Fermi energy is\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*ev"i,
+    r"the Fermi energy is\s*([-+]?[0-9]*\.?[0-9]+((:?[ed])[-+]?[0-9]+)?)\s*ev"i,
     r"The total energy is the sum of the following terms:"i,
-    r"convergence has been achieved in\s*(\d+)\s*iterations"i,
+    r"convergence has been achieved in\s*([0-9]+)\s*iterations"i,
     r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
 ]
 
@@ -438,12 +438,12 @@ function parse_scf_calculation(str::AbstractString)
                 body = n.captures[2]
                 e = parse(
                     Float64,
-                    match(r"total energy\s+=\s*([-+]?\d*\.\d+|\d+\.?\d*)"i, body).captures[1],
+                    match(r"total energy\s+=\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i, body).captures[1],
                 )
                 hf = parse(
                     Float64,
                     match(
-                        r"Harris-Foulkes estimate\s+=\s*([-+]?\d*\.\d+|\d+\.?\d*)"i,
+                        r"Harris-Foulkes estimate\s+=\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i,
                         body,
                     ).captures[1],
                 )
@@ -468,7 +468,7 @@ end # function parse_scf_calculation
 function parse_total_energy(str::AbstractString)
     result = Float64[]
     for m in eachmatch(
-        r"!\s+total energy\s+=\s*([-+]?\d*\.?\d+((:?[ed])[-+]?\d+)?)\s*Ry"i,
+        r"!\s+total energy\s+=\s*([-+]?[0-9]*\.?[0-9]+((:?[ed])[-+]?[0-9]+)?)\s*Ry"i,
         str,
     )
         push!(result, parse(Float64, FortranData(m.captures[1])))
