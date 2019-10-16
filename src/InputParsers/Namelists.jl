@@ -67,7 +67,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
             if isnothing(item[:index])  # Cases like `ntyp = 2`
                 result[k] = parse(fieldtype(T, k), v)
             else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
-                if item[:kind] == '('
+                if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
                     i = parse(Int, item[:index])
                     v = parse(Float64, v)  # TODO: This is tricky.
                     result[k] = if haskey(result, k)
