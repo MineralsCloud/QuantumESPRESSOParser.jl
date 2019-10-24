@@ -510,11 +510,11 @@ function parse_clock(str::AbstractString)
         GENERAL_ROUTINES_TIME_BLOCK
         PARALLEL_ROUTINES_TIME_BLOCK
     ]
-        d = Dict{String,Any}()
+        d = DataFrame(item = String[], CPU = Float64[], wall = Float64[], calls = Int[])
         block = match(regex, content)
         isnothing(block) && continue
         for m in eachmatch(TIME_ITEM, block[:body])
-            d[m[1]] = map(x -> parse(Float64, x), m.captures[2:4])
+            push!(d, [m[1]; map(x -> parse(Float64, x), m.captures[2:4])])
         end
         info[block[:head]] = d
     end
