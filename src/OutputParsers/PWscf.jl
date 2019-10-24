@@ -12,6 +12,7 @@ julia>
 module PWscf
 
 # using Dates: DateTime, DateFormat
+using DataFrames: DataFrame, groupby
 using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
@@ -33,237 +34,7 @@ export parse_head,
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}
 
-# See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
-const INTEGER = raw"([-+]?[0-9]+)"
-const FIXED_POINT_REAL = raw"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"
-const GENERAL_REAL = raw"([-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[eE][-+]?[0-9]+)?)"
-const EQUAL_SIGN = raw"\s*=\s*"
-
-# This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
-const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>[0-9]+) processors)?"i
-const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"i
-const FFT_DIMENSIONS = r"Dense  grid:\s*([0-9]+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i
-# The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
-const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
-# 'bravais-lattice index     = ',I12
-const BRAVAIS_LATTICE_INDEX = Regex("(bravais-lattice index)" * EQUAL_SIGN * INTEGER, "i")
-# 'lattice parameter (alat)  = ',F12.4,'  a.u.'
-const LATTICE_PARAMETER = Regex(
-    raw"(lattice parameter \(alat\))" * EQUAL_SIGN * FIXED_POINT_REAL,
-    "i",
-)
-# 'unit-cell volume          = ',F12.4,' (a.u.)^3'
-const UNIT_CELL_VOLUME = Regex("(unit-cell volume)" * EQUAL_SIGN * FIXED_POINT_REAL, "i")
-# 'number of atoms/cell      = ',I12
-const NUMBER_OF_ATOMS_PER_CELL = Regex(raw"(number of atoms\/cell)" * EQUAL_SIGN * INTEGER, "i")
-# 'number of atomic types    = ',I12
-const NUMBER_OF_ATOMIC_TYPES = Regex("(number of atomic types)" * EQUAL_SIGN * INTEGER, "i")
-# 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = Regex("(number of electrons)" * EQUAL_SIGN * FIXED_POINT_REAL *
-                                  raw"(?:\(up:\s*" * FIXED_POINT_REAL * raw", down:\s*" *
-                                  FIXED_POINT_REAL * raw"\))?")
-# 'number of Kohn-Sham states= ',I12
-const NUMBER_OF_KOHN_SHAM_STATES = Regex(
-    "(number of Kohn-Sham states)" * EQUAL_SIGN * INTEGER,
-    "i",
-)
-# 'kinetic-energy cutoff     = ',F12.4,'  Ry'
-const KINETIC_ENERGY_CUTOFF = Regex(
-    "(kinetic-energy cutoff)" * EQUAL_SIGN * FIXED_POINT_REAL * "\\s+Ry",
-    "i",
-)
-# 'charge density cutoff     = ',F12.4,'  Ry'
-const CHARGE_DENSITY_CUTOFF = Regex(
-    "(charge density cutoff)" * EQUAL_SIGN * FIXED_POINT_REAL * "\\s+Ry",
-    "i",
-)
-# 'cutoff for Fock operator  = ',F12.4,'  Ry'
-const CUTOFF_FOR_FOCK_OPERATOR = Regex(
-    "(cutoff for Fock operator)" * EQUAL_SIGN * FIXED_POINT_REAL * "\\s+Ry",
-    "i",
-)
-# 'convergence threshold     = ',1PE12.1
-const CONVERGENCE_THRESHOLD = Regex(
-    "(convergence threshold)" * EQUAL_SIGN * GENERAL_REAL,
-    "i",
-)
-# 'mixing beta               = ',0PF12.4
-const MIXING_BETA = Regex("(mixing beta)" * EQUAL_SIGN * FIXED_POINT_REAL, "i")
-# 'number of iterations used = ',I12,2X,A,' mixing'
-const NUMBER_OF_ITERATIONS_USED = Regex(
-    "(number of iterations used)" * EQUAL_SIGN * INTEGER,
-    "i",
-)
-const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
-# "nstep                     = ",I12
-const NSTEP = Regex("(nstep)" * EQUAL_SIGN * INTEGER, "i")
-const PARALLELIZATION_INFO_BLOCK = Regex("""Parallelization info
-\\s*--------------------
-\\s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
-(\\s*Min.*
-\\s*Max.*
-\\s*Sum.*)
-""", "im")
-const K_POINTS_BLOCK = r"""
-number of k points=\s*([0-9]+)\X+?
-\s*cart\. coord\. in units 2pi\/alat\s*
-(\X+?)
-\s*cryst\. coord\.\s*
-(\X+?)
-\s*Dense  grid"""im
-# The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
-# '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-const K_POINTS_ITEM = r"k\(\s*([0-9]+)\s*\) = \(\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*\), wk =\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i
-const CELL_PARAMETERS_BLOCK = r"""
-^ [ \t]*
-CELL_PARAMETERS [ \t]*
-\(?\w+\s*=\s*[\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?\)? \s* [\n]
-(
-(
-\s*
-(
-[\-|\+]? ( [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?\s*
-){3}[\n]
-){3}
-)
-"""imx
-const CELL_PARAMETERS_ITEM = r"""
-^                        # Linestart
-[ \t]*                   # Optional white space
-(?P<x>                   # Get x
-    [\-|\+]? ( [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<y>                   # Get y
-    [\-|\+]? ([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<z>                   # Get z
-    [\-|\+]? ([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-"""mx
-const ATOMIC_POSITIONS_BLOCK = r"""
-^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
-[{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\n    # The units are after the string in optional brackets
-(?P<block>                                      # This is the block of positions
-    (
-        (
-            \s*                                 # White space in front of the element spec is ok
-            (
-                [A-Za-z]+[A-Za-z0-9]{0,2}       # Element spec
-                (
-                    \s+                         # White space in front of the number
-                    [-|+]?                      # Plus or minus in front of the number (optional)
-                    (
-                        (
-                            [0-9]*                 # optional decimal in the beginning .0001 is ok, for example
-                            [\.]                # There has to be a dot followed by
-                            [0-9]+                 # at least one decimal
-                        )
-                        |                       # OR
-                        (
-                            [0-9]+                 # at least one decimal, followed by
-                            [\.]?               # an optional dot ( both 1 and 1. are fine)
-                            [0-9]*                 # And optional number of decimals (1.00001)
-                        )                        # followed by optional decimals
-                    )
-                    ([E|e|d|D][+|-]?[0-9]+)?       # optional exponents E+03, e-05
-                ){3}                            # I expect three float values
-                ((\s+[0-1]){3}\s*)?             # Followed by optional ifpos
-                \s*                             # Followed by optional white space
-                |
-                \#.*                            # If a line is commented out, that is also ok
-                |
-                \!.*                            # Comments also with excl. mark in fortran
-            )
-            |                                   # OR
-            \s*                                 # A line only containing white space
-         )
-        [\n]                                    # line break at the end
-    )+                                          # A positions block should be one or more lines
-)
-"""imx
-const ATOMIC_POSITIONS_ITEM = r"""
-^                                       # Linestart
-[ \t]*                                  # Optional white space
-(?P<name>[A-Za-z]+[A-Za-z0-9]{0,2})\s+   # get the symbol, max 3 chars, starting with a char
-(?P<x>                                  # Get x
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<y>                                  # Get y
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<z>                                  # Get z
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]*
-(?P<fx>[01]?)                           # Get fx
-[ \t]*
-(?P<fy>[01]?)                           # Get fx
-[ \t]*
-(?P<fz>[01]?)                           # Get fx
-"""mx
-const STRESS_BLOCK = r"""
-^[ \t]*
-total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
-\(kbar\)\s+P=\s*([\-|\+]? (?: [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?)
-[\n]
-(
-(?:
-\s*
-(?:
-[\-|\+]? (?: [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?[ \t]*
-){6}
-){3}
-)
-"""imx
-const SELF_CONSISTENT_CALCULATION_BLOCK = r"Self-consistent Calculation(\X+?)End of self-consistent calculation"i
-const ITERATION_BLOCK = r"(iteration #\X+?secs)\s*(total energy\X+?estimated scf accuracy    <.*)?"i
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
-# '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
-const ITERATION_NUMBER_ITEM = Regex(
-    "iteration #\\s*" * INTEGER * "\\s+ecut=\\s*" * FIXED_POINT_REAL *
-    " Ry\\s+beta=\\s*" * FIXED_POINT_REAL,
-    "i",
-)
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
-# '     total cpu time spent up to now is ',F10.1,' secs'
-const TOTAL_CPU_TIME = Regex(
-    "total cpu time spent up to now is\\s*" * FIXED_POINT_REAL * "\\s* secs",
-    "i",
-)
-const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
-const SUMMARY_TIME_BLOCK = r"""
-(init_run\s+:.*)
-\s*(electrons\s+:.*)
-\s*(update_pot\s+.*)?  # This does not always exist.
-\s*(forces\s+:.*)?     # This does not always exist.
-\s*(stress\s+:.*)?     # This does not always exist.
-"""imx
-const TIME_ITEM = Regex(raw"\s*([\w[0-9]:]+)\s+:\s*" * FIXED_POINT_REAL * "s\\sCPU\\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)", "i")
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
-const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"im
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
-const ELECTRONS_TIME_BLOCK = r"Called by (?<head>electrons):(?<body>\X+?)^\s*$"im
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L78-L79.
-const C_BANDS_TIME_BLOCK = r"Called by (?<head>c_bands):(?<body>\X+?)^\s*$"im
-const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
-const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
-TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
-const JOB_DONE = r"JOB DONE\."i
+include("regexes.jl")
 
 const PATTERNS = [
     r"([0-9]+)\s*Sym\. Ops\., with inversion, found"i,
@@ -322,7 +93,7 @@ function parse_head(str::AbstractString)
 end # function parse_head
 
 function parse_parallelization_info(str::AbstractString)
-    sticks, gvecs = Dict{String,NamedTuple}(), Dict{String,NamedTuple}()
+    df = DataFrame(group = String[], kind = String[], dense = Int[], smooth = Int[], PW = [])
     m = match(PARALLELIZATION_INFO_BLOCK, str)
     if isnothing(m)
         @info("The parallelization info is not found!")
@@ -336,10 +107,10 @@ function parse_parallelization_info(str::AbstractString)
         # "Min",4X,2I8,I7,12X,2I9,I8
         sp = split(strip(line), r"\s+")
         numbers = map(x -> parse(Int, x), sp[2:7])
-        push!(sticks, sp[1] => (dense = numbers[1], smooth = numbers[2], PW = numbers[3]))
-        push!(gvecs, sp[1] => (dense = numbers[4], smooth = numbers[5], PW = numbers[6]))
+        push!(df, ["sticks" sp[1] numbers[1:3]...])
+        push!(df, ["gvecs" sp[1] numbers[4:6]...])
     end
-    return sticks, gvecs
+    return groupby(df, :group)
 end # function parse_parallelization_info
 
 function parse_k_points(str::AbstractString)
@@ -352,7 +123,7 @@ function parse_k_points(str::AbstractString)
     end
     nks = parse(Int, nks)
 
-    cartesian_coordinates, crystal_coordinates = zeros(nks, 4), zeros(nks, 4)
+    cartesian_coordinates, crystal_coordinates = ntuple(_ -> zeros(nks, 4), 2)
     for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, cartesian))
         cartesian_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
     end
@@ -365,14 +136,12 @@ end # function parse_k_points
 
 function parse_stress(str::AbstractString)
     pressures = Float64[]
-    atomic_stresses = Matrix{Float64}[]
-    kbar_stresses = Matrix{Float64}[]
+    atomic_stresses, kbar_stresses = Matrix{Float64}[], Matrix{Float64}[]
     for m in eachmatch(STRESS_BLOCK, str)
         pressure, content = m.captures[1], m.captures[3]
         push!(pressures, parse(Float64, pressure))
 
-        stress_atomic = Matrix{Float64}(undef, 3, 3)
-        stress_kbar = Matrix{Float64}(undef, 3, 3)
+        stress_atomic, stress_kbar = ntuple(_ -> Matrix{Float64}(undef, 3, 3), 2)
         for (i, line) in enumerate(split(content, '\n'))
             tmp = map(x -> parse(Float64, x), split(strip(line), " ", keepempty = false))
             stress_atomic[i, :], stress_kbar[i, :] = tmp[1:3], tmp[4:6]
@@ -500,28 +269,28 @@ function parse_clock(str::AbstractString)
     isnothing(m) && return
     content = m.captures[1]
 
-    info = Dict{String,Any}()
-    for item in filter(!isnothing, match(SUMMARY_TIME_BLOCK, content).captures)
-        m = match(TIME_ITEM, item)
-        info[m[1]] = map(x -> parse(Float64, x), m.captures[2:4])
-    end
+    info = DataFrame(group = String[], item = String[], CPU = Float64[], wall = Float64[], calls = Int[])
     for regex in [
+        SUMMARY_TIME_BLOCK
         ELECTRONS_TIME_BLOCK
         C_BANDS_TIME_BLOCK
         GENERAL_ROUTINES_TIME_BLOCK
         PARALLEL_ROUTINES_TIME_BLOCK
     ]
-        d = Dict{String,Any}()
         block = match(regex, content)
         isnothing(block) && continue
-        for m in eachmatch(TIME_ITEM, block[:body])
-            d[m[1]] = map(x -> parse(Float64, x), m.captures[2:4])
+        head = if isempty(block[:head])
+            "summary"
+        else
+            block[:head]
         end
-        info[block[:head]] = d
+        for m in eachmatch(TIME_ITEM, block[:body])
+            push!(info, [head m[1] map(x -> parse(Float64, x), m.captures[2:4])...])
+        end
     end
     # m = match(TERMINATED_DATE, content)
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
-    return info
+    return groupby(info, :group)
 end # function parse_clock
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
