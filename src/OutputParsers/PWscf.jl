@@ -248,11 +248,14 @@ const TOTAL_CPU_TIME = Regex(
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
 const SUMMARY_TIME_BLOCK = r"""
-(init_run\s+:.*)
-\s*(electrons\s+:.*)
-\s*(update_pot\s+.*)?  # This does not always exist.
-\s*(forces\s+:.*)?     # This does not always exist.
-\s*(stress\s+:.*)?     # This does not always exist.
+(?<head>)
+(?<body>
+init_run\s+:.*
+\s*electrons\s+:.*
+\s*(?:update_pot\s+.*)?  # This does not always exist.
+\s*(?:forces\s+:.*)?     # This does not always exist.
+\s*(?:stress\s+:.*)?     # This does not always exist.
+)
 """imx
 const TIME_ITEM = Regex(raw"\s*([\w0-9:]+)\s+:\s*" * FIXED_POINT_REAL * "s\\sCPU\\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)", "i")
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
@@ -500,11 +503,8 @@ function parse_clock(str::AbstractString)
     content = m.captures[1]
 
     info = Dict{String,Any}()
-    for item in filter(!isnothing, match(SUMMARY_TIME_BLOCK, content).captures)
-        m = match(TIME_ITEM, item)
-        info[m[1]] = map(x -> parse(Float64, x), m.captures[2:4])
-    end
     for regex in [
+        SUMMARY_TIME_BLOCK
         ELECTRONS_TIME_BLOCK
         C_BANDS_TIME_BLOCK
         GENERAL_ROUTINES_TIME_BLOCK
@@ -516,7 +516,11 @@ function parse_clock(str::AbstractString)
         for m in eachmatch(TIME_ITEM, block[:body])
             push!(d, [m[1]; map(x -> parse(Float64, x), m.captures[2:4])])
         end
-        info[block[:head]] = d
+        if isempty(block[:head])
+            info["summary"] = d
+        else
+            info[block[:head]] = d
+        end
     end
     # m = match(TERMINATED_DATE, content)
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
