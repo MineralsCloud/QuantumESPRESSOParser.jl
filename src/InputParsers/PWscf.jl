@@ -278,12 +278,16 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
     return CellParametersCard(option, data)
 end # function Base.parse
 function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
+    function _parse_namelist(T)
+        result = parse(T, str)
+        isnothing(result) ? T() : result
+    end
     return PWscfInput(
-        control = parse(ControlNamelist, str),
-        system = parse(SystemNamelist, str),
-        electrons = parse(ElectronsNamelist, str),
-        ions = parse(IonsNamelist, str),
-        cell = parse(CellNamelist, str),
+        control = _parse_namelist(ControlNamelist),
+        system = _parse_namelist(SystemNamelist),
+        electrons = _parse_namelist(ElectronsNamelist),
+        ions = _parse_namelist(IonsNamelist),
+        cell = _parse_namelist(CellNamelist),
         atomic_species = parse(AtomicSpeciesCard, str),
         atomic_positions = parse(AtomicPositionsCard, str),
         k_points = parse(KPointsCard, str),
