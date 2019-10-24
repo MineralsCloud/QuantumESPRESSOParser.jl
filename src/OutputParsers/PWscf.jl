@@ -323,7 +323,7 @@ function parse_head(str::AbstractString)
 end # function parse_head
 
 function parse_parallelization_info(str::AbstractString)
-    sticks, gvecs = DataFrame(kind = String[], dense = Int[], smooth = Int[], PW = []), DataFrame(kind = String[], dense = Int[], smooth = Int[], PW = [])
+    sticks, gvecs = ntuple(_ -> DataFrame(kind = String[], dense = Int[], smooth = Int[], PW = []), 2)
     m = match(PARALLELIZATION_INFO_BLOCK, str)
     if isnothing(m)
         @info("The parallelization info is not found!")
@@ -353,7 +353,7 @@ function parse_k_points(str::AbstractString)
     end
     nks = parse(Int, nks)
 
-    cartesian_coordinates, crystal_coordinates = zeros(nks, 4), zeros(nks, 4)
+    cartesian_coordinates, crystal_coordinates = ntuple(_ -> zeros(nks, 4), 2)
     for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, cartesian))
         cartesian_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
     end
@@ -366,14 +366,12 @@ end # function parse_k_points
 
 function parse_stress(str::AbstractString)
     pressures = Float64[]
-    atomic_stresses = Matrix{Float64}[]
-    kbar_stresses = Matrix{Float64}[]
+    atomic_stresses, kbar_stresses = Matrix{Float64}[], Matrix{Float64}[]
     for m in eachmatch(STRESS_BLOCK, str)
         pressure, content = m.captures[1], m.captures[3]
         push!(pressures, parse(Float64, pressure))
 
-        stress_atomic = Matrix{Float64}(undef, 3, 3)
-        stress_kbar = Matrix{Float64}(undef, 3, 3)
+        stress_atomic, stress_kbar = ntuple(_ -> Matrix{Float64}(undef, 3, 3), 2)
         for (i, line) in enumerate(split(content, '\n'))
             tmp = map(x -> parse(Float64, x), split(strip(line), " ", keepempty = false))
             stress_atomic[i, :], stress_kbar[i, :] = tmp[1:3], tmp[4:6]
