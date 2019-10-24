@@ -254,7 +254,7 @@ const SUMMARY_TIME_BLOCK = r"""
 \s*(forces\s+:.*)?     # This does not always exist.
 \s*(stress\s+:.*)?     # This does not always exist.
 """imx
-const TIME_ITEM = Regex(raw"\s*([\w[0-9]:]+)\s+:\s*" * FIXED_POINT_REAL * "s\\sCPU\\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)", "i")
+const TIME_ITEM = Regex(raw"\s*([\w0-9:]+)\s+:\s*" * FIXED_POINT_REAL * "s\\sCPU\\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)", "i")
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"im
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
