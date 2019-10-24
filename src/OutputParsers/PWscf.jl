@@ -97,11 +97,13 @@ const NUMBER_OF_ITERATIONS_USED = Regex(
 const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
 # "nstep                     = ",I12
 const NSTEP = Regex("(nstep)" * EQUAL_SIGN * INTEGER, "i")
-const PARALLELIZATION_INFO_BLOCK = r"""Parallelization info
-\s*--------------------
-\s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
-(\X+?)
-\s*bravais-lattice index"""im
+const PARALLELIZATION_INFO_BLOCK = Regex("""Parallelization info
+\\s*--------------------
+\\s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+(\\s*Min.*
+\\s*Max.*
+\\s*Sum.*)
+""", "im")
 const K_POINTS_BLOCK = r"""
 number of k points=\s*([0-9]+)\X+?
 \s*cart\. coord\. in units 2pi\/alat\s*
