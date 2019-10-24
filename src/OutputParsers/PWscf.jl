@@ -12,6 +12,7 @@ julia>
 module PWscf
 
 # using Dates: DateTime, DateFormat
+using DataFrames: DataFrame
 using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
@@ -322,7 +323,7 @@ function parse_head(str::AbstractString)
 end # function parse_head
 
 function parse_parallelization_info(str::AbstractString)
-    sticks, gvecs = Dict{String,NamedTuple}(), Dict{String,NamedTuple}()
+    sticks, gvecs = DataFrame(kind = String[], dense = Int[], smooth = Int[], PW = []), DataFrame(kind = String[], dense = Int[], smooth = Int[], PW = [])
     m = match(PARALLELIZATION_INFO_BLOCK, str)
     if isnothing(m)
         @info("The parallelization info is not found!")
@@ -336,8 +337,8 @@ function parse_parallelization_info(str::AbstractString)
         # "Min",4X,2I8,I7,12X,2I9,I8
         sp = split(strip(line), r"\s+")
         numbers = map(x -> parse(Int, x), sp[2:7])
-        push!(sticks, sp[1] => (dense = numbers[1], smooth = numbers[2], PW = numbers[3]))
-        push!(gvecs, sp[1] => (dense = numbers[4], smooth = numbers[5], PW = numbers[6]))
+        push!(sticks, [sp[1]; numbers[1:3]])
+        push!(gvecs, [sp[1]; numbers[4:6]])
     end
     return sticks, gvecs
 end # function parse_parallelization_info
