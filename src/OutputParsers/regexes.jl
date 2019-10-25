@@ -70,7 +70,7 @@ const PARALLELIZATION_INFO_BLOCK = Regex("""Parallelization info
 \\s*Sum.*)
 """, "im")
 const K_POINTS_BLOCK = r"""
-number of k points=\s*([0-9]+)\X+?
+number of k points=\s*([0-9]+)\h*
 \s*cart\. coord\. in units 2pi\/alat\s*
 (\X+?)
 \s*cryst\. coord\.\s*
