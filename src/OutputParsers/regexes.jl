@@ -233,5 +233,5 @@ const EGTERG_TIME_BLOCK = r"Called by (?<head>\*egterg):(?<body>\X+?)^\s*$"im
 const H_PSI_TIME_BLOCK = r"Called by (?<head>h_psi):(?<body>\X+?)^\s*$"im
 const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
 const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
-TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
+const TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
 const JOB_DONE = r"JOB DONE\."i
