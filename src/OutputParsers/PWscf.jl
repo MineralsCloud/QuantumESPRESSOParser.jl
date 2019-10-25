@@ -272,8 +272,12 @@ function parse_clock(str::AbstractString)
     info = DataFrame(group = String[], item = String[], CPU = Float64[], wall = Float64[], calls = Int[])
     for regex in [
         SUMMARY_TIME_BLOCK
+        INIT_RUN_TIME_BLOCK
         ELECTRONS_TIME_BLOCK
         C_BANDS_TIME_BLOCK
+        SUM_BAND_TIME_BLOCK
+        EGTERG_TIME_BLOCK
+        H_PSI_TIME_BLOCK
         GENERAL_ROUTINES_TIME_BLOCK
         PARALLEL_ROUTINES_TIME_BLOCK
     ]

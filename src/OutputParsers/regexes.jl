@@ -228,6 +228,9 @@ const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"im
 const ELECTRONS_TIME_BLOCK = r"Called by (?<head>electrons):(?<body>\X+?)^\s*$"im
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L78-L79.
 const C_BANDS_TIME_BLOCK = r"Called by (?<head>c_bands):(?<body>\X+?)^\s*$"im
+const SUM_BAND_TIME_BLOCK = r"Called by (?<head>sum_band):(?<body>\X+?)^\s*$"im
+const EGTERG_TIME_BLOCK = r"Called by (?<head>\*egterg):(?<body>\X+?)^\s*$"im
+const H_PSI_TIME_BLOCK = r"Called by (?<head>h_psi):(?<body>\X+?)^\s*$"im
 const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
 const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
 TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
