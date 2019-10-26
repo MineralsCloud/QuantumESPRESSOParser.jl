@@ -27,7 +27,17 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         "charge density cutoff" => 60.0,
     )
 
-    fft_base_info = parse_fft_base_info(str) ## TODO : compare two tables
+    @test parse_fft_base_info(str) == groupby(DataFrame(
+        [
+            "sticks"  "Min"   30   30   10
+            "sticks"  "Max"   31   31   11
+            "sticks"  "Sum"  121  121   43
+            "gvecs"   "Min"  216  216   45
+            "gvecs"   "Max"  218  218   46
+            "gvecs"   "Sum"  869  869  181
+        ],
+        [:kind, :minmaxsum, :dense, :smooth, :PW]
+    ), :kind)
 
     @test parse_ibz(str) == (
         [
@@ -94,7 +104,6 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         ],
         nothing,
     )
-
 
     @test parse_stress(str) == (
         [-17.35],
