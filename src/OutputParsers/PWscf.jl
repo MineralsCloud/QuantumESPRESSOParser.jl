@@ -88,7 +88,7 @@ function parse_summary(str::AbstractString)
     return dict
 end # function parse_summary
 
-function parse_fft_base_info(str::AbstractString)
+function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
     df = DataFrame(
         kind = String[],
         minmaxsum = String[],
@@ -165,7 +165,7 @@ function parse_stress(str::AbstractString)
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
 
-function parse_cell_parameters(str::AbstractString)
+function parse_cell_parameters(str::AbstractString)::Vector{<:Matrix}
     cell_parameters = Matrix{Float64}[]
     for m in eachmatch(CELL_PARAMETERS_BLOCK, str)
         alat = parse(Float64, m.captures[1])
@@ -184,7 +184,7 @@ function parse_cell_parameters(str::AbstractString)
     return cell_parameters
 end # function parse_cell_parameters
 
-function parse_atomic_positions(str::AbstractString)
+function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCard}
     atomic_positions = AtomicPositionsCard[]
     for m in eachmatch(ATOMIC_POSITIONS_BLOCK, str)
         unit = string(m.captures[1])
@@ -258,7 +258,7 @@ function parse_ks_energy(str::AbstractString)
 
 end # function parse_ks_energy
 
-function parse_total_energy(str::AbstractString)
+function parse_total_energy(str::AbstractString)::Vector{Float64}
     result = Float64[]
     for m in eachmatch(
         r"!\s+total energy\s+=\s*([-+]?[0-9]*\.?[0-9]+((:?[ed])[-+]?[0-9]+)?)\s*Ry"i,
@@ -285,7 +285,7 @@ function parse_fft_dimensions(str::AbstractString)
     !isnothing(m) ? map(x -> parse(Int, x), m.captures) : return
 end # function parse_fft_dimensions
 
-function parse_clock(str::AbstractString)
+function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
     m = match(TIME_BLOCK, str)
     isnothing(m) && return
     content = m.captures[1]
