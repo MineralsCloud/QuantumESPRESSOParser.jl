@@ -93,12 +93,12 @@ end # function parse_summary
 """
     parse_fft_base_info(str::AbstractString)
 
-Parse the FFT base information from `pw.x`'s output.
+Parse the FFT base information from `pw.x`'s output and return a `GroupedDataFrame`.
 
 If there are more than one processors, the title is "Parallelization info" and three
 rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is 
 "G-vector sticks info" and only the "Sum" row is printed. If no information is found,
-return `nothing`.
+return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
 function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
     df = DataFrame(
@@ -114,9 +114,7 @@ function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
     else
         body = m[:body]
     end
-
     for line in split(body, '\n')
-        # The following format is from https://github.com/QEF/q-e/blob/7357cdb/Modules/fft_base.f90#L73-L90.
         # "Min",4X,2I8,I7,12X,2I9,I8
         sp = split(strip(line), r"\s+")
         numbers = map(x -> parse(Int, x), sp[2:7])
