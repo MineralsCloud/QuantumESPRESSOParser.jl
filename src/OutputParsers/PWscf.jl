@@ -12,18 +12,18 @@ julia>
 module PWscf
 
 # using Dates: DateTime, DateFormat
-using DataFrames: DataFrame, groupby
+using DataFrames: DataFrame, GroupedDataFrame, groupby
 using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
 
-export parse_head,
-       parse_parallelization_info,
+export parse_summary,
+       parse_fft_base_info,
        parse_ibz,
        parse_stress,
        parse_total_energy,
        parse_version,
-       parse_processors_num,
+       parse_parallel_info,
        parse_fft_dimensions,
        parse_cell_parameters,
        parse_atomic_positions,
@@ -45,65 +45,60 @@ const PATTERNS = [
     r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
 ]
 
-function parse_head(str::AbstractString)
+function parse_summary(str::AbstractString)
     dict = Dict{String,Any}()
-    m = match(HEAD_BLOCK, str)
+    m = match(SUMMARY_BLOCK, str)
     if isnothing(m)
-        @info("The head message is not found!")
-        return
+        @info("The head message is not found!") && return
     else
         content = first(m.captures)
     end
 
-    function _parse_by(f::Function, r::AbstractVector)
+    for (f, r) in zip(
+        [x -> parse(Int, x), x -> parse(Float64, x), string],
+        [
+         [
+          BRAVAIS_LATTICE_INDEX
+          NUMBER_OF_ATOMS_PER_CELL
+          NUMBER_OF_ATOMIC_TYPES
+          NUMBER_OF_KOHN_SHAM_STATES
+          NUMBER_OF_ITERATIONS_USED
+          NSTEP
+         ],
+         [
+          LATTICE_PARAMETER
+          UNIT_CELL_VOLUME
+          NUMBER_OF_ELECTRONS  # TODO: This one is special.
+          KINETIC_ENERGY_CUTOFF
+          CHARGE_DENSITY_CUTOFF
+          CUTOFF_FOR_FOCK_OPERATOR
+          CONVERGENCE_THRESHOLD
+          MIXING_BETA
+         ],
+         [EXCHANGE_CORRELATION],
+        ],
+    )
         for regex in r
             m = match(regex, content)
             if !isnothing(m)
                 push!(dict, m.captures[1] => f(m.captures[2]))
             end
         end
-    end # function _parse_by
-
-    _parse_by(
-        x -> parse(Int, x),
-        [
-         BRAVAIS_LATTICE_INDEX
-         NUMBER_OF_ATOMS_PER_CELL
-         NUMBER_OF_ATOMIC_TYPES
-         NUMBER_OF_KOHN_SHAM_STATES
-         NUMBER_OF_ITERATIONS_USED
-         NSTEP
-        ],
-    )
-    _parse_by(
-        x -> parse(Float64, x),
-        [
-         LATTICE_PARAMETER
-         UNIT_CELL_VOLUME
-         NUMBER_OF_ELECTRONS  # TODO: This one is special.
-         KINETIC_ENERGY_CUTOFF
-         CHARGE_DENSITY_CUTOFF
-         CUTOFF_FOR_FOCK_OPERATOR
-         CONVERGENCE_THRESHOLD
-         MIXING_BETA
-        ],
-    )
-    _parse_by(string, [EXCHANGE_CORRELATION])
+    end
     return dict
-end # function parse_head
+end # function parse_summary
 
-function parse_parallelization_info(str::AbstractString)
+function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
     df = DataFrame(
-        group = String[],
         kind = String[],
+        minmaxsum = String[],
         dense = Int[],
         smooth = Int[],
         PW = [],
     )
-    m = match(PARALLELIZATION_INFO_BLOCK, str)
+    m = match(FFT_BASE_INFO, str)
     if isnothing(m)
-        @info("The parallelization info is not found!")
-        return
+        @info("The parallelization info is not found!") && return
     else
         content = first(m.captures)
     end
@@ -116,15 +111,14 @@ function parse_parallelization_info(str::AbstractString)
         push!(df, ["sticks" sp[1] numbers[1:3]...])
         push!(df, ["gvecs" sp[1] numbers[4:6]...])
     end
-    return groupby(df, :group)
-end # function parse_parallelization_info
+    return groupby(df, :kind)
+end # function parse_fft_base_info
 
 # Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
 function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
-        @info("The k-points info is not found!")
-        return
+        @info("The k-points info is not found!") && return
     end
     nk = parse(Int, m[:nk])
 
@@ -171,7 +165,7 @@ function parse_stress(str::AbstractString)
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
 
-function parse_cell_parameters(str::AbstractString)
+function parse_cell_parameters(str::AbstractString)::Vector{<:Matrix}
     cell_parameters = Matrix{Float64}[]
     for m in eachmatch(CELL_PARAMETERS_BLOCK, str)
         alat = parse(Float64, m.captures[1])
@@ -190,7 +184,7 @@ function parse_cell_parameters(str::AbstractString)
     return cell_parameters
 end # function parse_cell_parameters
 
-function parse_atomic_positions(str::AbstractString)
+function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCard}
     atomic_positions = AtomicPositionsCard[]
     for m in eachmatch(ATOMIC_POSITIONS_BLOCK, str)
         unit = string(m.captures[1])
@@ -264,7 +258,7 @@ function parse_ks_energy(str::AbstractString)
 
 end # function parse_ks_energy
 
-function parse_total_energy(str::AbstractString)
+function parse_total_energy(str::AbstractString)::Vector{Float64}
     result = Float64[]
     for m in eachmatch(
         r"!\s+total energy\s+=\s*([-+]?[0-9]*\.?[0-9]+((:?[ed])[-+]?[0-9]+)?)\s*Ry"i,
@@ -280,24 +274,24 @@ function parse_version(str::AbstractString)::Maybe{String}
     !isnothing(m) ? m[:version] : return
 end # function parse_version
 
-function parse_processors_num(str::AbstractString)::Maybe{Tuple{String,Int}}
+function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
     m = match(PARALLEL_INFO, str)
     isnothing(m) && return
     return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m[:num])
-end # function parse_processors_num
+end # function parse_parallel_info
 
 function parse_fft_dimensions(str::AbstractString)
     m = match(FFT_DIMENSIONS, str)
     !isnothing(m) ? map(x -> parse(Int, x), m.captures) : return
 end # function parse_fft_dimensions
 
-function parse_clock(str::AbstractString)
+function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
     m = match(TIME_BLOCK, str)
     isnothing(m) && return
     content = m.captures[1]
 
     info = DataFrame(
-        group = String[],
+        subroutine = String[],
         item = String[],
         CPU = Float64[],
         wall = Float64[],
@@ -316,18 +310,13 @@ function parse_clock(str::AbstractString)
     ]
         block = match(regex, content)
         isnothing(block) && continue
-        head = if isempty(block[:head])
-            "summary"
-        else
-            block[:head]
-        end
         for m in eachmatch(TIME_ITEM, block[:body])
-            push!(info, [head m[1] map(x -> parse(Float64, x), m.captures[2:4])...])
+            push!(info, [block[:head] m[1] map(x -> parse(Float64, x), m.captures[2:4])...])
         end
     end
     # m = match(TERMINATED_DATE, content)
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
-    return groupby(info, :group)
+    return groupby(info, :subroutine)
 end # function parse_clock
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))

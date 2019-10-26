@@ -9,7 +9,7 @@ const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, r
 const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"i
 const FFT_DIMENSIONS = r"Dense  grid:\s*([0-9]+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
-const HEAD_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
+const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
 const BRAVAIS_LATTICE_INDEX = Regex("(bravais-lattice index)" * EQUAL_SIGN * INTEGER, "i")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
@@ -65,7 +65,7 @@ const NUMBER_OF_ITERATIONS_USED = Regex(
 const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
 # "nstep                     = ",I12
 const NSTEP = Regex("(nstep)" * EQUAL_SIGN * INTEGER, "i")
-const PARALLELIZATION_INFO_BLOCK = Regex("""Parallelization info
+const FFT_BASE_INFO = Regex("""Parallelization info
 \\s*--------------------
 \\s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
 (\\s*Min.*

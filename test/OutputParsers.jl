@@ -11,7 +11,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         read(io, String)
     end
 
-    @test parse_head(str) == Dict(
+    @test parse_summary(str) == Dict(
         "number of electrons" => 3.0,
         "number of Kohn-Sham states" => 6,
         "lattice parameter (alat)" => 7.5,
@@ -27,7 +27,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         "charge density cutoff" => 60.0,
     )
 
-    parallelization_info = parse_parallelization_info(str) ## TODO : compare two tables
+    fft_base_info = parse_fft_base_info(str) ## TODO : compare two tables
 
     @test parse_ibz(str) == (
         [
@@ -158,7 +158,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     @test parse_version(str) == "6.3"
 
-    @test parse_processors_num(str) == ("Parallel version (MPI)", 4)
+    @test parse_parallel_info(str) == ("Parallel version (MPI)", 4)
 
     @test parse_fft_dimensions(str) == [869, 15, 15, 15]
 
@@ -173,7 +173,7 @@ end
         read(io, String)
     end
 
-    @test parse_head(str) == Dict(
+    @test parse_summary(str) == Dict(
         "number of electrons" => 10.0,
         "number of Kohn-Sham states" => 9,
         "lattice parameter (alat)" => 7.0103,
@@ -190,7 +190,7 @@ end
         "charge density cutoff" => 100.0,
     )
 
-# parallelization_info = parse_parallelization_info(vc) ## TODO : compare two tables
+# fft_base_info = parse_fft_base_info(vc) ## TODO : compare two tables
 
     @test parse_ibz(str) == (
         [
@@ -639,7 +639,7 @@ end
 
     @test parse_version(str) == "6.0"
 
-    @test parse_processors_num(str) == ("Parallel version (MPI)", 2)
+    @test parse_parallel_info(str) == ("Parallel version (MPI)", 2)
 
     @test parse_fft_dimensions(str) == [4159, 24, 24, 24]
 
