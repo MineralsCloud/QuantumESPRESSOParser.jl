@@ -18,7 +18,7 @@ using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
 
 export parse_summary,
-       parse_parallelization_info,
+       parse_fft_base_info,
        parse_ibz,
        parse_stress,
        parse_total_energy,
@@ -88,7 +88,7 @@ function parse_summary(str::AbstractString)
     return dict
 end # function parse_summary
 
-function parse_parallelization_info(str::AbstractString)
+function parse_fft_base_info(str::AbstractString)
     df = DataFrame(
         group = String[],
         kind = String[],
@@ -96,7 +96,7 @@ function parse_parallelization_info(str::AbstractString)
         smooth = Int[],
         PW = [],
     )
-    m = match(PARALLELIZATION_INFO_BLOCK, str)
+    m = match(FFT_BASE_INFO, str)
     if isnothing(m)
         @info("The parallelization info is not found!") && return
     else
@@ -112,7 +112,7 @@ function parse_parallelization_info(str::AbstractString)
         push!(df, ["gvecs" sp[1] numbers[4:6]...])
     end
     return groupby(df, :group)
-end # function parse_parallelization_info
+end # function parse_fft_base_info
 
 # Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
 function parse_ibz(str::AbstractString)::Maybe{Tuple}

@@ -27,7 +27,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         "charge density cutoff" => 60.0,
     )
 
-    parallelization_info = parse_parallelization_info(str) ## TODO : compare two tables
+    fft_base_info = parse_fft_base_info(str) ## TODO : compare two tables
 
     @test parse_ibz(str) == (
         [
@@ -190,7 +190,7 @@ end
         "charge density cutoff" => 100.0,
     )
 
-# parallelization_info = parse_parallelization_info(vc) ## TODO : compare two tables
+# fft_base_info = parse_fft_base_info(vc) ## TODO : compare two tables
 
     @test parse_ibz(str) == (
         [

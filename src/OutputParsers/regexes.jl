@@ -65,7 +65,7 @@ const NUMBER_OF_ITERATIONS_USED = Regex(
 const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
 # "nstep                     = ",I12
 const NSTEP = Regex("(nstep)" * EQUAL_SIGN * INTEGER, "i")
-const PARALLELIZATION_INFO_BLOCK = Regex("""Parallelization info
+const FFT_BASE_INFO = Regex("""Parallelization info
 \\s*--------------------
 \\s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
 (\\s*Min.*
