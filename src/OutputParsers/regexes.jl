@@ -6,6 +6,7 @@ const EQUAL_SIGN = raw"\s*=\s*"
 
 # This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
 const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>[0-9]+) processors)?"i
+const READING_INPUT_FROM = r"(?:Reading input from \s*(.*|standard input))"
 const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"i
 const FFT_DIMENSIONS = r"Dense  grid:\s*([0-9]+)\s*G-vectors     FFT dimensions: \((.*),(.*),(.*)\)"i
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
@@ -240,4 +241,5 @@ const H_PSI_TIME_BLOCK = r"Called by (?<head>h_psi):(?<body>\X+?)^\s*$"im
 const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
 const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
 const TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
-const JOB_DONE = r"JOB DONE\."i
+const FINAL_COORDINATES_BLOCK = r"\s*(?:Begin final coordinates(\X+?)\s*End final coordinates)"m
+const JOB_DONE = r"JOB DONE\."

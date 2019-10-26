@@ -29,6 +29,8 @@ export parse_summary,
        parse_atomic_positions,
        parse_scf_calculation,
        parse_clock,
+       whatinput,
+       isrelaxed,
        isjobdone
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
@@ -318,6 +320,19 @@ function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
     return groupby(info, :subroutine)
 end # function parse_clock
+
+function whatinput(str::AbstractString)::Maybe{String}
+    m = match(READING_INPUT_FROM, str)
+    if isnothing(m)
+        @info("The input file name is not found!") && return
+    else
+        return m[1]
+    end
+end # function whatinput
+
+function isrelaxed(str::AbstractString)::Bool
+    isnothing(match(FINAL_COORDINATES_BLOCK, str)) ? false : true
+end # function isrelaxed
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
