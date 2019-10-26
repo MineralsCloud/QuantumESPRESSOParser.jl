@@ -34,8 +34,7 @@ export parse_summary,
        whatinput,
        isrelaxed,
        isjobdone,
-       haserror,
-       whaterror
+       haserror
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}
@@ -352,18 +351,18 @@ function haserror(str::AbstractString)
     isnothing(match(ERROR_IDENTIFIER, str)) ? false : true
 end # function haserror
 
-function whaterror(str::AbstractString)
-    errors = SubroutineError[]
+function Base.parse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
+    errors = T[]
     if haserror(str)
         for e in eachmatch(ERROR_BLOCK, str)
             body = strip(e[:body])
             s, msg = split(body, '\n')
             m = match(ERROR_IN_ROUTINE, s)
-            push!(errors, SubroutineError(m[1], m[2], strip(msg)))
+            push!(errors, T(m[1], m[2], strip(msg)))
         end
         return errors
     end
     return
-end # function whaterror
+end # function Base.parse
 
 end
