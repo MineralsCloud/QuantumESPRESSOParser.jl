@@ -158,7 +158,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     @test parse_version(str) == "6.3"
 
-    @test parse_processors_num(str) == ("Parallel version (MPI)", 4)
+    @test parse_parallel_info(str) == ("Parallel version (MPI)", 4)
 
     @test parse_fft_dimensions(str) == [869, 15, 15, 15]
 
@@ -639,7 +639,7 @@ end
 
     @test parse_version(str) == "6.0"
 
-    @test parse_processors_num(str) == ("Parallel version (MPI)", 2)
+    @test parse_parallel_info(str) == ("Parallel version (MPI)", 2)
 
     @test parse_fft_dimensions(str) == [4159, 24, 24, 24]
 

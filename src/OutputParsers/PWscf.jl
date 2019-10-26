@@ -23,7 +23,7 @@ export parse_summary,
        parse_stress,
        parse_total_energy,
        parse_version,
-       parse_processors_num,
+       parse_parallel_info,
        parse_fft_dimensions,
        parse_cell_parameters,
        parse_atomic_positions,
@@ -274,11 +274,11 @@ function parse_version(str::AbstractString)::Maybe{String}
     !isnothing(m) ? m[:version] : return
 end # function parse_version
 
-function parse_processors_num(str::AbstractString)::Maybe{Tuple{String,Int}}
+function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
     m = match(PARALLEL_INFO, str)
     isnothing(m) && return
     return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m[:num])
-end # function parse_processors_num
+end # function parse_parallel_info
 
 function parse_fft_dimensions(str::AbstractString)
     m = match(FFT_DIMENSIONS, str)
