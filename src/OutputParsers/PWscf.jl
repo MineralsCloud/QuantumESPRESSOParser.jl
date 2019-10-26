@@ -49,46 +49,42 @@ function parse_head(str::AbstractString)
     dict = Dict{String,Any}()
     m = match(HEAD_BLOCK, str)
     if isnothing(m)
-        @info("The head message is not found!")
-        return
+        @info("The head message is not found!") && return
     else
         content = first(m.captures)
     end
 
-    function _parse_by(f::Function, r::AbstractVector)
+    for (f, r) in zip(
+        [x -> parse(Int, x), x -> parse(Float64, x), string],
+        [
+         [
+          BRAVAIS_LATTICE_INDEX
+          NUMBER_OF_ATOMS_PER_CELL
+          NUMBER_OF_ATOMIC_TYPES
+          NUMBER_OF_KOHN_SHAM_STATES
+          NUMBER_OF_ITERATIONS_USED
+          NSTEP
+         ],
+         [
+          LATTICE_PARAMETER
+          UNIT_CELL_VOLUME
+          NUMBER_OF_ELECTRONS  # TODO: This one is special.
+          KINETIC_ENERGY_CUTOFF
+          CHARGE_DENSITY_CUTOFF
+          CUTOFF_FOR_FOCK_OPERATOR
+          CONVERGENCE_THRESHOLD
+          MIXING_BETA
+         ],
+         [EXCHANGE_CORRELATION],
+        ],
+    )
         for regex in r
             m = match(regex, content)
             if !isnothing(m)
                 push!(dict, m.captures[1] => f(m.captures[2]))
             end
         end
-    end # function _parse_by
-
-    _parse_by(
-        x -> parse(Int, x),
-        [
-         BRAVAIS_LATTICE_INDEX
-         NUMBER_OF_ATOMS_PER_CELL
-         NUMBER_OF_ATOMIC_TYPES
-         NUMBER_OF_KOHN_SHAM_STATES
-         NUMBER_OF_ITERATIONS_USED
-         NSTEP
-        ],
-    )
-    _parse_by(
-        x -> parse(Float64, x),
-        [
-         LATTICE_PARAMETER
-         UNIT_CELL_VOLUME
-         NUMBER_OF_ELECTRONS  # TODO: This one is special.
-         KINETIC_ENERGY_CUTOFF
-         CHARGE_DENSITY_CUTOFF
-         CUTOFF_FOR_FOCK_OPERATOR
-         CONVERGENCE_THRESHOLD
-         MIXING_BETA
-        ],
-    )
-    _parse_by(string, [EXCHANGE_CORRELATION])
+    end
     return dict
 end # function parse_head
 
