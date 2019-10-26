@@ -113,7 +113,8 @@ function parse_parallelization_info(str::AbstractString)
     return groupby(df, :group)
 end # function parse_parallelization_info
 
-function parse_k_points(str::AbstractString)
+# Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
+function parse_k_points(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
         @info("The k-points info is not found!")
@@ -126,10 +127,11 @@ function parse_k_points(str::AbstractString)
         for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[:cart]))
             cartesian_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
         end
+        @assert(size(cartesian_coordinates)[1] == nk)
     else
         # If there is no Cartesian coordinates, there must be no crystal coordinates.
         @info("Cartesian coordinates is `nothing`!")
-        return
+        cartesian_coordinates = nothing
     end
 
     if !isnothing(m[:cryst])
@@ -137,12 +139,12 @@ function parse_k_points(str::AbstractString)
         for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[:cryst]))
             crystal_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
         end
-        @assert(size(cartesian_coordinates)[1] == size(crystal_coordinates)[1] == nk)
-        return cartesian_coordinates, crystal_coordinates
+        @assert(size(crystal_coordinates)[1] == nk)
     else
         # Only Cartesian coordinates present.
-        return cartesian_coordinates
+        crystal_coordinates = nothing
     end
+    return cartesian_coordinates, crystal_coordinates
 end # function parse_k_points
 
 function parse_stress(str::AbstractString)
