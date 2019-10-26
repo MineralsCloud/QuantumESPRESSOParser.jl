@@ -20,7 +20,10 @@ const LATTICE_PARAMETER = Regex(
 # 'unit-cell volume          = ',F12.4,' (a.u.)^3'
 const UNIT_CELL_VOLUME = Regex("(unit-cell volume)" * EQUAL_SIGN * FIXED_POINT_REAL, "i")
 # 'number of atoms/cell      = ',I12
-const NUMBER_OF_ATOMS_PER_CELL = Regex(raw"(number of atoms\/cell)" * EQUAL_SIGN * INTEGER, "i")
+const NUMBER_OF_ATOMS_PER_CELL = Regex(
+    raw"(number of atoms\/cell)" * EQUAL_SIGN * INTEGER,
+    "i",
+)
 # 'number of atomic types    = ',I12
 const NUMBER_OF_ATOMIC_TYPES = Regex("(number of atomic types)" * EQUAL_SIGN * INTEGER, "i")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
@@ -70,7 +73,7 @@ const PARALLELIZATION_INFO_BLOCK = Regex("""Parallelization info
 \\s*Sum.*)
 """, "im")
 const K_POINTS_BLOCK = r"""
-number of k points=\s*([0-9]+)\X+?
+number of k points=\s*([0-9]+)\h*
 \s*cart\. coord\. in units 2pi\/alat\s*
 (\X+?)
 \s*cryst\. coord\.\s*
@@ -199,8 +202,8 @@ const ITERATION_BLOCK = r"(iteration #\X+?secs)\s*(total energy\X+?estimated scf
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
 const ITERATION_NUMBER_ITEM = Regex(
-    "iteration #\\s*" * INTEGER * "\\s+ecut=\\s*" * FIXED_POINT_REAL *
-    " Ry\\s+beta=\\s*" * FIXED_POINT_REAL,
+    "iteration #\\s*" * INTEGER * "\\s+ecut=\\s*" * FIXED_POINT_REAL * " Ry\\s+beta=\\s*" *
+    FIXED_POINT_REAL,
     "i",
 )
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
@@ -221,14 +224,21 @@ init_run\s+:.*
 \s*(?:stress\s+:.*)?     # This does not always exist.
 )
 """imx
-const TIME_ITEM = Regex(raw"\s*([\w0-9:]+)\s+:\s*" * FIXED_POINT_REAL * "s\\sCPU\\s*" * FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)", "i")
+const TIME_ITEM = Regex(
+    raw"\s*([\w0-9:]+)\s+:\s*" * FIXED_POINT_REAL * "s\\sCPU\\s*" * FIXED_POINT_REAL *
+    raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)",
+    "i",
+)
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"im
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
 const ELECTRONS_TIME_BLOCK = r"Called by (?<head>electrons):(?<body>\X+?)^\s*$"im
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L78-L79.
 const C_BANDS_TIME_BLOCK = r"Called by (?<head>c_bands):(?<body>\X+?)^\s*$"im
+const SUM_BAND_TIME_BLOCK = r"Called by (?<head>sum_band):(?<body>\X+?)^\s*$"im
+const EGTERG_TIME_BLOCK = r"Called by (?<head>\*egterg):(?<body>\X+?)^\s*$"im
+const H_PSI_TIME_BLOCK = r"Called by (?<head>h_psi):(?<body>\X+?)^\s*$"im
 const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"im
 const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"im
-TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
+const TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
 const JOB_DONE = r"JOB DONE\."i

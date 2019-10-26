@@ -95,7 +95,10 @@ function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     if isempty(x)
         x = Vector{Union{Nothing,T}}(nothing, index)
     else
-        index > length(x) && append!(x, Vector{Union{Nothing,T}}(nothing, index - length(x)))
+        index > length(x) && append!(
+            x,
+            Vector{Union{Nothing,T}}(nothing, index - length(x)),
+        )
     end
     x[index] = value
     return x
