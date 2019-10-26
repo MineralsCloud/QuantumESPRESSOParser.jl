@@ -11,7 +11,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         read(io, String)
     end
 
-    @test parse_head(str) == Dict(
+    @test parse_summary(str) == Dict(
         "number of electrons" => 3.0,
         "number of Kohn-Sham states" => 6,
         "lattice parameter (alat)" => 7.5,
@@ -173,7 +173,7 @@ end
         read(io, String)
     end
 
-    @test parse_head(str) == Dict(
+    @test parse_summary(str) == Dict(
         "number of electrons" => 10.0,
         "number of Kohn-Sham states" => 9,
         "lattice parameter (alat)" => 7.0103,

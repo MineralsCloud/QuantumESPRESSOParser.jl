@@ -17,7 +17,7 @@ using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
 
-export parse_head,
+export parse_summary,
        parse_parallelization_info,
        parse_ibz,
        parse_stress,
@@ -45,9 +45,9 @@ const PATTERNS = [
     r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
 ]
 
-function parse_head(str::AbstractString)
+function parse_summary(str::AbstractString)
     dict = Dict{String,Any}()
-    m = match(HEAD_BLOCK, str)
+    m = match(SUMMARY_BLOCK, str)
     if isnothing(m)
         @info("The head message is not found!") && return
     else
@@ -86,7 +86,7 @@ function parse_head(str::AbstractString)
         end
     end
     return dict
-end # function parse_head
+end # function parse_summary
 
 function parse_parallelization_info(str::AbstractString)
     df = DataFrame(
