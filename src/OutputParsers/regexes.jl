@@ -241,3 +241,7 @@ const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\
 const TERMINATED_DATE = r"This run was terminated on:(.+)"i  # TODO: Date
 const FINAL_COORDINATES_BLOCK = r"\s*(?:Begin final coordinates(\X+?)\s*End final coordinates)"m
 const JOB_DONE = r"JOB DONE\."
+# These formats are from https://github.com/QEF/q-e/blob/4132a64/UtilXlib/error_handler.f90#L48-L68.
+const ERROR_IDENTIFIER = r"%{78}"
+const ERROR_BLOCK = r"%{78}(?<body>\X+?)\s*%{78}"
+const ERROR_IN_ROUTINE = r"Error in routine\s+(.*)\s+\((.*)\):"
