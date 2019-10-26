@@ -118,20 +118,31 @@ function parse_k_points(str::AbstractString)
     if isnothing(m)
         @info("The k-points info is not found!")
         return
-    else
-        nks, cartesian, crystal = m.captures
     end
-    nks = parse(Int, nks)
+    nk = parse(Int, m[:nk])
 
-    cartesian_coordinates, crystal_coordinates = ntuple(_ -> zeros(nks, 4), 2)
-    for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, cartesian))
-        cartesian_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+    if !isnothing(m[:cart])
+        cartesian_coordinates = zeros(nk, 4)
+        for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[:cart]))
+            cartesian_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+        end
+    else
+        # If there is no Cartesian coordinates, there must be no crystal coordinates.
+        @info("Cartesian coordinates is `nothing`!")
+        return
     end
-    for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, crystal))
-        crystal_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+
+    if !isnothing(m[:cryst])
+        crystal_coordinates = zeros(nk, 4)
+        for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[:cryst]))
+            crystal_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+        end
+        @assert(size(cartesian_coordinates)[1] == size(crystal_coordinates)[1] == nk)
+        return cartesian_coordinates, crystal_coordinates
+    else
+        # Only Cartesian coordinates present.
+        return cartesian_coordinates
     end
-    @assert(size(cartesian_coordinates)[1] == size(crystal_coordinates)[1] == nks)
-    return cartesian_coordinates, crystal_coordinates
 end # function parse_k_points
 
 function parse_stress(str::AbstractString)
@@ -236,6 +247,11 @@ function parse_scf_calculation(str::AbstractString)
     end
     return scf_calculations
 end # function parse_scf_calculation
+
+# See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
+function parse_ks_energy(str::AbstractString)
+
+end # function parse_ks_energy
 
 function parse_total_energy(str::AbstractString)
     result = Float64[]
