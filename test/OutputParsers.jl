@@ -29,7 +29,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     parallelization_info = parse_parallelization_info(str) ## TODO : compare two tables
 
-# k_points = parse_k_points(scf)
+# k_points = parse_ibz(scf)
 
     @test parse_stress(str) == (
         [-17.35],
@@ -127,7 +127,7 @@ end
 
 # parallelization_info = parse_parallelization_info(vc) ## TODO : compare two tables
 
-# k_point = parse_k_points(vc_relax)
+# k_point = parse_ibz(vc_relax)
 
     @test parse_stress(str) == (
         [

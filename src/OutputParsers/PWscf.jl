@@ -19,7 +19,7 @@ using Compat: isnothing
 
 export parse_head,
        parse_parallelization_info,
-       parse_k_points,
+       parse_ibz,
        parse_stress,
        parse_total_energy,
        parse_version,
@@ -120,7 +120,7 @@ function parse_parallelization_info(str::AbstractString)
 end # function parse_parallelization_info
 
 # Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_k_points(str::AbstractString)::Maybe{Tuple}
+function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
         @info("The k-points info is not found!")
@@ -151,7 +151,7 @@ function parse_k_points(str::AbstractString)::Maybe{Tuple}
         crystal_coordinates = nothing
     end
     return cartesian_coordinates, crystal_coordinates
-end # function parse_k_points
+end # function parse_ibz
 
 function parse_stress(str::AbstractString)
     pressures = Float64[]
