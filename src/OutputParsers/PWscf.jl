@@ -291,7 +291,7 @@ function parse_clock(str::AbstractString)
     content = m.captures[1]
 
     info = DataFrame(
-        group = String[],
+        subroutine = String[],
         item = String[],
         CPU = Float64[],
         wall = Float64[],
@@ -310,18 +310,13 @@ function parse_clock(str::AbstractString)
     ]
         block = match(regex, content)
         isnothing(block) && continue
-        head = if isempty(block[:head])
-            "summary"
-        else
-            block[:head]
-        end
         for m in eachmatch(TIME_ITEM, block[:body])
-            push!(info, [head m[1] map(x -> parse(Float64, x), m.captures[2:4])...])
+            push!(info, [block[:head] m[1] map(x -> parse(Float64, x), m.captures[2:4])...])
         end
     end
     # m = match(TERMINATED_DATE, content)
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
-    return groupby(info, :group)
+    return groupby(info, :subroutine)
 end # function parse_clock
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
