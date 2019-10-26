@@ -12,7 +12,7 @@ julia>
 module PWscf
 
 # using Dates: DateTime, DateFormat
-using DataFrames: DataFrame, groupby
+using DataFrames: DataFrame, GroupedDataFrame, groupby
 using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
@@ -90,8 +90,8 @@ end # function parse_summary
 
 function parse_fft_base_info(str::AbstractString)
     df = DataFrame(
-        group = String[],
         kind = String[],
+        minmaxsum = String[],
         dense = Int[],
         smooth = Int[],
         PW = [],
@@ -111,7 +111,7 @@ function parse_fft_base_info(str::AbstractString)
         push!(df, ["sticks" sp[1] numbers[1:3]...])
         push!(df, ["gvecs" sp[1] numbers[4:6]...])
     end
-    return groupby(df, :group)
+    return groupby(df, :kind)
 end # function parse_fft_base_info
 
 # Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
