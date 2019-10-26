@@ -98,8 +98,7 @@ function parse_parallelization_info(str::AbstractString)
     )
     m = match(PARALLELIZATION_INFO_BLOCK, str)
     if isnothing(m)
-        @info("The parallelization info is not found!")
-        return
+        @info("The parallelization info is not found!") && return
     else
         content = first(m.captures)
     end
@@ -119,8 +118,7 @@ end # function parse_parallelization_info
 function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
-        @info("The k-points info is not found!")
-        return
+        @info("The k-points info is not found!") && return
     end
     nk = parse(Int, m[:nk])
 
