@@ -66,13 +66,11 @@ const NUMBER_OF_ITERATIONS_USED = Regex(
 const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
 # "nstep                     = ",I12
 const NSTEP = Regex("(nstep)" * EQUAL_SIGN * INTEGER, "i")
-const FFT_BASE_INFO = Regex("""Parallelization info
-\\s*--------------------
-\\s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
-(\\s*Min.*
-\\s*Max.*
-\\s*Sum.*)
-""", "im")
+# The following format is from https://github.com/QEF/q-e/blob/4132a64/Modules/fft_base.f90#L70-L91.
+const FFT_BASE_INFO = r"""\s*(?<head>Parallelization info|G-vector sticks info)
+\s*--------------------
+\s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
+(?<body>(?:\s*Min.*)?(?:\s*Max.*)?\s*Sum.*)"""im
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L341-L381.
 const K_POINTS_BLOCK = r"""
 number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
