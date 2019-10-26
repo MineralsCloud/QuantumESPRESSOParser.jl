@@ -72,13 +72,12 @@ const PARALLELIZATION_INFO_BLOCK = Regex("""Parallelization info
 \\s*Max.*
 \\s*Sum.*)
 """, "im")
+# The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L341-L381.
 const K_POINTS_BLOCK = r"""
-number of k points=\s*([0-9]+)\h*
-\s*cart\. coord\. in units 2pi\/alat\s*
-(\X+?)
-\s*cryst\. coord\.\s*
-(\X+?)
-\s*Dense  grid"""im
+number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
+\s*(?:cart\. coord\. in units 2pi\/alat\s*(?<cart>\X+?)^\s*$|Number of k-points >= 100: set verbosity='high' to print them\.)
+\s*(?:cryst\. coord\.\s*(?<cryst>\X+?)
+\s*Dense  grid)?"""im
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
 const K_POINTS_ITEM = r"k\(\s*([0-9]+)\s*\) = \(\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*\), wk =\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i
