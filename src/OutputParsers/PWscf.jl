@@ -17,6 +17,8 @@ using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
 using Compat: isnothing
 
+using QuantumESPRESSOParsers: SubroutineError
+
 export parse_summary,
        parse_fft_base_info,
        parse_ibz,
@@ -31,7 +33,9 @@ export parse_summary,
        parse_clock,
        whatinput,
        isrelaxed,
-       isjobdone
+       isjobdone,
+       haserror,
+       whaterror
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}
@@ -96,7 +100,7 @@ end # function parse_summary
 Parse the FFT base information from `pw.x`'s output and return a `GroupedDataFrame`.
 
 If there are more than one processors, the title is "Parallelization info" and three
-rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is 
+rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is
 "G-vector sticks info" and only the "Sum" row is printed. If no information is found,
 return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
@@ -343,5 +347,23 @@ function isrelaxed(str::AbstractString)::Bool
 end # function isrelaxed
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
+
+function haserror(str::AbstractString)
+    isnothing(match(ERROR_IDENTIFIER, str)) ? false : true
+end # function haserror
+
+function whaterror(str::AbstractString)
+    errors = SubroutineError[]
+    if haserror(str)
+        for e in eachmatch(ERROR_BLOCK, str)
+            body = strip(e[:body])
+            s, msg = split(body, '\n')
+            m = match(ERROR_IN_ROUTINE, s)
+            push!(errors, SubroutineError(m[1], m[2], strip(msg)))
+        end
+        return errors
+    end
+    return
+end # function whaterror
 
 end
