@@ -29,6 +29,8 @@ export parse_summary,
        parse_atomic_positions,
        parse_scf_calculation,
        parse_clock,
+       whatinput,
+       isrelaxed,
        isjobdone
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
@@ -88,22 +90,32 @@ function parse_summary(str::AbstractString)
     return dict
 end # function parse_summary
 
+"""
+    parse_fft_base_info(str::AbstractString)
+
+Parse the FFT base information from `pw.x`'s output.
+
+If there are more than one processors, the title is "Parallelization info" and three
+rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is 
+"G-vector sticks info" and only the "Sum" row is printed. If no information is found,
+return `nothing`.
+"""
 function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
     df = DataFrame(
         kind = String[],
-        minmaxsum = String[],
+        stats = String[],
         dense = Int[],
         smooth = Int[],
         PW = [],
     )
     m = match(FFT_BASE_INFO, str)
     if isnothing(m)
-        @info("The parallelization info is not found!") && return
+        @info("The FFT base info is not found!") && return
     else
-        content = first(m.captures)
+        body = m[:body]
     end
 
-    for line in split(content, '\n')
+    for line in split(body, '\n')
         # The following format is from https://github.com/QEF/q-e/blob/7357cdb/Modules/fft_base.f90#L73-L90.
         # "Min",4X,2I8,I7,12X,2I9,I8
         sp = split(strip(line), r"\s+")
@@ -318,6 +330,19 @@ function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
     return groupby(info, :subroutine)
 end # function parse_clock
+
+function whatinput(str::AbstractString)::Maybe{String}
+    m = match(READING_INPUT_FROM, str)
+    if isnothing(m)
+        @info("The input file name is not found!") && return
+    else
+        return m[1]
+    end
+end # function whatinput
+
+function isrelaxed(str::AbstractString)::Bool
+    isnothing(match(FINAL_COORDINATES_BLOCK, str)) ? false : true
+end # function isrelaxed
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
