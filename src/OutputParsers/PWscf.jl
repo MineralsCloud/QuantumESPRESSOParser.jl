@@ -93,7 +93,13 @@ function parse_head(str::AbstractString)
 end # function parse_head
 
 function parse_parallelization_info(str::AbstractString)
-    df = DataFrame(group = String[], kind = String[], dense = Int[], smooth = Int[], PW = [])
+    df = DataFrame(
+        group = String[],
+        kind = String[],
+        dense = Int[],
+        smooth = Int[],
+        PW = [],
+    )
     m = match(PARALLELIZATION_INFO_BLOCK, str)
     if isnothing(m)
         @info("The parallelization info is not found!")
@@ -210,7 +216,10 @@ function parse_scf_calculation(str::AbstractString)
                 body = n.captures[2]
                 e = parse(
                     Float64,
-                    match(r"total energy\s+=\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i, body).captures[1],
+                    match(
+                        r"total energy\s+=\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i,
+                        body,
+                    ).captures[1],
                 )
                 hf = parse(
                     Float64,
@@ -269,7 +278,13 @@ function parse_clock(str::AbstractString)
     isnothing(m) && return
     content = m.captures[1]
 
-    info = DataFrame(group = String[], item = String[], CPU = Float64[], wall = Float64[], calls = Int[])
+    info = DataFrame(
+        group = String[],
+        item = String[],
+        CPU = Float64[],
+        wall = Float64[],
+        calls = Int[],
+    )
     for regex in [
         SUMMARY_TIME_BLOCK
         INIT_RUN_TIME_BLOCK
