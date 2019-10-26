@@ -26,18 +26,20 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         "mixing beta" => 0.7,
         "charge density cutoff" => 60.0,
     )
-
-    @test parse_fft_base_info(str) == groupby(DataFrame(
-        [
-            "sticks"  "Min"   30   30   10
-            "sticks"  "Max"   31   31   11
-            "sticks"  "Sum"  121  121   43
-            "gvecs"   "Min"  216  216   45
-            "gvecs"   "Max"  218  218   46
-            "gvecs"   "Sum"  869  869  181
-        ],
-        [:kind, :stats, :dense, :smooth, :PW]
-    ), :kind)
+    @test parse_fft_base_info(str) == groupby(
+        DataFrame(
+            [
+             "sticks" "Min" 30 30 10
+             "sticks" "Max" 31 31 11
+             "sticks" "Sum" 121 121 43
+             "gvecs" "Min" 216 216 45
+             "gvecs" "Max" 218 218 46
+             "gvecs" "Sum" 869 869 181
+            ],
+            [:kind, :stats, :dense, :smooth, :PW],
+        ),
+        :kind,
+    )
 
     @test parse_ibz(str) == (
         [
@@ -171,7 +173,38 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     @test parse_fft_dimensions(str) == [869, 15, 15, 15]
 
-    clock = parse_clock(str) ## TODO : compare two tables
+    @test parse_clock(str) == groupby(
+        DataFrame(
+            [
+             "" "init_run" 0.03 0.03 1
+             "" "electrons" 0.89 1.06 1
+             "" "forces" 0.0 0.0 1
+             "" "stress" 0.01 0.01 1
+             "init_run" "wfcinit" 0.02 0.02 1
+             "init_run" "potinit" 0.0 0.0 1
+             "init_run" "hinit0" 0.0 0.0 1
+             "electrons" "c_bands" 0.84 0.99 6
+             "electrons" "sum_band" 0.04 0.06 6
+             "electrons" "v_of_rho" 0.0 0.0 6
+             "electrons" "mix_rho" 0.0 0.0 6
+             "c_bands" "init_us_2" 0.01 0.01 900
+             "c_bands" "ppcg_k" 0.74 0.88 360
+             "c_bands" "wfcrot" 0.1 0.12 300
+             "h_psi" "h_psi:pot" 0.44 0.52 1930
+             "h_psi" "h_psi:calbec" 0.03 0.02 1930
+             "h_psi" "vloc_psi" 0.39 0.48 1930
+             "h_psi" "add_vuspsi" 0.01 0.01 1930
+             "General routines" "calbec" 0.02 0.02 2230
+             "General routines" "fft" 0.0 0.0 24
+             "General routines" "ffts" 0.0 0.0 6
+             "General routines" "fftw" 0.37 0.45 22818
+             "Parallel routines" "fft_scatt_xy" 0.04 0.08 22848
+             "Parallel routines" "fft_scatt_yz" 0.12 0.15 22848
+            ],
+            [:subroutine, :item, :CPU, :wall, :calls],
+        ),
+        :subroutine,
+    )
 
     @test isjobdone(str) == true
 end
@@ -199,7 +232,20 @@ end
         "charge density cutoff" => 100.0,
     )
 
-# fft_base_info = parse_fft_base_info(vc) ## TODO : compare two tables
+    @test parse_fft_base_info(str) == groupby(
+        DataFrame(
+            [
+             "sticks" "Min" 174 174 60
+             "sticks" "Max" 175 175 61
+             "sticks" "Sum" 349 349 121
+             "gvecs" "Min" 2079 2079 416
+             "gvecs" "Max" 2080 2080 417
+             "gvecs" "Sum" 4159 4159 833
+            ],
+            [:kind, :stats, :dense, :smooth, :PW],
+        ),
+        :kind,
+    )
 
     @test parse_ibz(str) == (
         [
@@ -652,7 +698,39 @@ end
 
     @test parse_fft_dimensions(str) == [4159, 24, 24, 24]
 
-    clock = parse_clock(str) ## TODO : compare two tables
+    @test parse_clock(str) == groupby(
+        DataFrame(
+            [
+             "" "init_run" 0.12 0.15 1
+             "" "electrons" 5.8 5.9 19
+             "" "update_pot" 1.09 1.11 18
+             "" "forces" 0.45 0.45 19
+             "" "stress" 0.94 0.94 19
+             "init_run" "wfcinit" 0.02 0.02 1
+             "init_run" "potinit" 0.02 0.02 1
+             "electrons" "c_bands" 4.94 5.0 96
+             "electrons" "sum_band" 0.73 0.76 96
+             "electrons" "v_of_rho" 0.07 0.08 109
+             "electrons" "mix_rho" 0.02 0.02 96
+             "c_bands" "init_us_2" 0.07 0.12 2310
+             "c_bands" "cegterg" 4.84 4.91 960
+             "*egterg" "h_psi" 3.79 3.77 3133
+             "*egterg" "g_psi" 0.01 0.02 2163
+             "*egterg" "cdiaghg" 0.39 0.42 2883
+             "h_psi" "h_psi:pot" 3.77 3.76 3133
+             "h_psi" "h_psi:calbec" 0.12 0.1 3133
+             "h_psi" "vloc_psi" 3.54 3.57 3133
+             "h_psi" "add_vuspsi" 0.1 0.08 3133
+             "General routines" "calbec" 0.14 0.13 4083
+             "General routines" "fft" 0.05 0.07 542
+             "General routines" "fftw" 3.82 3.88 55066
+             "General routines" "davcio" 0.0 0.0 10
+             "Parallel routines" "fft_scatter" 0.55 0.57 55608
+            ],
+            [:subroutine, :item, :CPU, :wall, :calls],
+        ),
+        :subroutine,
+    )
 
     @test isjobdone(str) == true
 end
