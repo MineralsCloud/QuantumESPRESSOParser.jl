@@ -36,7 +36,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
             "gvecs"   "Max"  218  218   46
             "gvecs"   "Sum"  869  869  181
         ],
-        [:kind, :minmaxsum, :dense, :smooth, :PW]
+        [:kind, :stats, :dense, :smooth, :PW]
     ), :kind)
 
     @test parse_ibz(str) == (
