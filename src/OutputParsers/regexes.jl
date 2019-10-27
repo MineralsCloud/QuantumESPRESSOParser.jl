@@ -199,10 +199,18 @@ const SELF_CONSISTENT_CALCULATION_BLOCK = r"Self-consistent Calculation(\X+?)End
 const ITERATION_BLOCK = r"(iteration #\X+?secs)\s*(total energy\X+?estimated scf accuracy    <.*)?"i
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
-const ITERATION_NUMBER_ITEM = Regex(
+const ITERATION_NUMBER = Regex(
     "iteration #\\s*" * INTEGER * "\\s+ecut=\\s*" * FIXED_POINT_REAL * " Ry\\s+beta=\\s*" *
     FIXED_POINT_REAL,
     "i",
+)
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L1257-L1261.
+const UNCONVERGED_ELECTRONS_ENERGY = Regex(
+    """
+    total energy\\s+=\\s*$(FIXED_POINT_REAL)\\s+Ry
+    \\s*Harris-Foulkes estimate\\s+=\\s*$(FIXED_POINT_REAL)\\s+Ry
+    \\s*estimated scf accuracy\\s+<\\s*$(GENERAL_REAL)\\s+Ry""",
+    "im"
 )
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
 # '     total cpu time spent up to now is ',F10.1,' secs'

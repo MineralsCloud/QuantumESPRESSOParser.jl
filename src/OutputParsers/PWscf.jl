@@ -220,50 +220,35 @@ function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCa
 end # parse_atomic_positions
 
 function parse_scf_calculation(str::AbstractString)
-    scf_calculations = []
-    for m in eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str)
-        iterations = Dict{String,Any}[]
-        for n in eachmatch(ITERATION_BLOCK, m.captures |> first)
-            d = Dict{String,Any}()
-            head = match(ITERATION_NUMBER_ITEM, n.captures[1])
+    df = DataFrame(
+        step = Int[],
+        i = Int[],
+        ecut = Float64[],
+        β = Float64[],
+        t = Float64[],
+        ɛ = Maybe{Float64}[],
+        hf = Maybe{Float64}[],
+        δ = Maybe{Float64}[],
+    )
+    for (j, m) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
+        for (k, n) in enumerate(eachmatch(ITERATION_BLOCK, m.captures |> first))
+            head = match(ITERATION_NUMBER, n.captures[1])
             isnothing(head) && continue
-            d["iteration"] = parse(Int, head.captures[1])
-            d["ecut"], d["beta"] = map(x -> parse(Float64, x), head.captures[2:3])
-            time = match(TOTAL_CPU_TIME, n.captures[1])
-            d["time"] = parse(Float64, time.captures[1])
+            i = parse(Int, head.captures[1])
+            @assert(i == k)
+            ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
+            t = parse(Float64, match(TOTAL_CPU_TIME, n.captures[1])[1])
 
             if !isnothing(n.captures[2])
                 body = n.captures[2]
-                e = parse(
-                    Float64,
-                    match(
-                        r"total energy\s+=\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i,
-                        body,
-                    ).captures[1],
-                )
-                hf = parse(
-                    Float64,
-                    match(
-                        r"Harris-Foulkes estimate\s+=\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i,
-                        body,
-                    ).captures[1],
-                )
-                ac = parse(
-                    Float64,
-                    match(
-                        Regex(raw"estimated scf accuracy\s+<\s*" * GENERAL_REAL, "i"),
-                        body,
-                    ).captures[1],
-                )
-                d["total energy"] = e
-                d["Harris-Foulkes estimate"] = hf
-                d["estimated scf accuracy"] = ac
+                ɛ, hf, δ = map(x -> parse(Float64, x), match(UNCONVERGED_ELECTRONS_ENERGY, body).captures)
+            else
+                ɛ, hf, δ = nothing, nothing, nothing
             end
-            push!(iterations, d)
+            push!(df, [j k ecut β t ɛ hf δ])
         end
-        push!(scf_calculations, iterations)
     end
-    return scf_calculations
+    return groupby(df, :step)
 end # function parse_scf_calculation
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
