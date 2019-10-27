@@ -30,6 +30,7 @@ export parse_summary,
        parse_cell_parameters,
        parse_atomic_positions,
        parse_scf_calculation,
+       parse_ks_energy,
        parse_clock,
        whatinput,
        isrelaxed,
@@ -255,30 +256,31 @@ function parse_scf_calculation(str::AbstractString)
         δ = Maybe{Float64}[],  # Estimated scf accuracy
     )
     # (step counter, relax step)
-    for (i, x) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
+    for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
         # (iteration counter, scf iteration)
-        for (j, y) in enumerate(eachmatch(ITERATION_BLOCK, x.captures[1]))
-            head = match(ITERATION_NUMBER, y.captures[1])
-            isnothing(head) && continue
-            n = parse(Int, head.captures[1])  # Iteration number
+        for (j, iter) in enumerate(eachmatch(ITERATION_BLOCK, scf[1]))
+            body = iter[1]
+            head = match(ITERATION_HEAD, body)
+            n = parse(Int, head[1])  # Iteration number
             @assert(n == j, "Something went wrong when parsing iteration number!")
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
-            t = parse(Float64, match(TOTAL_CPU_TIME, y.captures[1])[1])
 
-            z = match(C_BANDS, y.captures[1])
-            if !isnothing(z)
-                diag_style = z[:diag]
-                ethr, avg = map(x -> parse(Float64, x), z.captures[2:3])
+            c_bands_info = match(C_BANDS, body)
+            if !isnothing(c_bands_info)
+                diag_style = c_bands_info[:diag]
+                ethr, avg = map(x -> parse(Float64, x), c_bands_info.captures[2:3])
             else
                 diag_style, ethr, avg = nothing, nothing, nothing
             end
 
-            if !isnothing(y.captures[2])
-                body = y.captures[2]
-                ɛ, hf, δ = map(
-                    x -> parse(Float64, x),
-                    match(UNCONVERGED_ELECTRONS_ENERGY, body).captures,
-                )
+            t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
+
+            ks_energies = match(KS_ENERGIES_BLOCK, body)
+            !isnothing(ks_energies) && parse_ks_energy(ks_energies[1])
+
+            energies = match(UNCONVERGED_ELECTRONS_ENERGY, body)
+            if !isnothing(energies)
+                ɛ, hf, δ = map(x -> parse(Float64, x), energies.captures)
             else
                 ɛ, hf, δ = nothing, nothing, nothing
             end
@@ -290,7 +292,15 @@ end # function parse_scf_calculation
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_ks_energy(str::AbstractString)
-
+    kpts, bands = Vector{Float64}[], Vector{Float64}[]
+    str == "Number of k-points >= 100: set verbosity='high' to print the bands." && return
+    regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES : KS_ENERGIES_BANDS
+    for m in eachmatch(regex, str)
+        push!(kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])))
+        push!(bands, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])))
+    end
+    len, nbnd = length(kpts), length(bands[1])
+    return reshape(Iterators.flatten(kpts) |> collect, len, 3), reshape(Iterators.flatten(bands) |> collect, len, nbnd)
 end # function parse_ks_energy
 
 function parse_total_energy(str::AbstractString)::Vector{Float64}
