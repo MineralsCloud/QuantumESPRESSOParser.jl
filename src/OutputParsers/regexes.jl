@@ -60,7 +60,7 @@ const CONVERGENCE_THRESHOLD = Regex(
 const MIXING_BETA = Regex("(mixing beta)" * EQUAL_SIGN * FIXED_POINT_REAL, "i")
 # 'number of iterations used = ',I12,2X,A,' mixing'
 const NUMBER_OF_ITERATIONS_USED = Regex(
-    "(number of iterations used)" * EQUAL_SIGN * INTEGER,
+    "(number of iterations used)\\s*=\\s*$INTEGER\\s+([-+\\w]+)\\s+mixing",
     "i",
 )
 const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"i
