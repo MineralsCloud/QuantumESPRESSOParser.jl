@@ -125,45 +125,19 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     @test isempty(parse_atomic_positions(str))
 
-    @test parse_scf_calculation(str) == [[
-        Dict(
-            "total energy" => -4.1872583,
-            "time" => 0.5,
-            "iteration" => 1,
-            "Harris-Foulkes estimate" => -4.18806959,
-            "ecut" => 15.0,
-            "estimated scf accuracy" => 0.00586766,
-            "beta" => 0.7,
+    @test parse_scf_calculation(str) == groupby(
+        DataFrame(
+            [
+             1 1 15.0 "PPCG style diagonalization" 0.01 8.1 0.7 0.5 -4.1872583 -4.18806959 0.00586766; 
+             1 2 15.0 "PPCG style diagonalization" 0.000196 2.4 0.7 0.6 -4.18723304 -4.18727083 0.00049876; 
+             1 3 15.0 "PPCG style diagonalization" 1.66e-5 4.5 0.7 0.7 -4.18725801 -4.18725803 3.31e-6; 
+             1 4 15.0 "PPCG style diagonalization" 1.1e-7 5.9 0.7 1.0 -4.18725743 -4.18725817 4.08e-6; 
+             1 5 15.0 "PPCG style diagonalization" 1.1e-7 4.0 0.7 1.1 nothing nothing nothing
+            ],
+            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
         ),
-        Dict(
-            "total energy" => -4.18723304,
-            "time" => 0.6,
-            "iteration" => 2,
-            "Harris-Foulkes estimate" => -4.18727083,
-            "ecut" => 15.0,
-            "estimated scf accuracy" => 0.00049876,
-            "beta" => 0.7,
-        ),
-        Dict(
-            "total energy" => -4.18725801,
-            "time" => 0.7,
-            "iteration" => 3,
-            "Harris-Foulkes estimate" => -4.18725803,
-            "ecut" => 15.0,
-            "estimated scf accuracy" => 3.31e-6,
-            "beta" => 0.7,
-        ),
-        Dict(
-            "total energy" => -4.18725743,
-            "time" => 1.0,
-            "iteration" => 4,
-            "Harris-Foulkes estimate" => -4.18725817,
-            "ecut" => 15.0,
-            "estimated scf accuracy" => 4.08e-6,
-            "beta" => 0.7,
-        ),
-        Dict("time" => 1.1, "iteration" => 5, "ecut" => 15.0, "beta" => 0.7),
-    ]]
+        :n,
+    )
 
     @test parse_total_energy(str) == [-4.18725747]
 
@@ -206,7 +180,13 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         :subroutine,
     )
 
+    @test whatinput(str) == "standard input"
+
+    @test isrelaxed(str) == false
+
     @test isjobdone(str) == true
+
+    @test haserror(str) == false
 end
 
 @testset "Parse vc-relax output" begin
@@ -545,131 +525,104 @@ end
      #      )
      # ]
 
-    @test parse_scf_calculation(str) == [
-        [
-         Dict("time" => 0.3, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 0.4, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 0.4, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 0.5, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 0.5, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 0.8, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 0.9, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 0.9, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.0, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.0, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.1, "iteration" => 6, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.1, "iteration" => 7, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 1.4, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.5, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.5, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.6, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.6, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.7, "iteration" => 6, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 1.7, "iteration" => 7, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 2.0, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.1, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.1, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.2, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.3, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.3, "iteration" => 6, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.3, "iteration" => 7, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 2.6, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.7, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.7, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.8, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.9, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.9, "iteration" => 6, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 2.9, "iteration" => 7, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 3.2, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 3.3, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 3.4, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 3.4, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 3.5, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 3.5, "iteration" => 6, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 3.6, "iteration" => 7, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 3.8, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 3.9, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.0, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.0, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.1, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.1, "iteration" => 6, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.2, "iteration" => 7, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 4.4, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.5, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.5, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.6, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 4.7, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 4.9, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 5.0, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 5.0, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 5.1, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 5.1, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 5.4, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 5.5, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 5.5, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 5.6, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 5.6, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 5.9, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 6.0, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 6.0, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 6.1, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 6.1, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 6.4, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 6.5, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 6.6, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 6.6, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 6.9, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 7.0, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 7.0, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 7.1, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 7.1, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 7.4, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 7.5, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 7.5, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 7.6, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 7.6, "iteration" => 5, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 8.0, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 8.1, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 8.1, "iteration" => 3, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 8.1, "iteration" => 4, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [
-         Dict("time" => 8.4, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7),
-         Dict("time" => 8.5, "iteration" => 2, "ecut" => 25.0, "beta" => 0.7),
-        ],
-        [Dict("time" => 8.8, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7)],
-        [Dict("time" => 9.1, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7)],
-        [Dict("time" => 9.5, "iteration" => 1, "ecut" => 25.0, "beta" => 0.7)],
-    ]
-
+    @test parse_scf_calculation(str) == groupby(
+        DataFrame(
+            [
+             1 1 25.0 "Davidson diagonalization with overlap" 0.01 4.3 0.7 0.3 nothing nothing nothing; 
+             1 2 25.0 "Davidson diagonalization with overlap" 0.000156 1.0 0.7 0.4 nothing nothing nothing; 
+             1 3 25.0 "Davidson diagonalization with overlap" 8.89e-6 1.6 0.7 0.4 nothing nothing nothing; 
+             1 4 25.0 "Davidson diagonalization with overlap" 5.01e-8 3.1 0.7 0.5 nothing nothing nothing; 
+             1 5 25.0 "Davidson diagonalization with overlap" 7.74e-9 1.4 0.7 0.5 nothing nothing nothing; 
+             2 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 0.8 nothing nothing nothing; 
+             2 2 25.0 "Davidson diagonalization with overlap" 8.24e-6 3.1 0.7 0.9 nothing nothing nothing; 
+             2 3 25.0 "Davidson diagonalization with overlap" 6.78e-6 1.0 0.7 0.9 nothing nothing nothing; 
+             2 4 25.0 "Davidson diagonalization with overlap" 1.49e-6 1.0 0.7 1.0 nothing nothing nothing; 
+             2 5 25.0 "Davidson diagonalization with overlap" 4.63e-7 2.6 0.7 1.0 nothing nothing nothing; 
+             2 6 25.0 "Davidson diagonalization with overlap" 1.04e-8 2.1 0.7 1.1 nothing nothing nothing; 
+             2 7 25.0 "Davidson diagonalization with overlap" 1.89e-9 1.1 0.7 1.1 nothing nothing nothing; 
+             3 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.9 0.7 1.4 nothing nothing nothing; 
+             3 2 25.0 "Davidson diagonalization with overlap" 2.69e-5 3.1 0.7 1.5 nothing nothing nothing; 
+             3 3 25.0 "Davidson diagonalization with overlap" 2.43e-5 1.0 0.7 1.5 nothing nothing nothing; 
+             3 4 25.0 "Davidson diagonalization with overlap" 5.68e-6 1.0 0.7 1.6 nothing nothing nothing; 
+             3 5 25.0 "Davidson diagonalization with overlap" 1.88e-6 2.2 0.7 1.6 nothing nothing nothing; 
+             3 6 25.0 "Davidson diagonalization with overlap" 6.49e-8 2.5 0.7 1.7 nothing nothing nothing; 
+             3 7 25.0 "Davidson diagonalization with overlap" 4.28e-9 1.8 0.7 1.7 nothing nothing nothing; 
+             4 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 5.1 0.7 2.0 nothing nothing nothing; 
+             4 2 25.0 "Davidson diagonalization with overlap" 3.7e-6 3.0 0.7 2.1 nothing nothing nothing; 
+             4 3 25.0 "Davidson diagonalization with overlap" 2.05e-6 1.0 0.7 2.1 nothing nothing nothing; 
+             4 4 25.0 "Davidson diagonalization with overlap" 3.6e-7 1.5 0.7 2.2 nothing nothing nothing; 
+             4 5 25.0 "Davidson diagonalization with overlap" 1.95e-8 3.0 0.7 2.3 nothing nothing nothing; 
+             4 6 25.0 "Davidson diagonalization with overlap" 2.0e-9 1.0 0.7 2.3 nothing nothing nothing; 
+             4 7 25.0 "Davidson diagonalization with overlap" 1.16e-9 1.5 0.7 2.3 nothing nothing nothing; 
+             5 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 5.3 0.7 2.6 nothing nothing nothing; 
+             5 2 25.0 "Davidson diagonalization with overlap" 5.22e-6 3.0 0.7 2.7 nothing nothing nothing; 
+             5 3 25.0 "Davidson diagonalization with overlap" 2.41e-6 1.0 0.7 2.7 nothing nothing nothing; 
+             5 4 25.0 "Davidson diagonalization with overlap" 3.56e-7 1.3 0.7 2.8 nothing nothing nothing; 
+             5 5 25.0 "Davidson diagonalization with overlap" 2.63e-8 3.0 0.7 2.9 nothing nothing nothing; 
+             5 6 25.0 "Davidson diagonalization with overlap" 2.83e-9 1.0 0.7 2.9 nothing nothing nothing; 
+             5 7 25.0 "Davidson diagonalization with overlap" 1.44e-9 2.0 0.7 2.9 nothing nothing nothing; 
+             6 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 3.2 nothing nothing nothing; 
+             6 2 25.0 "Davidson diagonalization with overlap" 1.41e-6 3.0 0.7 3.3 nothing nothing nothing; 
+             6 3 25.0 "Davidson diagonalization with overlap" 1.41e-6 1.0 0.7 3.4 nothing nothing nothing; 
+             6 4 25.0 "Davidson diagonalization with overlap" 6.85e-7 1.0 0.7 3.4 nothing nothing nothing; 
+             6 5 25.0 "Davidson diagonalization with overlap" 8.37e-8 3.0 0.7 3.5 nothing nothing nothing; 
+             6 6 25.0 "Davidson diagonalization with overlap" 4.29e-9 1.0 0.7 3.5 nothing nothing nothing; 
+             6 7 25.0 "Davidson diagonalization with overlap" 1.47e-9 2.0 0.7 3.6 nothing nothing nothing; 
+             7 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 3.8 nothing nothing nothing; 
+             7 2 25.0 "Davidson diagonalization with overlap" 6.2e-6 3.0 0.7 3.9 nothing nothing nothing; 
+             7 3 25.0 "Davidson diagonalization with overlap" 5.67e-6 1.0 0.7 4.0 nothing nothing nothing; 
+             7 4 25.0 "Davidson diagonalization with overlap" 1.15e-6 1.0 0.7 4.0 nothing nothing nothing; 
+             7 5 25.0 "Davidson diagonalization with overlap" 2.62e-7 3.0 0.7 4.1 nothing nothing nothing; 
+             7 6 25.0 "Davidson diagonalization with overlap" 9.51e-9 1.0 0.7 4.1 nothing nothing nothing; 
+             7 7 25.0 "Davidson diagonalization with overlap" 4.98e-9 2.0 0.7 4.2 nothing nothing nothing; 
+             8 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.7 0.7 4.4 nothing nothing nothing; 
+             8 2 25.0 "Davidson diagonalization with overlap" 1.9e-6 3.0 0.7 4.5 nothing nothing nothing; 
+             8 3 25.0 "Davidson diagonalization with overlap" 1.54e-6 1.0 0.7 4.5 nothing nothing nothing; 
+             8 4 25.0 "Davidson diagonalization with overlap" 2.67e-7 1.0 0.7 4.6 nothing nothing nothing; 
+             8 5 25.0 "Davidson diagonalization with overlap" 7.53e-8 2.7 0.7 4.7 nothing nothing nothing; 
+             9 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.8 0.7 4.9 nothing nothing nothing; 
+             9 2 25.0 "Davidson diagonalization with overlap" 2.41e-6 3.0 0.7 5.0 nothing nothing nothing; 
+             9 3 25.0 "Davidson diagonalization with overlap" 2.15e-6 1.0 0.7 5.0 nothing nothing nothing; 
+             9 4 25.0 "Davidson diagonalization with overlap" 3.58e-7 1.0 0.7 5.1 nothing nothing nothing; 
+             9 5 25.0 "Davidson diagonalization with overlap" 1.12e-7 2.7 0.7 5.1 nothing nothing nothing; 
+             10 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.6 0.7 5.4 nothing nothing nothing; 
+             10 2 25.0 "Davidson diagonalization with overlap" 3.74e-7 3.0 0.7 5.5 nothing nothing nothing; 
+             10 3 25.0 "Davidson diagonalization with overlap" 1.98e-7 1.0 0.7 5.5 nothing nothing nothing; 
+             10 4 25.0 "Davidson diagonalization with overlap" 2.5e-8 1.0 0.7 5.6 nothing nothing nothing; 
+             10 5 25.0 "Davidson diagonalization with overlap" 4.09e-9 3.0 0.7 5.6 nothing nothing nothing; 
+             11 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.4 0.7 5.9 nothing nothing nothing; 
+             11 2 25.0 "Davidson diagonalization with overlap" 1.03e-7 2.7 0.7 6.0 nothing nothing nothing; 
+             11 3 25.0 "Davidson diagonalization with overlap" 8.21e-8 1.0 0.7 6.0 nothing nothing nothing; 
+             11 4 25.0 "Davidson diagonalization with overlap" 1.21e-8 2.2 0.7 6.1 nothing nothing nothing; 
+             11 5 25.0 "Davidson diagonalization with overlap" 2.13e-9 1.7 0.7 6.1 nothing nothing nothing; 
+             12 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.5 0.7 6.4 nothing nothing nothing; 
+             12 2 25.0 "Davidson diagonalization with overlap" 1.3e-7 3.0 0.7 6.5 nothing nothing nothing; 
+             12 3 25.0 "Davidson diagonalization with overlap" 1.25e-7 1.0 0.7 6.6 nothing nothing nothing; 
+             12 4 25.0 "Davidson diagonalization with overlap" 2.09e-8 2.0 0.7 6.6 nothing nothing nothing; 
+             13 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.6 0.7 6.9 nothing nothing nothing; 
+             13 2 25.0 "Davidson diagonalization with overlap" 1.51e-7 3.0 0.7 7.0 nothing nothing nothing; 
+             13 3 25.0 "Davidson diagonalization with overlap" 1.51e-7 1.0 0.7 7.0 nothing nothing nothing; 
+             13 4 25.0 "Davidson diagonalization with overlap" 3.25e-8 1.4 0.7 7.1 nothing nothing nothing; 
+             13 5 25.0 "Davidson diagonalization with overlap" 1.36e-9 3.0 0.7 7.1 nothing nothing nothing; 
+             14 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.1 0.7 7.4 nothing nothing nothing; 
+             14 2 25.0 "Davidson diagonalization with overlap" 1.52e-7 3.0 0.7 7.5 nothing nothing nothing; 
+             14 3 25.0 "Davidson diagonalization with overlap" 1.52e-7 1.0 0.7 7.5 nothing nothing nothing; 
+             14 4 25.0 "Davidson diagonalization with overlap" 3.4e-8 1.0 0.7 7.6 nothing nothing nothing; 
+             14 5 25.0 "Davidson diagonalization with overlap" 9.49e-9 2.7 0.7 7.6 nothing nothing nothing; 
+             15 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 2.2 0.7 8.0 nothing nothing nothing; 
+             15 2 25.0 "Davidson diagonalization with overlap" 1.27e-8 3.0 0.7 8.1 nothing nothing nothing; 
+             15 3 25.0 "Davidson diagonalization with overlap" 1.27e-8 1.0 0.7 8.1 nothing nothing nothing; 
+             15 4 25.0 "Davidson diagonalization with overlap" 2.69e-9 1.0 0.7 8.1 nothing nothing nothing;
+             16 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.2 0.7 8.4 nothing nothing nothing; 
+             16 2 25.0 "Davidson diagonalization with overlap" 1.06e-9 2.0 0.7 8.5 nothing nothing nothing; 
+             17 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.6 0.7 8.8 nothing nothing nothing; 
+             18 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.9 0.7 9.1 nothing nothing nothing; 
+             19 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.0 0.7 9.5 nothing nothing nothing
+            ],
+            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ],
+        ),
+        :n,
+    )
     @test parse_total_energy(str) == [
         -25.4401674,
         -25.46010129,
@@ -732,5 +685,11 @@ end
         :subroutine,
     )
 
+    @test whatinput(str) == "standard input"
+
+    @test isrelaxed(str) == true
+
     @test isjobdone(str) == true
+
+    @test haserror(str) == false
 end

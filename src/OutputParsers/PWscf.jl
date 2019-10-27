@@ -36,19 +36,40 @@ export parse_summary,
        isjobdone,
        haserror
 
+include("regexes.jl")
+
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}
 
-include("regexes.jl")
+struct Summary
+    ibrav::Int
+    alat::Float64
+    v::Float64
+    nat::Int
+    ntyp::Int
+    nelec::Float64
+    nelup::Float64
+    neldw::Float64
+    nbnd::Int
+    ecutwfc::Float64
+    ecutrho::Float64
+    ecutfock::Float64
+    ethr::Float64
+    mixing_beta::Float64
+    nmix::Int
+    mixing_style::String
+    xc::String
+    nstep::Int
+end
 
-const PATTERNS = [
-    r"([0-9]+)\s*Sym\. Ops\., with inversion, found"i,
-    r"starting charge(.*), renormalised to(.*)"i,
-    r"the Fermi energy is\s*([-+]?[0-9]*\.?[0-9]+((:?[ed])[-+]?[0-9]+)?)\s*ev"i,
-    r"The total energy is the sum of the following terms:"i,
-    r"convergence has been achieved in\s*([0-9]+)\s*iterations"i,
-    r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
-]
+# function Base.parse(::T, str::AbstractString)
+#     m = match(SUMMARY_BLOCK, str)
+#     if isnothing(m)
+#         @info("The head message is not found!") && return
+#     else
+#         content = first(m.captures)
+#     end
+# end # function Base.parse
 
 function parse_summary(str::AbstractString)
     dict = Dict{String,Any}()
@@ -221,34 +242,50 @@ end # parse_atomic_positions
 
 function parse_scf_calculation(str::AbstractString)
     df = DataFrame(
-        step = Int[],
-        i = Int[],
-        ecut = Float64[],
-        β = Float64[],
-        t = Float64[],
-        ɛ = Maybe{Float64}[],
-        hf = Maybe{Float64}[],
-        δ = Maybe{Float64}[],
+        n = Int[],  # Step number
+        i = Int[],  # Iteration number
+        ecut = Float64[],  # Cutoff energy
+        diag = Maybe{String}[],  # Diagonalization style
+        ethr = Maybe{Float64}[],  # Energy threshold
+        avg = Maybe{Float64}[],  # Average # of iterations
+        β = Float64[],  # Mixing beta
+        t = Float64[],  # Time
+        ɛ = Maybe{Float64}[],  # Total energy
+        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
+        δ = Maybe{Float64}[],  # Estimated scf accuracy
     )
-    for (j, m) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
-        for (k, n) in enumerate(eachmatch(ITERATION_BLOCK, m.captures |> first))
-            head = match(ITERATION_NUMBER, n.captures[1])
+    # (step counter, relax step)
+    for (i, x) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
+        # (iteration counter, scf iteration)
+        for (j, y) in enumerate(eachmatch(ITERATION_BLOCK, x.captures[1]))
+            head = match(ITERATION_NUMBER, y.captures[1])
             isnothing(head) && continue
-            i = parse(Int, head.captures[1])
-            @assert(i == k)
+            n = parse(Int, head.captures[1])  # Iteration number
+            @assert(n == j, "Something went wrong when parsing iteration number!")
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
-            t = parse(Float64, match(TOTAL_CPU_TIME, n.captures[1])[1])
+            t = parse(Float64, match(TOTAL_CPU_TIME, y.captures[1])[1])
 
-            if !isnothing(n.captures[2])
-                body = n.captures[2]
-                ɛ, hf, δ = map(x -> parse(Float64, x), match(UNCONVERGED_ELECTRONS_ENERGY, body).captures)
+            z = match(C_BANDS, y.captures[1])
+            if !isnothing(z)
+                diag_style = z[:diag]
+                ethr, avg = map(x -> parse(Float64, x), z.captures[2:3])
+            else
+                diag_style, ethr, avg = nothing, nothing, nothing
+            end
+
+            if !isnothing(y.captures[2])
+                body = y.captures[2]
+                ɛ, hf, δ = map(
+                    x -> parse(Float64, x),
+                    match(UNCONVERGED_ELECTRONS_ENERGY, body).captures,
+                )
             else
                 ɛ, hf, δ = nothing, nothing, nothing
             end
-            push!(df, [j k ecut β t ɛ hf δ])
+            push!(df, [i j ecut diag_style ethr avg β t ɛ hf δ])
         end
     end
-    return groupby(df, :step)
+    return groupby(df, :n)
 end # function parse_scf_calculation
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
