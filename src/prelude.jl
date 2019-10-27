@@ -1,4 +1,4 @@
-struct SubroutineError <: Exception
+struct SubroutineError
     name::String
     cerr::String
     msg::String
