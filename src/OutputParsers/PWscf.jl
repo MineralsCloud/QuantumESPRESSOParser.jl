@@ -330,9 +330,11 @@ function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
     return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m[:num])
 end # function parse_parallel_info
 
-function parse_fft_dimensions(str::AbstractString)
+function parse_fft_dimensions(str::AbstractString)::Maybe{Tuple{Int,NamedTuple}}
     m = match(FFT_DIMENSIONS, str)
-    !isnothing(m) ? map(x -> parse(Int, x), m.captures) : return
+    isnothing(m) && return
+    parsed = map(x -> parse(Int, x), m.captures)
+    return parsed[1], (nr1 = parsed[2], nr2 = parsed[3], nr3 = parsed[4])
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
