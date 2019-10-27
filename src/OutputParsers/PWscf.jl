@@ -150,36 +150,26 @@ function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
 end # function parse_fft_base_info
 
 # Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_ibz(str::AbstractString)::Maybe{Tuple}
+function parse_ibz(str::AbstractString)::Maybe{NamedTuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
         @info("The k-points info is not found!") && return
     end
     nk = parse(Int, m[:nk])
-
-    if !isnothing(m[:cart])
-        cartesian_coordinates = zeros(nk, 4)
-        for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[:cart]))
-            cartesian_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+    result = []
+    kinds = (:cart, :cryst)
+    for k in kinds
+        if !isnothing(m[k])
+            x = Matrix{Float64}(undef, nk, 4)
+            for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
+                x[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+            end
+        else
+            x = nothing
         end
-        @assert(size(cartesian_coordinates)[1] == nk)
-    else
-        # If there is no Cartesian coordinates, there must be no crystal coordinates.
-        @info("Cartesian coordinates is `nothing`!")
-        cartesian_coordinates = nothing
+        push!(result, x)
     end
-
-    if !isnothing(m[:cryst])
-        crystal_coordinates = zeros(nk, 4)
-        for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[:cryst]))
-            crystal_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
-        end
-        @assert(size(crystal_coordinates)[1] == nk)
-    else
-        # Only Cartesian coordinates present.
-        crystal_coordinates = nothing
-    end
-    return cartesian_coordinates, crystal_coordinates
+    return NamedTuple{kinds}(result)
 end # function parse_ibz
 
 function parse_stress(str::AbstractString)
@@ -334,7 +324,7 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{Tuple{Int,NamedTuple}}
     m = match(FFT_DIMENSIONS, str)
     isnothing(m) && return
     parsed = map(x -> parse(Int, x), m.captures)
-    return parsed[1], (nr1 = parsed[2], nr2 = parsed[3], nr3 = parsed[4])
+    return parsed[1], NamedTuple{(:nr1,:nr2,:nr3)}(parsed[2:end])
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
