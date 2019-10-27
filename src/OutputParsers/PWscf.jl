@@ -36,19 +36,40 @@ export parse_summary,
        isjobdone,
        haserror
 
+include("regexes.jl")
+
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}
 
-include("regexes.jl")
+struct Summary
+    ibrav::Int
+    alat::Float64
+    v::Float64
+    nat::Int
+    ntyp::Int
+    nelec::Float64
+    nelup::Float64
+    neldw::Float64
+    nbnd::Int
+    ecutwfc::Float64
+    ecutrho::Float64
+    ecutfock::Float64
+    ethr::Float64
+    mixing_beta::Float64
+    nmix::Int
+    mixing_style::String
+    xc::String
+    nstep::Int
+end
 
-const PATTERNS = [
-    r"([0-9]+)\s*Sym\. Ops\., with inversion, found"i,
-    r"starting charge(.*), renormalised to(.*)"i,
-    r"the Fermi energy is\s*([-+]?[0-9]*\.?[0-9]+((:?[ed])[-+]?[0-9]+)?)\s*ev"i,
-    r"The total energy is the sum of the following terms:"i,
-    r"convergence has been achieved in\s*([0-9]+)\s*iterations"i,
-    r"Forces acting on atoms \(cartesian axes, Ry\/au\):"i,
-]
+# function Base.parse(::T, str::AbstractString)
+#     m = match(SUMMARY_BLOCK, str)
+#     if isnothing(m)
+#         @info("The head message is not found!") && return
+#     else
+#         content = first(m.captures)
+#     end
+# end # function Base.parse
 
 function parse_summary(str::AbstractString)
     dict = Dict{String,Any}()
