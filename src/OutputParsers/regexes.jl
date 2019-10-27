@@ -226,7 +226,7 @@ init_run\s+:.*
 )
 """mx
 const TIME_ITEM = Regex(
-    "\s*([\w0-9:]+)\s+:\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)"
+    "\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)"
 )
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"m
