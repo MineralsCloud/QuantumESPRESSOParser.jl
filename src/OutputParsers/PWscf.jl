@@ -11,11 +11,11 @@ julia>
 """
 module PWscf
 
+using Compat: isnothing
 # using Dates: DateTime, DateFormat
 using DataFrames: DataFrame, GroupedDataFrame, groupby
 using Fortran90Namelists.FortranToJulia
 using QuantumESPRESSOBase.Cards.PWscf
-using Compat: isnothing
 
 using QuantumESPRESSOParsers: SubroutineError
 
@@ -294,13 +294,18 @@ end # function parse_scf_calculation
 function parse_ks_energy(str::AbstractString)
     kpts, bands = Vector{Float64}[], Vector{Float64}[]
     str == "Number of k-points >= 100: set verbosity='high' to print the bands." && return
-    regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES : KS_ENERGIES_BANDS
+    regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES :
+            KS_ENERGIES_BANDS
     for m in eachmatch(regex, str)
         push!(kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])))
-        push!(bands, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])))
+        push!(
+            bands,
+            map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])),
+        )
     end
     len, nbnd = length(kpts), length(bands[1])
-    return reshape(Iterators.flatten(kpts) |> collect, len, 3), reshape(Iterators.flatten(bands) |> collect, len, nbnd)
+    return reshape(Iterators.flatten(kpts) |> collect, len, 3),
+        reshape(Iterators.flatten(bands) |> collect, len, nbnd)
 end # function parse_ks_energy
 
 function parse_total_energy(str::AbstractString)::Vector{Float64}
