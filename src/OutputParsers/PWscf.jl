@@ -373,11 +373,7 @@ end # function parse_clock
 
 function whatinput(str::AbstractString)::Maybe{String}
     m = match(READING_INPUT_FROM, str)
-    if isnothing(m)
-        @info("The input file name is not found!") && return
-    else
-        return m[1]
-    end
+    !isnothing(m) ? m[1] : return
 end # function whatinput
 
 function isrelaxed(str::AbstractString)::Bool
