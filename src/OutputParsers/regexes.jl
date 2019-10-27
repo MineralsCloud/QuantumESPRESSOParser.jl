@@ -229,6 +229,12 @@ k\s+=(?:\s*[-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*){3}\s+band\s+energies\s+\(ev\):
 (?:(?:\s*[-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*){1,8})+
 )+
 )"""imx
+const KS_ENERGIES_BANDS = r"""
+\s*k\s+=\s*(?<k>.*)\s*\(\s*(?<PWs>[-+]?[0-9]+)\s*PWs\)\s+bands\s+\(ev\):
+(?<band>(?:\s*[-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[eE][-+]?[0-9]+)?)+)"""
+const KS_ENERGIES_BAND_ENERGIES = r"""
+\s*k\s+=\s*(?<k>.*)\s*band\s+energies\s+\(ev\):
+(?<band>(?:\s*[-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[eE][-+]?[0-9]+)?)+)"""
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L1257-L1261.
 const UNCONVERGED_ELECTRONS_ENERGY = Regex(
     """

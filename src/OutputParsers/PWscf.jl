@@ -30,6 +30,7 @@ export parse_summary,
        parse_cell_parameters,
        parse_atomic_positions,
        parse_scf_calculation,
+       parse_ks_energy,
        parse_clock,
        whatinput,
        isrelaxed,
@@ -275,6 +276,7 @@ function parse_scf_calculation(str::AbstractString)
             t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
 
             ks_energies = match(KS_ENERGIES_BLOCK, body)
+            !isnothing(ks_energies) && parse_ks_energy(ks_energies[1])
 
             energies = match(UNCONVERGED_ELECTRONS_ENERGY, body)
             if !isnothing(energies)
@@ -290,7 +292,15 @@ end # function parse_scf_calculation
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_ks_energy(str::AbstractString)
-
+    kpts, bands = Vector{Float64}[], Vector{Float64}[]
+    str == "Number of k-points >= 100: set verbosity='high' to print the bands." && return
+    regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES : KS_ENERGIES_BANDS
+    for m in eachmatch(regex, str)
+        push!(kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])))
+        push!(bands, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])))
+    end
+    len, nbnd = length(kpts), length(bands[1])
+    return reshape(Iterators.flatten(kpts) |> collect, len, 3), reshape(Iterators.flatten(bands) |> collect, len, nbnd)
 end # function parse_ks_energy
 
 function parse_total_energy(str::AbstractString)::Vector{Float64}
