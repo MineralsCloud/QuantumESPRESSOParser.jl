@@ -221,34 +221,39 @@ end # parse_atomic_positions
 
 function parse_scf_calculation(str::AbstractString)
     df = DataFrame(
-        step = Int[],
-        i = Int[],
-        ecut = Float64[],
-        β = Float64[],
-        t = Float64[],
-        ɛ = Maybe{Float64}[],
-        hf = Maybe{Float64}[],
-        δ = Maybe{Float64}[],
+        n = Int[],  # Step number
+        i = Int[],  # Iteration number
+        ecut = Float64[],  # Cutoff energy
+        β = Float64[],  # Mixing beta
+        t = Float64[],  # Time
+        ɛ = Maybe{Float64}[],  # Total energy
+        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
+        δ = Maybe{Float64}[],  # Estimated scf accuracy
     )
-    for (j, m) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
-        for (k, n) in enumerate(eachmatch(ITERATION_BLOCK, m.captures |> first))
-            head = match(ITERATION_NUMBER, n.captures[1])
+    # (step counter, relax step)
+    for (i, x) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
+        # (iteration counter, scf iteration)
+        for (j, y) in enumerate(eachmatch(ITERATION_BLOCK, x.captures[1]))
+            head = match(ITERATION_NUMBER, y.captures[1])
             isnothing(head) && continue
-            i = parse(Int, head.captures[1])
-            @assert(i == k)
+            n = parse(Int, head.captures[1])  # Iteration number
+            @assert(n == j, "Something went wrong when parsing iteration number!")
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
-            t = parse(Float64, match(TOTAL_CPU_TIME, n.captures[1])[1])
+            t = parse(Float64, match(TOTAL_CPU_TIME, y.captures[1])[1])
 
-            if !isnothing(n.captures[2])
-                body = n.captures[2]
-                ɛ, hf, δ = map(x -> parse(Float64, x), match(UNCONVERGED_ELECTRONS_ENERGY, body).captures)
+            if !isnothing(y.captures[2])
+                body = y.captures[2]
+                ɛ, hf, δ = map(
+                    x -> parse(Float64, x),
+                    match(UNCONVERGED_ELECTRONS_ENERGY, body).captures,
+                )
             else
                 ɛ, hf, δ = nothing, nothing, nothing
             end
-            push!(df, [j k ecut β t ɛ hf δ])
+            push!(df, [i j ecut β t ɛ hf δ])
         end
     end
-    return groupby(df, :step)
+    return groupby(df, :n)
 end # function parse_scf_calculation
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
