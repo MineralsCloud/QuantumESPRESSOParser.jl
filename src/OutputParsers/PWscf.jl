@@ -258,14 +258,14 @@ function parse_scf_calculation(str::AbstractString)
     for (i, x) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
         # (iteration counter, scf iteration)
         for (j, y) in enumerate(eachmatch(ITERATION_BLOCK, x.captures[1]))
-            head = match(ITERATION_NUMBER, y.captures[1])
+            xxx = y.captures[1]
+            head = match(ITERATION_NUMBER, xxx)
             isnothing(head) && continue
             n = parse(Int, head.captures[1])  # Iteration number
             @assert(n == j, "Something went wrong when parsing iteration number!")
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
-            t = parse(Float64, match(TOTAL_CPU_TIME, y.captures[1])[1])
 
-            z = match(C_BANDS, y.captures[1])
+            z = match(C_BANDS, xxx)
             if !isnothing(z)
                 diag_style = z[:diag]
                 ethr, avg = map(x -> parse(Float64, x), z.captures[2:3])
@@ -273,11 +273,15 @@ function parse_scf_calculation(str::AbstractString)
                 diag_style, ethr, avg = nothing, nothing, nothing
             end
 
-            if !isnothing(y.captures[2])
-                body = y.captures[2]
+            t = parse(Float64, match(TOTAL_CPU_TIME, xxx)[1])
+
+            a = match(KS_ENERGIES_BLOCK, xxx)
+
+            bbbb = match(UNCONVERGED_ELECTRONS_ENERGY, xxx)
+            if !isnothing(bbbb)
                 ɛ, hf, δ = map(
                     x -> parse(Float64, x),
-                    match(UNCONVERGED_ELECTRONS_ENERGY, body).captures,
+                    bbbb.captures,
                 )
             else
                 ɛ, hf, δ = nothing, nothing, nothing

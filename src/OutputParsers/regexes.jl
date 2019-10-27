@@ -200,17 +200,8 @@ const ITERATION_BLOCK = r"(?<=iteration #)(.*?)(?=iteration #|End of self-consis
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
 const ITERATION_NUMBER = Regex(
-    "iteration #\\s*" * INTEGER * "\\s+ecut=\\s*" * FIXED_POINT_REAL * " Ry\\s+beta=\\s*" *
-    FIXED_POINT_REAL,
+    "\\s*$INTEGER\\s+ecut=\\s*$FIXED_POINT_REAL\\s+Ry\\s+beta=\\s*$FIXED_POINT_REAL",
     "i",
-)
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L1257-L1261.
-const UNCONVERGED_ELECTRONS_ENERGY = Regex(
-    """
-    total energy\\s+=\\s*$(FIXED_POINT_REAL)\\s+Ry
-    \\s*Harris-Foulkes estimate\\s+=\\s*$(FIXED_POINT_REAL)\\s+Ry
-    \\s*estimated scf accuracy\\s+<\\s*$(GENERAL_REAL)\\s+Ry""",
-    "im",
 )
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L129-L130
 # and https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L65-L73.
@@ -238,6 +229,14 @@ k\s+=(?:\s*[-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*){3}\s+band\s+energies\s+\(ev\):
 (?:(?:\s*[-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*){1,8})+
 )+
 )"""imx
+# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L1257-L1261.
+const UNCONVERGED_ELECTRONS_ENERGY = Regex(
+    """
+    total energy\\s+=\\s*$(FIXED_POINT_REAL)\\s+Ry
+    \\s*Harris-Foulkes estimate\\s+=\\s*$(FIXED_POINT_REAL)\\s+Ry
+    \\s*estimated scf accuracy\\s+<\\s*$(GENERAL_REAL)\\s+Ry""",
+    "im",
+)
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
 const SUMMARY_TIME_BLOCK = r"""
