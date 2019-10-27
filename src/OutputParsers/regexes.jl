@@ -210,7 +210,15 @@ const UNCONVERGED_ELECTRONS_ENERGY = Regex(
     total energy\\s+=\\s*$(FIXED_POINT_REAL)\\s+Ry
     \\s*Harris-Foulkes estimate\\s+=\\s*$(FIXED_POINT_REAL)\\s+Ry
     \\s*estimated scf accuracy\\s+<\\s*$(GENERAL_REAL)\\s+Ry""",
-    "im"
+    "im",
+)
+# These formats are from https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L129-L130
+# and https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L65-L73.
+const C_BANDS = Regex(
+    """
+    (?<diag>Davidson diagonalization with overlap|CG style diagonalization|PPCG style diagonalization|)
+    \\s*ethr =\\s*$(GENERAL_REAL),  avg # of iterations =\\s*$(FIXED_POINT_REAL)""",
+    "im",
 )
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
 # '     total cpu time spent up to now is ',F10.1,' secs'

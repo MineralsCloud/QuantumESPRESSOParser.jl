@@ -224,6 +224,9 @@ function parse_scf_calculation(str::AbstractString)
         n = Int[],  # Step number
         i = Int[],  # Iteration number
         ecut = Float64[],  # Cutoff energy
+        diag = Maybe{String}[],  # Diagonalization style
+        ethr = Maybe{Float64}[],  # Energy threshold
+        avg = Maybe{Float64}[],  # Average # of iterations
         β = Float64[],  # Mixing beta
         t = Float64[],  # Time
         ɛ = Maybe{Float64}[],  # Total energy
@@ -241,6 +244,14 @@ function parse_scf_calculation(str::AbstractString)
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
             t = parse(Float64, match(TOTAL_CPU_TIME, y.captures[1])[1])
 
+            z = match(C_BANDS, y.captures[1])
+            if !isnothing(z)
+                diag_style = z[:diag]
+                ethr, avg = map(x -> parse(Float64, x), z.captures[2:3])
+            else
+                diag_style, ethr, avg = nothing, nothing, nothing
+            end
+
             if !isnothing(y.captures[2])
                 body = y.captures[2]
                 ɛ, hf, δ = map(
@@ -250,7 +261,7 @@ function parse_scf_calculation(str::AbstractString)
             else
                 ɛ, hf, δ = nothing, nothing, nothing
             end
-            push!(df, [i j ecut β t ɛ hf δ])
+            push!(df, [i j ecut diag_style ethr avg β t ɛ hf δ])
         end
     end
     return groupby(df, :n)
