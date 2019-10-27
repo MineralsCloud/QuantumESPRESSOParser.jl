@@ -195,8 +195,8 @@ total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
 ){3}
 )
 """imx
-const SELF_CONSISTENT_CALCULATION_BLOCK = r"Self-consistent Calculation(\X+?)End of self-consistent calculation"i
-const ITERATION_BLOCK = r"(iteration #\X+?secs)\s*(total energy\X+?estimated scf accuracy    <.*)?"i
+const SELF_CONSISTENT_CALCULATION_BLOCK = r"(Self-consistent Calculation\X+?End of self-consistent calculation)"i
+const ITERATION_BLOCK = r"(?<=iteration #)(.*?)(?=iteration #|End of self-consistent calculation)"is
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
 const ITERATION_NUMBER = Regex(
@@ -226,6 +226,18 @@ const TOTAL_CPU_TIME = Regex(
     "total cpu time spent up to now is\\s*" * FIXED_POINT_REAL * "\\s* secs",
     "i",
 )
+const KS_ENERGIES_BLOCK = r"""
+(Number\s+of\s+k-points\s+>=\s+100:\s+set\s+verbosity='high'\s+to\s+print\s+the\s+bands\.
+|
+\s*(------\s+SPIN\s+UP\s+------------|------\s+SPIN\s+DOWN\s+----------)?
+(?:
+\s*(?:k\s+=(?:\s*[-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*){3}\s*\(\s*(?:[-+]?[0-9]+)\s*PWs\)\s+bands\s+\(ev\):
+|
+k\s+=(?:\s*[-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*){3}\s+band\s+energies\s+\(ev\):
+)
+(?:(?:\s*[-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*){1,8})+
+)+
+)"""imx
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
 const SUMMARY_TIME_BLOCK = r"""
