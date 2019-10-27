@@ -199,7 +199,7 @@ const SELF_CONSISTENT_CALCULATION_BLOCK = r"(Self-consistent Calculation\X+?End 
 const ITERATION_BLOCK = r"(?<=iteration #)(.*?)(?=iteration #|End of self-consistent calculation)"is
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
-const ITERATION_NUMBER = Regex(
+const ITERATION_HEAD = Regex(
     "\\s*$INTEGER\\s+ecut=\\s*$FIXED_POINT_REAL\\s+Ry\\s+beta=\\s*$FIXED_POINT_REAL",
     "i",
 )

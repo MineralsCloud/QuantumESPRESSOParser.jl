@@ -255,34 +255,30 @@ function parse_scf_calculation(str::AbstractString)
         δ = Maybe{Float64}[],  # Estimated scf accuracy
     )
     # (step counter, relax step)
-    for (i, x) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
+    for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
         # (iteration counter, scf iteration)
-        for (j, y) in enumerate(eachmatch(ITERATION_BLOCK, x.captures[1]))
-            xxx = y.captures[1]
-            head = match(ITERATION_NUMBER, xxx)
-            isnothing(head) && continue
-            n = parse(Int, head.captures[1])  # Iteration number
+        for (j, iter) in enumerate(eachmatch(ITERATION_BLOCK, scf[1]))
+            body = iter[1]
+            head = match(ITERATION_HEAD, body)
+            n = parse(Int, head[1])  # Iteration number
             @assert(n == j, "Something went wrong when parsing iteration number!")
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
 
-            z = match(C_BANDS, xxx)
-            if !isnothing(z)
-                diag_style = z[:diag]
-                ethr, avg = map(x -> parse(Float64, x), z.captures[2:3])
+            c_bands_info = match(C_BANDS, body)
+            if !isnothing(c_bands_info)
+                diag_style = c_bands_info[:diag]
+                ethr, avg = map(x -> parse(Float64, x), c_bands_info.captures[2:3])
             else
                 diag_style, ethr, avg = nothing, nothing, nothing
             end
 
-            t = parse(Float64, match(TOTAL_CPU_TIME, xxx)[1])
+            t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
 
-            a = match(KS_ENERGIES_BLOCK, xxx)
+            ks_energies = match(KS_ENERGIES_BLOCK, body)
 
-            bbbb = match(UNCONVERGED_ELECTRONS_ENERGY, xxx)
-            if !isnothing(bbbb)
-                ɛ, hf, δ = map(
-                    x -> parse(Float64, x),
-                    bbbb.captures,
-                )
+            energies = match(UNCONVERGED_ELECTRONS_ENERGY, body)
+            if !isnothing(energies)
+                ɛ, hf, δ = map(x -> parse(Float64, x), energies.captures)
             else
                 ɛ, hf, δ = nothing, nothing, nothing
             end
