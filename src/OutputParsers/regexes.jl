@@ -11,7 +11,7 @@ const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L374-L375.
 const FFT_DIMENSIONS = Regex("Dense  grid:\\s*$INTEGER\\s+G-vectors\\s+FFT dimensions: \\(\\s*$INTEGER,\\s*$INTEGER,\\s*$INTEGER\\)")
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
-const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"i  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
+const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
 const BRAVAIS_LATTICE_INDEX = Regex("(bravais-lattice index)$EQUAL_SIGN$INTEGER")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
@@ -70,7 +70,7 @@ CELL_PARAMETERS [ \t]*
 ){3}[\n]
 ){3}
 )
-"""imx
+"""mx
 const CELL_PARAMETERS_ITEM = r"""
 ^                        # Linestart
 [ \t]*                   # Optional white space
@@ -129,7 +129,7 @@ const ATOMIC_POSITIONS_BLOCK = r"""
         [\n]                                    # line break at the end
     )+                                          # A positions block should be one or more lines
 )
-"""imx
+"""mx
 const ATOMIC_POSITIONS_ITEM = r"""
 ^                                       # Linestart
 [ \t]*                                  # Optional white space
@@ -170,7 +170,7 @@ total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
 ){6}
 ){3}
 )
-"""imx
+"""mx
 const SELF_CONSISTENT_CALCULATION_BLOCK = r"(Self-consistent Calculation\X+?End of self-consistent calculation)"
 const ITERATION_BLOCK = r"(?<=iteration #)(.*?)(?=iteration #|End of self-consistent calculation)"s
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
@@ -186,8 +186,7 @@ const C_BANDS = Regex(
 )
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
 # '     total cpu time spent up to now is ',F10.1,' secs'
-const TOTAL_CPU_TIME = Regex("total cpu time spent up to now is\\s*" * FIXED_POINT_REAL *
-                             "\\s* secs")
+const TOTAL_CPU_TIME = Regex("total cpu time spent up to now is\\s*$FIXED_POINT_REAL\\s* secs")
 const KS_ENERGIES_BLOCK = r"""
 (Number\s+of\s+k-points\s+>=\s+100:\s+set\s+verbosity='high'\s+to\s+print\s+the\s+bands\.
 |
@@ -214,7 +213,7 @@ const UNCONVERGED_ELECTRONS_ENERGY = Regex(
     \\s*estimated scf accuracy\\s+<\\s*$GENERAL_REAL\\s+Ry""",
     "m",
 )
-const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"i
+const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
 const SUMMARY_TIME_BLOCK = r"""
 (?<head>)
@@ -226,8 +225,9 @@ init_run\s+:.*
 \s*(?:stress\s+:.*)?     # This does not always exist.
 )
 """mx
-const TIME_ITEM = Regex(raw"\s*([\w0-9:]+)\s+:\s*" * FIXED_POINT_REAL * "s\\sCPU\\s*" *
-                        FIXED_POINT_REAL * raw"s\sWALL\s\(\s*([+-]?[0-9]+)\scalls\)")
+const TIME_ITEM = Regex(
+    "\s*([\w0-9:]+)\s+:\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)"
+)
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"m
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
