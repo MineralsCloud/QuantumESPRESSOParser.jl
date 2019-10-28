@@ -140,7 +140,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
     #     :n,
     # )
 
-    @test parse_total_energy(str) == [-4.18725747]
+    @test parse_converged_energy(str) == (-4.18725747, -4.18725747, 2.0e-8, nothing, [2.93900635, 0.00980673, -1.63461306, -5.50183453], nothing, 0.00037704)
 
     @test parse_version(str) == "6.3"
 
@@ -625,7 +625,7 @@ end
     #     :n,
     # )
 
-    @test parse_total_energy(str) == [
+    @test parse_converged_energy(str) == [
         -25.4401674,
         -25.46010129,
         -25.48262993,
