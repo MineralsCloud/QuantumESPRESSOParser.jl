@@ -182,8 +182,8 @@ const ITERATION_HEAD = Regex("\\s*$INTEGER\\s+ecut=\\s*$FIXED_POINT_REAL\\s+Ry\\
 # and https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L65-L73.
 const C_BANDS = Regex(
     """
-    (?<diag>Davidson diagonalization with overlap|CG style diagonalization|PPCG style diagonalization|)
-    \\s*ethr =\\s*$GENERAL_REAL,  avg # of iterations =\\s*$FIXED_POINT_REAL""",
+    (?<diag>Davidson diagonalization[^\r\n]+|CG style diagonalization|PPCG style diagonalization)
+    \\h*ethr =\\h*$GENERAL_REAL,  avg # of iterations =\\h*$FIXED_POINT_REAL""",
     "m",
 )
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.

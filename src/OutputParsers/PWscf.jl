@@ -15,11 +15,16 @@ using Compat: isnothing
 # using Dates: DateTime, DateFormat
 using DataFrames: DataFrame, GroupedDataFrame, groupby
 using Fortran90Namelists.FortranToJulia
+using MLStyle: @match
 using QuantumESPRESSOBase.Cards.PWscf
 
 using QuantumESPRESSOParsers: SubroutineError
 
-export parse_summary,
+export DiagonalizationStyle,
+       DavidsonDiagonalization,
+       CGDiagonalization,
+       PPCGDiagonalization,
+       parse_summary,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
@@ -41,6 +46,11 @@ include("regexes.jl")
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}
+
+abstract type DiagonalizationStyle end
+struct DavidsonDiagonalization <: DiagonalizationStyle end
+struct CGDiagonalization <: DiagonalizationStyle end
+struct PPCGDiagonalization <: DiagonalizationStyle end
 
 struct Summary
     ibrav::Int
@@ -236,7 +246,7 @@ function parse_scf_calculation(str::AbstractString)
         n = Int[],  # Step number
         i = Int[],  # Iteration number
         ecut = Float64[],  # Cutoff energy
-        diag = Maybe{String}[],  # Diagonalization style
+        diag = Maybe{DiagonalizationStyle}[],  # Diagonalization style
         ethr = Maybe{Float64}[],  # Energy threshold
         avg = Maybe{Float64}[],  # Average # of iterations
         β = Float64[],  # Mixing beta
@@ -255,13 +265,7 @@ function parse_scf_calculation(str::AbstractString)
             @assert(n == j, "Something went wrong when parsing iteration number!")
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
 
-            c_bands_info = match(C_BANDS, body)
-            if !isnothing(c_bands_info)
-                diag_style = c_bands_info[:diag]
-                ethr, avg = map(x -> parse(Float64, x), c_bands_info.captures[2:3])
-            else
-                diag_style, ethr, avg = nothing, nothing, nothing
-            end
+            solver, ethr, avg = parse_diagonalization(body)
 
             t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
 
@@ -274,11 +278,25 @@ function parse_scf_calculation(str::AbstractString)
             else
                 ɛ, hf, δ = nothing, nothing, nothing
             end
-            push!(df, [i j ecut diag_style ethr avg β t ɛ hf δ])
+            push!(df, [i j ecut solver ethr avg β t ɛ hf δ])
         end
     end
     return groupby(df, :n)
 end # function parse_scf_calculation
+
+function parse_diagonalization(str::AbstractString)
+    solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
+    m = match(C_BANDS, str)
+    if !isnothing(m)
+        solver = @match m[:diag] begin
+            "Davidson diagonalization with overlap" => DavidsonDiagonalization()
+            "CG style diagonalization" => CGDiagonalization()
+            "PPCG style diagonalization" => PPCGDiagonalization()
+        end
+        ethr, avg_iter = map(x -> parse(Float64, x), m.captures[2:end])
+    end  # Keep them `nothing` if `m` is `nothing`
+    return solver, ethr, avg_iter
+end # function parse_diagonalization
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_ks_energy(str::AbstractString)
