@@ -328,24 +328,26 @@ function parse_converged_energy(str::AbstractString)
     m = match(CONVERGED_ELECTRONS_ENERGY, str)
     if !isnothing(m)
         ɛ, hf, δ = map(x -> parse(Float64, x), m.captures[1:3])
+    else
+        return
     end  # Keep them `nothing` if `m` is `nothing`
     regex = Regex(FIXED_POINT_REAL)
-    ae = if !isempty(m[:ae])  # 1 energy
+    ae = if !isnothing(m[:ae])  # 1 energy
         parse(Float64, match(regex, m[:ae])[1])
     else
         nothing
     end
-    decomp = if !isempty(m[:decomp])  # 4 energies
+    decomp = if !isnothing(m[:decomp])  # 4 energies
         map(x -> parse(Float64, x[1]), eachmatch(regex, m[:decomp]))
     else
         nothing
     end
-    onecenter = if !isempty(m[:one])  # 7 energies
+    onecenter = if !isnothing(m[:one])  # 7 energies
         map(x -> parse(Float64, x[1]), eachmatch(regex, m[:one]))
     else
         nothing
     end
-    smearing = if !isempty(m[:smearing])  # 1 energy
+    smearing = if !isnothing(m[:smearing])  # 1 energy
         parse(Float64, match(regex, m[:smearing])[1])
     else
         nothing
