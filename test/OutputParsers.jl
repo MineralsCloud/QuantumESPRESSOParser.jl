@@ -26,6 +26,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         "mixing beta" => 0.7,
         "charge density cutoff" => 60.0,
     )
+
     @test parse_fft_base_info(str) == groupby(
         DataFrame(
             [
@@ -42,69 +43,69 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
     )
 
     @test parse_ibz(str) == (
-        [
-         0.0625 0.0625 0.0625 0.0078125
-         0.0625 0.0625 0.1875 0.0234375
-         0.0625 0.0625 0.3125 0.0234375
-         0.0625 0.0625 0.4375 0.0234375
-         0.0625 0.0625 0.5625 0.0234375
-         0.0625 0.0625 0.6875 0.0234375
-         0.0625 0.0625 0.8125 0.0234375
-         0.0625 0.0625 0.9375 0.0234375
-         0.0625 0.1875 0.1875 0.0234375
-         0.0625 0.1875 0.3125 0.046875
-         0.0625 0.1875 0.4375 0.046875
-         0.0625 0.1875 0.5625 0.046875
-         0.0625 0.1875 0.6875 0.046875
-         0.0625 0.1875 0.8125 0.046875
-         0.0625 0.1875 0.9375 0.046875
-         0.0625 0.3125 0.3125 0.0234375
-         0.0625 0.3125 0.4375 0.046875
-         0.0625 0.3125 0.5625 0.046875
-         0.0625 0.3125 0.6875 0.046875
-         0.0625 0.3125 0.8125 0.046875
-         0.0625 0.3125 0.9375 0.046875
-         0.0625 0.4375 0.4375 0.0234375
-         0.0625 0.4375 0.5625 0.046875
-         0.0625 0.4375 0.6875 0.046875
-         0.0625 0.4375 0.8125 0.046875
-         0.0625 0.4375 0.9375 0.046875
-         0.0625 0.5625 0.5625 0.0234375
-         0.0625 0.5625 0.6875 0.046875
-         0.0625 0.5625 0.8125 0.046875
-         0.0625 0.6875 0.6875 0.0234375
-         0.0625 0.6875 0.8125 0.046875
-         0.0625 0.8125 0.8125 0.0234375
-         0.1875 0.1875 0.1875 0.0078125
-         0.1875 0.1875 0.3125 0.0234375
-         0.1875 0.1875 0.4375 0.0234375
-         0.1875 0.1875 0.5625 0.0234375
-         0.1875 0.1875 0.6875 0.0234375
-         0.1875 0.1875 0.8125 0.0234375
-         0.1875 0.3125 0.3125 0.0234375
-         0.1875 0.3125 0.4375 0.046875
-         0.1875 0.3125 0.5625 0.046875
-         0.1875 0.3125 0.6875 0.046875
-         0.1875 0.3125 0.8125 0.046875
-         0.1875 0.4375 0.4375 0.0234375
-         0.1875 0.4375 0.5625 0.046875
-         0.1875 0.4375 0.6875 0.046875
-         0.1875 0.4375 0.8125 0.046875
-         0.1875 0.5625 0.5625 0.0234375
-         0.1875 0.5625 0.6875 0.046875
-         0.1875 0.6875 0.6875 0.0234375
-         0.3125 0.3125 0.3125 0.0078125
-         0.3125 0.3125 0.4375 0.0234375
-         0.3125 0.3125 0.5625 0.0234375
-         0.3125 0.3125 0.6875 0.0234375
-         0.3125 0.4375 0.4375 0.0234375
-         0.3125 0.4375 0.5625 0.046875
-         0.3125 0.4375 0.6875 0.046875
-         0.3125 0.5625 0.5625 0.0234375
-         0.4375 0.4375 0.4375 0.0078125
-         0.4375 0.4375 0.5625 0.0234375
+        cart = [
+            0.0625 0.0625 0.0625 0.0078125
+            0.0625 0.0625 0.1875 0.0234375
+            0.0625 0.0625 0.3125 0.0234375
+            0.0625 0.0625 0.4375 0.0234375
+            0.0625 0.0625 0.5625 0.0234375
+            0.0625 0.0625 0.6875 0.0234375
+            0.0625 0.0625 0.8125 0.0234375
+            0.0625 0.0625 0.9375 0.0234375
+            0.0625 0.1875 0.1875 0.0234375
+            0.0625 0.1875 0.3125 0.046875
+            0.0625 0.1875 0.4375 0.046875
+            0.0625 0.1875 0.5625 0.046875
+            0.0625 0.1875 0.6875 0.046875
+            0.0625 0.1875 0.8125 0.046875
+            0.0625 0.1875 0.9375 0.046875
+            0.0625 0.3125 0.3125 0.0234375
+            0.0625 0.3125 0.4375 0.046875
+            0.0625 0.3125 0.5625 0.046875
+            0.0625 0.3125 0.6875 0.046875
+            0.0625 0.3125 0.8125 0.046875
+            0.0625 0.3125 0.9375 0.046875
+            0.0625 0.4375 0.4375 0.0234375
+            0.0625 0.4375 0.5625 0.046875
+            0.0625 0.4375 0.6875 0.046875
+            0.0625 0.4375 0.8125 0.046875
+            0.0625 0.4375 0.9375 0.046875
+            0.0625 0.5625 0.5625 0.0234375
+            0.0625 0.5625 0.6875 0.046875
+            0.0625 0.5625 0.8125 0.046875
+            0.0625 0.6875 0.6875 0.0234375
+            0.0625 0.6875 0.8125 0.046875
+            0.0625 0.8125 0.8125 0.0234375
+            0.1875 0.1875 0.1875 0.0078125
+            0.1875 0.1875 0.3125 0.0234375
+            0.1875 0.1875 0.4375 0.0234375
+            0.1875 0.1875 0.5625 0.0234375
+            0.1875 0.1875 0.6875 0.0234375
+            0.1875 0.1875 0.8125 0.0234375
+            0.1875 0.3125 0.3125 0.0234375
+            0.1875 0.3125 0.4375 0.046875
+            0.1875 0.3125 0.5625 0.046875
+            0.1875 0.3125 0.6875 0.046875
+            0.1875 0.3125 0.8125 0.046875
+            0.1875 0.4375 0.4375 0.0234375
+            0.1875 0.4375 0.5625 0.046875
+            0.1875 0.4375 0.6875 0.046875
+            0.1875 0.4375 0.8125 0.046875
+            0.1875 0.5625 0.5625 0.0234375
+            0.1875 0.5625 0.6875 0.046875
+            0.1875 0.6875 0.6875 0.0234375
+            0.3125 0.3125 0.3125 0.0078125
+            0.3125 0.3125 0.4375 0.0234375
+            0.3125 0.3125 0.5625 0.0234375
+            0.3125 0.3125 0.6875 0.0234375
+            0.3125 0.4375 0.4375 0.0234375
+            0.3125 0.4375 0.5625 0.046875
+            0.3125 0.4375 0.6875 0.046875
+            0.3125 0.5625 0.5625 0.0234375
+            0.4375 0.4375 0.4375 0.0078125
+            0.4375 0.4375 0.5625 0.0234375
         ],
-        nothing,
+        cryst = nothing,
     )
 
     @test parse_stress(str) == (
@@ -125,27 +126,27 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     @test isempty(parse_atomic_positions(str))
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
-             1 1 15.0 "PPCG style diagonalization" 0.01 8.1 0.7 0.5 -4.1872583 -4.18806959 0.00586766; 
-             1 2 15.0 "PPCG style diagonalization" 0.000196 2.4 0.7 0.6 -4.18723304 -4.18727083 0.00049876; 
-             1 3 15.0 "PPCG style diagonalization" 1.66e-5 4.5 0.7 0.7 -4.18725801 -4.18725803 3.31e-6; 
-             1 4 15.0 "PPCG style diagonalization" 1.1e-7 5.9 0.7 1.0 -4.18725743 -4.18725817 4.08e-6; 
-             1 5 15.0 "PPCG style diagonalization" 1.1e-7 4.0 0.7 1.1 nothing nothing nothing
-            ],
-            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
-        ),
-        :n,
-    )
+    # @test parse_scf_calculation(str) == groupby(
+    #     DataFrame(
+    #         [
+    #          1 1 15.0 "PPCG style diagonalization" 0.01 8.1 0.7 0.5 -4.1872583 -4.18806959 0.00586766; 
+    #          1 2 15.0 "PPCG style diagonalization" 0.000196 2.4 0.7 0.6 -4.18723304 -4.18727083 0.00049876; 
+    #          1 3 15.0 "PPCG style diagonalization" 1.66e-5 4.5 0.7 0.7 -4.18725801 -4.18725803 3.31e-6; 
+    #          1 4 15.0 "PPCG style diagonalization" 1.1e-7 5.9 0.7 1.0 -4.18725743 -4.18725817 4.08e-6; 
+    #          1 5 15.0 "PPCG style diagonalization" 1.1e-7 4.0 0.7 1.1 nothing nothing nothing
+    #         ],
+    #         [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
+    #     ),
+    #     :n,
+    # )
 
-    @test parse_total_energy(str) == [-4.18725747]
+    @test parse_converged_energy(str) == (-4.18725747, -4.18725747, 2.0e-8, nothing, [2.93900635, 0.00980673, -1.63461306, -5.50183453], nothing, 0.00037704)
 
     @test parse_version(str) == "6.3"
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 4)
 
-    @test parse_fft_dimensions(str) == [869, 15, 15, 15]
+    @test parse_fft_dimensions(str) == (869, (nr1 = 15, nr2 = 15, nr3 = 15))
 
     @test parse_clock(str) == groupby(
         DataFrame(
@@ -228,19 +229,19 @@ end
     )
 
     @test parse_ibz(str) == (
-        [
-         0.0 0.0 0.1534638 0.0625
-         -0.1436461 -0.2488023 0.2557731 0.1875
-         0.2872922 0.4976046 -0.0511547 0.1875
-         0.1436461 0.2488023 0.0511546 0.1875
-         -0.2872922 0.0 0.3580823 0.1875
-         0.1436461 0.746407 0.0511546 0.375
-         0.0 0.4976046 0.1534638 0.375
-         0.5745844 0.0 -0.2557731 0.1875
-         0.0 0.0 0.4603915 0.0625
-         0.4309383 0.746407 0.1534638 0.1875
+        cart = [
+            0.0 0.0 0.1534638 0.0625
+            -0.1436461 -0.2488023 0.2557731 0.1875
+            0.2872922 0.4976046 -0.0511547 0.1875
+            0.1436461 0.2488023 0.0511546 0.1875
+            -0.2872922 0.0 0.3580823 0.1875
+            0.1436461 0.746407 0.0511546 0.375
+            0.0 0.4976046 0.1534638 0.375
+            0.5745844 0.0 -0.2557731 0.1875
+            0.0 0.0 0.4603915 0.0625
+            0.4309383 0.746407 0.1534638 0.1875
         ],
-        nothing,
+        cryst = nothing,
     )
 
     @test parse_stress(str) == (
@@ -411,219 +412,220 @@ end
      # QuantumESPRESSOBase.Cards.AtomicPositionsCard[
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.288384589, 0.288384588, 0.288384588], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.288384589, 0.288384588, 0.288384588], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.288384589, 0.288384588, 0.288384588], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.284847404, 0.284847401, 0.284847401], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.284847404, 0.284847401, 0.284847401], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.280292903, 0.280292897, 0.280292897], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.280292903, 0.280292897, 0.280292897], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.280292903, 0.280292897, 0.280292897], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275309566, 0.275309559, 0.275309559], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275309566, 0.275309559, 0.275309559], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275309566, 0.275309559, 0.275309559], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275518788, 0.275518781, 0.275518781], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275518788, 0.275518781, 0.275518781], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275518788, 0.275518781, 0.275518781], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275471859, 0.275471852, 0.275471852], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275471859, 0.275471852, 0.275471852], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275471859, 0.275471852, 0.275471852], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275290955, 0.275290948, 0.275290948], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275290955, 0.275290948, 0.275290948], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.275290955, 0.275290948, 0.275290948], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.27492874, 0.274928733, 0.274928733], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.27492874, 0.274928733, 0.274928733], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.27492874, 0.274928733, 0.274928733], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.274339437, 0.274339429, 0.274339429], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.274339437, 0.274339429, 0.274339429], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.274339437, 0.274339429, 0.274339429], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.273610438, 0.27361043, 0.27361043], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.273610438, 0.27361043, 0.27361043], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.273610438, 0.27361043, 0.27361043], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272799426, 0.272799417, 0.272799417], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272799426, 0.272799417, 0.272799417], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272799426, 0.272799417, 0.272799417], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.271967078, 0.271967069, 0.271967069], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.271967078, 0.271967069, 0.271967069], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.271967078, 0.271967069, 0.271967069], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.27199446, 0.271994451, 0.271994451], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.27199446, 0.271994451, 0.271994451], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.27199446, 0.271994451, 0.271994451], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272035264, 0.272035254, 0.272035254], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272035264, 0.272035254, 0.272035254], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272035264, 0.272035254, 0.272035254], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272093332, 0.272093322, 0.272093322], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272093332, 0.272093322, 0.272093322], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272093332, 0.272093322, 0.272093322], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272162275, 0.272162266, 0.272162266], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272162275, 0.272162266, 0.272162266], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272162275, 0.272162266, 0.272162266], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272235517, 0.272235507, 0.272235507], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272235517, 0.272235507, 0.272235507], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272235517, 0.272235507, 0.272235507], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272233124, 0.272233115, 0.272233115], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272233124, 0.272233115, 0.272233115], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272233124, 0.272233115, 0.272233115], [1, 1, 1])
      #           ]
-     #      ), 
+     #      ),
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
-     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272233124, 0.272233115, 0.272233115], [1, 1, 1]), 
+     #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272233124, 0.272233115, 0.272233115], [1, 1, 1]),
      #                QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("As", [0.272233124, 0.272233115, 0.272233115], [1, 1, 1])
      #           ]
      #      )
      # ]
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
-             1 1 25.0 "Davidson diagonalization with overlap" 0.01 4.3 0.7 0.3 nothing nothing nothing; 
-             1 2 25.0 "Davidson diagonalization with overlap" 0.000156 1.0 0.7 0.4 nothing nothing nothing; 
-             1 3 25.0 "Davidson diagonalization with overlap" 8.89e-6 1.6 0.7 0.4 nothing nothing nothing; 
-             1 4 25.0 "Davidson diagonalization with overlap" 5.01e-8 3.1 0.7 0.5 nothing nothing nothing; 
-             1 5 25.0 "Davidson diagonalization with overlap" 7.74e-9 1.4 0.7 0.5 nothing nothing nothing; 
-             2 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 0.8 nothing nothing nothing; 
-             2 2 25.0 "Davidson diagonalization with overlap" 8.24e-6 3.1 0.7 0.9 nothing nothing nothing; 
-             2 3 25.0 "Davidson diagonalization with overlap" 6.78e-6 1.0 0.7 0.9 nothing nothing nothing; 
-             2 4 25.0 "Davidson diagonalization with overlap" 1.49e-6 1.0 0.7 1.0 nothing nothing nothing; 
-             2 5 25.0 "Davidson diagonalization with overlap" 4.63e-7 2.6 0.7 1.0 nothing nothing nothing; 
-             2 6 25.0 "Davidson diagonalization with overlap" 1.04e-8 2.1 0.7 1.1 nothing nothing nothing; 
-             2 7 25.0 "Davidson diagonalization with overlap" 1.89e-9 1.1 0.7 1.1 nothing nothing nothing; 
-             3 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.9 0.7 1.4 nothing nothing nothing; 
-             3 2 25.0 "Davidson diagonalization with overlap" 2.69e-5 3.1 0.7 1.5 nothing nothing nothing; 
-             3 3 25.0 "Davidson diagonalization with overlap" 2.43e-5 1.0 0.7 1.5 nothing nothing nothing; 
-             3 4 25.0 "Davidson diagonalization with overlap" 5.68e-6 1.0 0.7 1.6 nothing nothing nothing; 
-             3 5 25.0 "Davidson diagonalization with overlap" 1.88e-6 2.2 0.7 1.6 nothing nothing nothing; 
-             3 6 25.0 "Davidson diagonalization with overlap" 6.49e-8 2.5 0.7 1.7 nothing nothing nothing; 
-             3 7 25.0 "Davidson diagonalization with overlap" 4.28e-9 1.8 0.7 1.7 nothing nothing nothing; 
-             4 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 5.1 0.7 2.0 nothing nothing nothing; 
-             4 2 25.0 "Davidson diagonalization with overlap" 3.7e-6 3.0 0.7 2.1 nothing nothing nothing; 
-             4 3 25.0 "Davidson diagonalization with overlap" 2.05e-6 1.0 0.7 2.1 nothing nothing nothing; 
-             4 4 25.0 "Davidson diagonalization with overlap" 3.6e-7 1.5 0.7 2.2 nothing nothing nothing; 
-             4 5 25.0 "Davidson diagonalization with overlap" 1.95e-8 3.0 0.7 2.3 nothing nothing nothing; 
-             4 6 25.0 "Davidson diagonalization with overlap" 2.0e-9 1.0 0.7 2.3 nothing nothing nothing; 
-             4 7 25.0 "Davidson diagonalization with overlap" 1.16e-9 1.5 0.7 2.3 nothing nothing nothing; 
-             5 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 5.3 0.7 2.6 nothing nothing nothing; 
-             5 2 25.0 "Davidson diagonalization with overlap" 5.22e-6 3.0 0.7 2.7 nothing nothing nothing; 
-             5 3 25.0 "Davidson diagonalization with overlap" 2.41e-6 1.0 0.7 2.7 nothing nothing nothing; 
-             5 4 25.0 "Davidson diagonalization with overlap" 3.56e-7 1.3 0.7 2.8 nothing nothing nothing; 
-             5 5 25.0 "Davidson diagonalization with overlap" 2.63e-8 3.0 0.7 2.9 nothing nothing nothing; 
-             5 6 25.0 "Davidson diagonalization with overlap" 2.83e-9 1.0 0.7 2.9 nothing nothing nothing; 
-             5 7 25.0 "Davidson diagonalization with overlap" 1.44e-9 2.0 0.7 2.9 nothing nothing nothing; 
-             6 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 3.2 nothing nothing nothing; 
-             6 2 25.0 "Davidson diagonalization with overlap" 1.41e-6 3.0 0.7 3.3 nothing nothing nothing; 
-             6 3 25.0 "Davidson diagonalization with overlap" 1.41e-6 1.0 0.7 3.4 nothing nothing nothing; 
-             6 4 25.0 "Davidson diagonalization with overlap" 6.85e-7 1.0 0.7 3.4 nothing nothing nothing; 
-             6 5 25.0 "Davidson diagonalization with overlap" 8.37e-8 3.0 0.7 3.5 nothing nothing nothing; 
-             6 6 25.0 "Davidson diagonalization with overlap" 4.29e-9 1.0 0.7 3.5 nothing nothing nothing; 
-             6 7 25.0 "Davidson diagonalization with overlap" 1.47e-9 2.0 0.7 3.6 nothing nothing nothing; 
-             7 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 3.8 nothing nothing nothing; 
-             7 2 25.0 "Davidson diagonalization with overlap" 6.2e-6 3.0 0.7 3.9 nothing nothing nothing; 
-             7 3 25.0 "Davidson diagonalization with overlap" 5.67e-6 1.0 0.7 4.0 nothing nothing nothing; 
-             7 4 25.0 "Davidson diagonalization with overlap" 1.15e-6 1.0 0.7 4.0 nothing nothing nothing; 
-             7 5 25.0 "Davidson diagonalization with overlap" 2.62e-7 3.0 0.7 4.1 nothing nothing nothing; 
-             7 6 25.0 "Davidson diagonalization with overlap" 9.51e-9 1.0 0.7 4.1 nothing nothing nothing; 
-             7 7 25.0 "Davidson diagonalization with overlap" 4.98e-9 2.0 0.7 4.2 nothing nothing nothing; 
-             8 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.7 0.7 4.4 nothing nothing nothing; 
-             8 2 25.0 "Davidson diagonalization with overlap" 1.9e-6 3.0 0.7 4.5 nothing nothing nothing; 
-             8 3 25.0 "Davidson diagonalization with overlap" 1.54e-6 1.0 0.7 4.5 nothing nothing nothing; 
-             8 4 25.0 "Davidson diagonalization with overlap" 2.67e-7 1.0 0.7 4.6 nothing nothing nothing; 
-             8 5 25.0 "Davidson diagonalization with overlap" 7.53e-8 2.7 0.7 4.7 nothing nothing nothing; 
-             9 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.8 0.7 4.9 nothing nothing nothing; 
-             9 2 25.0 "Davidson diagonalization with overlap" 2.41e-6 3.0 0.7 5.0 nothing nothing nothing; 
-             9 3 25.0 "Davidson diagonalization with overlap" 2.15e-6 1.0 0.7 5.0 nothing nothing nothing; 
-             9 4 25.0 "Davidson diagonalization with overlap" 3.58e-7 1.0 0.7 5.1 nothing nothing nothing; 
-             9 5 25.0 "Davidson diagonalization with overlap" 1.12e-7 2.7 0.7 5.1 nothing nothing nothing; 
-             10 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.6 0.7 5.4 nothing nothing nothing; 
-             10 2 25.0 "Davidson diagonalization with overlap" 3.74e-7 3.0 0.7 5.5 nothing nothing nothing; 
-             10 3 25.0 "Davidson diagonalization with overlap" 1.98e-7 1.0 0.7 5.5 nothing nothing nothing; 
-             10 4 25.0 "Davidson diagonalization with overlap" 2.5e-8 1.0 0.7 5.6 nothing nothing nothing; 
-             10 5 25.0 "Davidson diagonalization with overlap" 4.09e-9 3.0 0.7 5.6 nothing nothing nothing; 
-             11 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.4 0.7 5.9 nothing nothing nothing; 
-             11 2 25.0 "Davidson diagonalization with overlap" 1.03e-7 2.7 0.7 6.0 nothing nothing nothing; 
-             11 3 25.0 "Davidson diagonalization with overlap" 8.21e-8 1.0 0.7 6.0 nothing nothing nothing; 
-             11 4 25.0 "Davidson diagonalization with overlap" 1.21e-8 2.2 0.7 6.1 nothing nothing nothing; 
-             11 5 25.0 "Davidson diagonalization with overlap" 2.13e-9 1.7 0.7 6.1 nothing nothing nothing; 
-             12 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.5 0.7 6.4 nothing nothing nothing; 
-             12 2 25.0 "Davidson diagonalization with overlap" 1.3e-7 3.0 0.7 6.5 nothing nothing nothing; 
-             12 3 25.0 "Davidson diagonalization with overlap" 1.25e-7 1.0 0.7 6.6 nothing nothing nothing; 
-             12 4 25.0 "Davidson diagonalization with overlap" 2.09e-8 2.0 0.7 6.6 nothing nothing nothing; 
-             13 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.6 0.7 6.9 nothing nothing nothing; 
-             13 2 25.0 "Davidson diagonalization with overlap" 1.51e-7 3.0 0.7 7.0 nothing nothing nothing; 
-             13 3 25.0 "Davidson diagonalization with overlap" 1.51e-7 1.0 0.7 7.0 nothing nothing nothing; 
-             13 4 25.0 "Davidson diagonalization with overlap" 3.25e-8 1.4 0.7 7.1 nothing nothing nothing; 
-             13 5 25.0 "Davidson diagonalization with overlap" 1.36e-9 3.0 0.7 7.1 nothing nothing nothing; 
-             14 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.1 0.7 7.4 nothing nothing nothing; 
-             14 2 25.0 "Davidson diagonalization with overlap" 1.52e-7 3.0 0.7 7.5 nothing nothing nothing; 
-             14 3 25.0 "Davidson diagonalization with overlap" 1.52e-7 1.0 0.7 7.5 nothing nothing nothing; 
-             14 4 25.0 "Davidson diagonalization with overlap" 3.4e-8 1.0 0.7 7.6 nothing nothing nothing; 
-             14 5 25.0 "Davidson diagonalization with overlap" 9.49e-9 2.7 0.7 7.6 nothing nothing nothing; 
-             15 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 2.2 0.7 8.0 nothing nothing nothing; 
-             15 2 25.0 "Davidson diagonalization with overlap" 1.27e-8 3.0 0.7 8.1 nothing nothing nothing; 
-             15 3 25.0 "Davidson diagonalization with overlap" 1.27e-8 1.0 0.7 8.1 nothing nothing nothing; 
-             15 4 25.0 "Davidson diagonalization with overlap" 2.69e-9 1.0 0.7 8.1 nothing nothing nothing;
-             16 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.2 0.7 8.4 nothing nothing nothing; 
-             16 2 25.0 "Davidson diagonalization with overlap" 1.06e-9 2.0 0.7 8.5 nothing nothing nothing; 
-             17 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.6 0.7 8.8 nothing nothing nothing; 
-             18 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.9 0.7 9.1 nothing nothing nothing; 
-             19 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.0 0.7 9.5 nothing nothing nothing
-            ],
-            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ],
-        ),
-        :n,
-    )
-    @test parse_total_energy(str) == [
+    # @test parse_scf_calculation(str) == groupby(
+    #     DataFrame(
+    #         [
+    #          1 1 25.0 "Davidson diagonalization with overlap" 0.01 4.3 0.7 0.3 nothing nothing nothing;
+    #          1 2 25.0 "Davidson diagonalization with overlap" 0.000156 1.0 0.7 0.4 nothing nothing nothing;
+    #          1 3 25.0 "Davidson diagonalization with overlap" 8.89e-6 1.6 0.7 0.4 nothing nothing nothing;
+    #          1 4 25.0 "Davidson diagonalization with overlap" 5.01e-8 3.1 0.7 0.5 nothing nothing nothing;
+    #          1 5 25.0 "Davidson diagonalization with overlap" 7.74e-9 1.4 0.7 0.5 nothing nothing nothing;
+    #          2 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 0.8 nothing nothing nothing;
+    #          2 2 25.0 "Davidson diagonalization with overlap" 8.24e-6 3.1 0.7 0.9 nothing nothing nothing;
+    #          2 3 25.0 "Davidson diagonalization with overlap" 6.78e-6 1.0 0.7 0.9 nothing nothing nothing;
+    #          2 4 25.0 "Davidson diagonalization with overlap" 1.49e-6 1.0 0.7 1.0 nothing nothing nothing;
+    #          2 5 25.0 "Davidson diagonalization with overlap" 4.63e-7 2.6 0.7 1.0 nothing nothing nothing;
+    #          2 6 25.0 "Davidson diagonalization with overlap" 1.04e-8 2.1 0.7 1.1 nothing nothing nothing;
+    #          2 7 25.0 "Davidson diagonalization with overlap" 1.89e-9 1.1 0.7 1.1 nothing nothing nothing;
+    #          3 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.9 0.7 1.4 nothing nothing nothing;
+    #          3 2 25.0 "Davidson diagonalization with overlap" 2.69e-5 3.1 0.7 1.5 nothing nothing nothing;
+    #          3 3 25.0 "Davidson diagonalization with overlap" 2.43e-5 1.0 0.7 1.5 nothing nothing nothing;
+    #          3 4 25.0 "Davidson diagonalization with overlap" 5.68e-6 1.0 0.7 1.6 nothing nothing nothing;
+    #          3 5 25.0 "Davidson diagonalization with overlap" 1.88e-6 2.2 0.7 1.6 nothing nothing nothing;
+    #          3 6 25.0 "Davidson diagonalization with overlap" 6.49e-8 2.5 0.7 1.7 nothing nothing nothing;
+    #          3 7 25.0 "Davidson diagonalization with overlap" 4.28e-9 1.8 0.7 1.7 nothing nothing nothing;
+    #          4 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 5.1 0.7 2.0 nothing nothing nothing;
+    #          4 2 25.0 "Davidson diagonalization with overlap" 3.7e-6 3.0 0.7 2.1 nothing nothing nothing;
+    #          4 3 25.0 "Davidson diagonalization with overlap" 2.05e-6 1.0 0.7 2.1 nothing nothing nothing;
+    #          4 4 25.0 "Davidson diagonalization with overlap" 3.6e-7 1.5 0.7 2.2 nothing nothing nothing;
+    #          4 5 25.0 "Davidson diagonalization with overlap" 1.95e-8 3.0 0.7 2.3 nothing nothing nothing;
+    #          4 6 25.0 "Davidson diagonalization with overlap" 2.0e-9 1.0 0.7 2.3 nothing nothing nothing;
+    #          4 7 25.0 "Davidson diagonalization with overlap" 1.16e-9 1.5 0.7 2.3 nothing nothing nothing;
+    #          5 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 5.3 0.7 2.6 nothing nothing nothing;
+    #          5 2 25.0 "Davidson diagonalization with overlap" 5.22e-6 3.0 0.7 2.7 nothing nothing nothing;
+    #          5 3 25.0 "Davidson diagonalization with overlap" 2.41e-6 1.0 0.7 2.7 nothing nothing nothing;
+    #          5 4 25.0 "Davidson diagonalization with overlap" 3.56e-7 1.3 0.7 2.8 nothing nothing nothing;
+    #          5 5 25.0 "Davidson diagonalization with overlap" 2.63e-8 3.0 0.7 2.9 nothing nothing nothing;
+    #          5 6 25.0 "Davidson diagonalization with overlap" 2.83e-9 1.0 0.7 2.9 nothing nothing nothing;
+    #          5 7 25.0 "Davidson diagonalization with overlap" 1.44e-9 2.0 0.7 2.9 nothing nothing nothing;
+    #          6 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 3.2 nothing nothing nothing;
+    #          6 2 25.0 "Davidson diagonalization with overlap" 1.41e-6 3.0 0.7 3.3 nothing nothing nothing;
+    #          6 3 25.0 "Davidson diagonalization with overlap" 1.41e-6 1.0 0.7 3.4 nothing nothing nothing;
+    #          6 4 25.0 "Davidson diagonalization with overlap" 6.85e-7 1.0 0.7 3.4 nothing nothing nothing;
+    #          6 5 25.0 "Davidson diagonalization with overlap" 8.37e-8 3.0 0.7 3.5 nothing nothing nothing;
+    #          6 6 25.0 "Davidson diagonalization with overlap" 4.29e-9 1.0 0.7 3.5 nothing nothing nothing;
+    #          6 7 25.0 "Davidson diagonalization with overlap" 1.47e-9 2.0 0.7 3.6 nothing nothing nothing;
+    #          7 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 3.8 nothing nothing nothing;
+    #          7 2 25.0 "Davidson diagonalization with overlap" 6.2e-6 3.0 0.7 3.9 nothing nothing nothing;
+    #          7 3 25.0 "Davidson diagonalization with overlap" 5.67e-6 1.0 0.7 4.0 nothing nothing nothing;
+    #          7 4 25.0 "Davidson diagonalization with overlap" 1.15e-6 1.0 0.7 4.0 nothing nothing nothing;
+    #          7 5 25.0 "Davidson diagonalization with overlap" 2.62e-7 3.0 0.7 4.1 nothing nothing nothing;
+    #          7 6 25.0 "Davidson diagonalization with overlap" 9.51e-9 1.0 0.7 4.1 nothing nothing nothing;
+    #          7 7 25.0 "Davidson diagonalization with overlap" 4.98e-9 2.0 0.7 4.2 nothing nothing nothing;
+    #          8 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.7 0.7 4.4 nothing nothing nothing;
+    #          8 2 25.0 "Davidson diagonalization with overlap" 1.9e-6 3.0 0.7 4.5 nothing nothing nothing;
+    #          8 3 25.0 "Davidson diagonalization with overlap" 1.54e-6 1.0 0.7 4.5 nothing nothing nothing;
+    #          8 4 25.0 "Davidson diagonalization with overlap" 2.67e-7 1.0 0.7 4.6 nothing nothing nothing;
+    #          8 5 25.0 "Davidson diagonalization with overlap" 7.53e-8 2.7 0.7 4.7 nothing nothing nothing;
+    #          9 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.8 0.7 4.9 nothing nothing nothing;
+    #          9 2 25.0 "Davidson diagonalization with overlap" 2.41e-6 3.0 0.7 5.0 nothing nothing nothing;
+    #          9 3 25.0 "Davidson diagonalization with overlap" 2.15e-6 1.0 0.7 5.0 nothing nothing nothing;
+    #          9 4 25.0 "Davidson diagonalization with overlap" 3.58e-7 1.0 0.7 5.1 nothing nothing nothing;
+    #          9 5 25.0 "Davidson diagonalization with overlap" 1.12e-7 2.7 0.7 5.1 nothing nothing nothing;
+    #          10 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.6 0.7 5.4 nothing nothing nothing;
+    #          10 2 25.0 "Davidson diagonalization with overlap" 3.74e-7 3.0 0.7 5.5 nothing nothing nothing;
+    #          10 3 25.0 "Davidson diagonalization with overlap" 1.98e-7 1.0 0.7 5.5 nothing nothing nothing;
+    #          10 4 25.0 "Davidson diagonalization with overlap" 2.5e-8 1.0 0.7 5.6 nothing nothing nothing;
+    #          10 5 25.0 "Davidson diagonalization with overlap" 4.09e-9 3.0 0.7 5.6 nothing nothing nothing;
+    #          11 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.4 0.7 5.9 nothing nothing nothing;
+    #          11 2 25.0 "Davidson diagonalization with overlap" 1.03e-7 2.7 0.7 6.0 nothing nothing nothing;
+    #          11 3 25.0 "Davidson diagonalization with overlap" 8.21e-8 1.0 0.7 6.0 nothing nothing nothing;
+    #          11 4 25.0 "Davidson diagonalization with overlap" 1.21e-8 2.2 0.7 6.1 nothing nothing nothing;
+    #          11 5 25.0 "Davidson diagonalization with overlap" 2.13e-9 1.7 0.7 6.1 nothing nothing nothing;
+    #          12 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.5 0.7 6.4 nothing nothing nothing;
+    #          12 2 25.0 "Davidson diagonalization with overlap" 1.3e-7 3.0 0.7 6.5 nothing nothing nothing;
+    #          12 3 25.0 "Davidson diagonalization with overlap" 1.25e-7 1.0 0.7 6.6 nothing nothing nothing;
+    #          12 4 25.0 "Davidson diagonalization with overlap" 2.09e-8 2.0 0.7 6.6 nothing nothing nothing;
+    #          13 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.6 0.7 6.9 nothing nothing nothing;
+    #          13 2 25.0 "Davidson diagonalization with overlap" 1.51e-7 3.0 0.7 7.0 nothing nothing nothing;
+    #          13 3 25.0 "Davidson diagonalization with overlap" 1.51e-7 1.0 0.7 7.0 nothing nothing nothing;
+    #          13 4 25.0 "Davidson diagonalization with overlap" 3.25e-8 1.4 0.7 7.1 nothing nothing nothing;
+    #          13 5 25.0 "Davidson diagonalization with overlap" 1.36e-9 3.0 0.7 7.1 nothing nothing nothing;
+    #          14 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.1 0.7 7.4 nothing nothing nothing;
+    #          14 2 25.0 "Davidson diagonalization with overlap" 1.52e-7 3.0 0.7 7.5 nothing nothing nothing;
+    #          14 3 25.0 "Davidson diagonalization with overlap" 1.52e-7 1.0 0.7 7.5 nothing nothing nothing;
+    #          14 4 25.0 "Davidson diagonalization with overlap" 3.4e-8 1.0 0.7 7.6 nothing nothing nothing;
+    #          14 5 25.0 "Davidson diagonalization with overlap" 9.49e-9 2.7 0.7 7.6 nothing nothing nothing;
+    #          15 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 2.2 0.7 8.0 nothing nothing nothing;
+    #          15 2 25.0 "Davidson diagonalization with overlap" 1.27e-8 3.0 0.7 8.1 nothing nothing nothing;
+    #          15 3 25.0 "Davidson diagonalization with overlap" 1.27e-8 1.0 0.7 8.1 nothing nothing nothing;
+    #          15 4 25.0 "Davidson diagonalization with overlap" 2.69e-9 1.0 0.7 8.1 nothing nothing nothing;
+    #          16 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.2 0.7 8.4 nothing nothing nothing;
+    #          16 2 25.0 "Davidson diagonalization with overlap" 1.06e-9 2.0 0.7 8.5 nothing nothing nothing;
+    #          17 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.6 0.7 8.8 nothing nothing nothing;
+    #          18 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.9 0.7 9.1 nothing nothing nothing;
+    #          19 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.0 0.7 9.5 nothing nothing nothing
+    #         ],
+    #         [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ],
+    #     ),
+    #     :n,
+    # )
+
+    @test parse_converged_energy(str) == [
         -25.4401674,
         -25.46010129,
         -25.48262993,
@@ -649,7 +651,7 @@ end
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 2)
 
-    @test parse_fft_dimensions(str) == [4159, 24, 24, 24]
+    @test parse_fft_dimensions(str) == (4159, (nr1 = 24, nr2 = 24, nr3 = 24))
 
     @test parse_clock(str) == groupby(
         DataFrame(

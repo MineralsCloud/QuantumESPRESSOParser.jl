@@ -15,22 +15,27 @@ using Compat: isnothing
 # using Dates: DateTime, DateFormat
 using DataFrames: DataFrame, GroupedDataFrame, groupby
 using Fortran90Namelists.FortranToJulia
+using MLStyle: @match
 using QuantumESPRESSOBase.Cards.PWscf
 
 using QuantumESPRESSOParsers: SubroutineError
 
-export parse_summary,
+export DiagonalizationStyle,
+       DavidsonDiagonalization,
+       CGDiagonalization,
+       PPCGDiagonalization,
+       parse_summary,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
-       parse_total_energy,
+       parse_converged_energy,
        parse_version,
        parse_parallel_info,
        parse_fft_dimensions,
        parse_cell_parameters,
        parse_atomic_positions,
        parse_scf_calculation,
-       parse_ks_energy,
+       parse_bands,
        parse_clock,
        whatinput,
        isrelaxed,
@@ -41,6 +46,11 @@ include("regexes.jl")
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}
+
+abstract type DiagonalizationStyle end
+struct DavidsonDiagonalization <: DiagonalizationStyle end
+struct CGDiagonalization <: DiagonalizationStyle end
+struct PPCGDiagonalization <: DiagonalizationStyle end
 
 struct Summary
     ibrav::Int
@@ -150,36 +160,26 @@ function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
 end # function parse_fft_base_info
 
 # Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_ibz(str::AbstractString)::Maybe{Tuple}
+function parse_ibz(str::AbstractString)::Maybe{NamedTuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
         @info("The k-points info is not found!") && return
     end
     nk = parse(Int, m[:nk])
-
-    if !isnothing(m[:cart])
-        cartesian_coordinates = zeros(nk, 4)
-        for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[:cart]))
-            cartesian_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+    result = []
+    kinds = (:cart, :cryst)
+    for k in kinds
+        if !isnothing(m[k])
+            x = Matrix{Float64}(undef, nk, 4)
+            for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
+                x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
+            end
+        else
+            x = nothing
         end
-        @assert(size(cartesian_coordinates)[1] == nk)
-    else
-        # If there is no Cartesian coordinates, there must be no crystal coordinates.
-        @info("Cartesian coordinates is `nothing`!")
-        cartesian_coordinates = nothing
+        push!(result, x)
     end
-
-    if !isnothing(m[:cryst])
-        crystal_coordinates = zeros(nk, 4)
-        for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[:cryst]))
-            crystal_coordinates[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
-        end
-        @assert(size(crystal_coordinates)[1] == nk)
-    else
-        # Only Cartesian coordinates present.
-        crystal_coordinates = nothing
-    end
-    return cartesian_coordinates, crystal_coordinates
+    return NamedTuple{kinds}(result)
 end # function parse_ibz
 
 function parse_stress(str::AbstractString)
@@ -246,7 +246,7 @@ function parse_scf_calculation(str::AbstractString)
         n = Int[],  # Step number
         i = Int[],  # Iteration number
         ecut = Float64[],  # Cutoff energy
-        diag = Maybe{String}[],  # Diagonalization style
+        diag = Maybe{DiagonalizationStyle}[],  # Diagonalization style
         ethr = Maybe{Float64}[],  # Energy threshold
         avg = Maybe{Float64}[],  # Average # of iterations
         β = Float64[],  # Mixing beta
@@ -265,59 +265,95 @@ function parse_scf_calculation(str::AbstractString)
             @assert(n == j, "Something went wrong when parsing iteration number!")
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
 
-            c_bands_info = match(C_BANDS, body)
-            if !isnothing(c_bands_info)
-                diag_style = c_bands_info[:diag]
-                ethr, avg = map(x -> parse(Float64, x), c_bands_info.captures[2:3])
-            else
-                diag_style, ethr, avg = nothing, nothing, nothing
-            end
+            solver, ethr, avg = parse_diagonalization(body)
 
             t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
 
-            ks_energies = match(KS_ENERGIES_BLOCK, body)
-            !isnothing(ks_energies) && parse_ks_energy(ks_energies[1])
+            ɛ, hf, δ = parse_unconverged_electrons_energy(body)
 
-            energies = match(UNCONVERGED_ELECTRONS_ENERGY, body)
-            if !isnothing(energies)
-                ɛ, hf, δ = map(x -> parse(Float64, x), energies.captures)
-            else
-                ɛ, hf, δ = nothing, nothing, nothing
-            end
-            push!(df, [i j ecut diag_style ethr avg β t ɛ hf δ])
+            push!(df, [i j ecut solver ethr avg β t ɛ hf δ])
         end
     end
     return groupby(df, :n)
 end # function parse_scf_calculation
 
-# See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
-function parse_ks_energy(str::AbstractString)
-    kpts, bands = Vector{Float64}[], Vector{Float64}[]
-    str == "Number of k-points >= 100: set verbosity='high' to print the bands." && return
-    regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES :
-            KS_ENERGIES_BANDS
-    for m in eachmatch(regex, str)
-        push!(kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])))
-        push!(
-            bands,
-            map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])),
-        )
-    end
-    len, nbnd = length(kpts), length(bands[1])
-    return reshape(Iterators.flatten(kpts) |> collect, len, 3),
-        reshape(Iterators.flatten(bands) |> collect, len, nbnd)
-end # function parse_ks_energy
+function parse_diagonalization(str::AbstractString)
+    solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
+    m = match(C_BANDS, str)
+    if !isnothing(m)
+        solver = @match m[:diag] begin
+            "Davidson diagonalization with overlap" => DavidsonDiagonalization()
+            "CG style diagonalization" => CGDiagonalization()
+            "PPCG style diagonalization" => PPCGDiagonalization()
+        end
+        ethr, avg_iter = map(x -> parse(Float64, x), m.captures[2:end])
+    end  # Keep them `nothing` if `m` is `nothing`
+    return solver, ethr, avg_iter
+end # function parse_diagonalization
 
-function parse_total_energy(str::AbstractString)::Vector{Float64}
-    result = Float64[]
-    for m in eachmatch(
-        r"!\s+total energy\s+=\s*([-+]?[0-9]*\.?[0-9]+((:?[ed])[-+]?[0-9]+)?)\s*Ry"i,
-        str,
-    )
-        push!(result, parse(Float64, FortranData(m.captures[1])))
+function parse_unconverged_electrons_energy(str::AbstractString)
+    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
+    m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
+    if !isnothing(m)
+        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
+    end  # Keep them `nothing` if `m` is `nothing`
+    return ɛ, hf, δ
+end # function parse_UNCONVERGED_ELECTRONS_ENERGY
+
+# See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
+function parse_bands(str::AbstractString)
+    str == "Number of k-points >= 100: set verbosity='high' to print the bands." && return
+    kpts, bands = nothing, nothing  # Initialization
+    m = match(KS_ENERGIES_BLOCK, str)
+    if !isnothing(m)
+        kpts, bands = Vector{Float64}[], Vector{Float64}[]
+        regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES :
+                KS_ENERGIES_BANDS
+        for m in eachmatch(regex, str)
+            push!(kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])))
+            push!(
+                bands,
+                map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])),
+            )
+        end
+        len, nbnd = length(kpts), length(bands[1])
+        kpts, bands = reshape(Iterators.flatten(kpts) |> collect, len, 3),
+            reshape(Iterators.flatten(bands) |> collect, len, nbnd)
+    end  # Keep them `nothing` if `m` is `nothing`
+    return kpts, bands
+end # function parse_bands
+
+function parse_converged_energy(str::AbstractString)
+    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
+    m = match(CONVERGED_ELECTRONS_ENERGY, str)
+    if !isnothing(m)
+        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures[1:3])
+    else
+        return
+    end  # Keep them `nothing` if `m` is `nothing`
+    regex = Regex(FIXED_POINT_REAL)
+    ae = if !isnothing(m[:ae])  # 1 energy
+        parse(Float64, match(regex, m[:ae])[1])
+    else
+        nothing
     end
-    return result
-end # function parse_total_energy
+    decomp = if !isnothing(m[:decomp])  # 4 energies
+        map(x -> parse(Float64, x[1]), eachmatch(regex, m[:decomp]))
+    else
+        nothing
+    end
+    onecenter = if !isnothing(m[:one])  # 7 energies
+        map(x -> parse(Float64, x[1]), eachmatch(regex, m[:one]))
+    else
+        nothing
+    end
+    smearing = if !isnothing(m[:smearing])  # 1 energy
+        parse(Float64, match(regex, m[:smearing])[1])
+    else
+        nothing
+    end
+    return ɛ, hf, δ, ae, decomp, onecenter, smearing
+end # function parse_converged_energy
 
 function parse_version(str::AbstractString)::Maybe{String}
     m = match(PWSCF_VERSION, str)
@@ -330,9 +366,11 @@ function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
     return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m[:num])
 end # function parse_parallel_info
 
-function parse_fft_dimensions(str::AbstractString)
+function parse_fft_dimensions(str::AbstractString)::Maybe{Tuple{Int,NamedTuple}}
     m = match(FFT_DIMENSIONS, str)
-    !isnothing(m) ? map(x -> parse(Int, x), m.captures) : return
+    isnothing(m) && return
+    parsed = map(x -> parse(Int, x), m.captures)
+    return parsed[1], NamedTuple{(:nr1,:nr2,:nr3)}(parsed[2:end])
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
@@ -371,11 +409,7 @@ end # function parse_clock
 
 function whatinput(str::AbstractString)::Maybe{String}
     m = match(READING_INPUT_FROM, str)
-    if isnothing(m)
-        @info("The input file name is not found!") && return
-    else
-        return m[1]
-    end
+    !isnothing(m) ? m[1] : return
 end # function whatinput
 
 function isrelaxed(str::AbstractString)::Bool
