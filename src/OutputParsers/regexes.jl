@@ -55,7 +55,9 @@ number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
 \s*Dense  grid)?"""m
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-const K_POINTS_ITEM = r"k\(\s*([0-9]+)\s*\) = \(\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)\s*\), wk =\s*([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"i
+const K_POINTS_ITEM = Regex(  # Ignore the k-point's index
+    "k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL"
+)
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*

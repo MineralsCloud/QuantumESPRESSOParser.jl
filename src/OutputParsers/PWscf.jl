@@ -162,7 +162,7 @@ function parse_ibz(str::AbstractString)::Maybe{NamedTuple}
         if !isnothing(m[k])
             x = Matrix{Float64}(undef, nk, 4)
             for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
-                x[i, :] = map(x -> parse(Float64, x), m.captures[2:5])
+                x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
             end
         else
             x = nothing
