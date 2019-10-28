@@ -28,7 +28,7 @@ export DiagonalizationStyle,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
-       parse_total_energy,
+       parse_converged_energy,
        parse_version,
        parse_parallel_info,
        parse_fft_dimensions,
@@ -323,16 +323,35 @@ function parse_bands(str::AbstractString)
     return kpts, bands
 end # function parse_bands
 
-function parse_total_energy(str::AbstractString)::Vector{Float64}
-    result = Float64[]
-    for m in eachmatch(
-        r"!\s+total energy\s+=\s*([-+]?[0-9]*\.?[0-9]+((:?[ed])[-+]?[0-9]+)?)\s*Ry"i,
-        str,
-    )
-        push!(result, parse(Float64, FortranData(m.captures[1])))
+function parse_converged_energy(str::AbstractString)
+    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
+    m = match(CONVERGED_ELECTRONS_ENERGY, str)
+    if !isnothing(m)
+        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures[1:3])
+    end  # Keep them `nothing` if `m` is `nothing`
+    regex = Regex(FIXED_POINT_REAL)
+    ae = if !isempty(m[:ae])  # 1 energy
+        parse(Float64, match(regex, m[:ae])[1])
+    else
+        nothing
     end
-    return result
-end # function parse_total_energy
+    decomp = if !isempty(m[:decomp])  # 4 energies
+        map(x -> parse(Float64, x[1]), eachmatch(regex, m[:decomp]))
+    else
+        nothing
+    end
+    onecenter = if !isempty(m[:one])  # 7 energies
+        map(x -> parse(Float64, x[1]), eachmatch(regex, m[:one]))
+    else
+        nothing
+    end
+    smearing = if !isempty(m[:smearing])  # 1 energy
+        parse(Float64, match(regex, m[:smearing])[1])
+    else
+        nothing
+    end
+    return ɛ, hf, δ, ae, decomp, onecenter, smearing
+end # function parse_converged_energy
 
 function parse_version(str::AbstractString)::Maybe{String}
     m = match(PWSCF_VERSION, str)

@@ -215,6 +215,27 @@ const UNCONVERGED_ELECTRONS_ENERGY = Regex(
     \\s*estimated scf accuracy\\s+<\\s*$GENERAL_REAL\\s+Ry""",
     "m",
 )
+const CONVERGED_ELECTRONS_ENERGY = Regex(
+    """
+    ^!\\h+total energy\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
+    \\s*Harris-Foulkes estimate\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
+    \\s*estimated scf accuracy\\s+<\\s*$GENERAL_REAL\\s+Ry
+    \\s*(?<ae>total all-electron energy =.*Ry)?
+    \\s*(?<decomp>The total energy is the sum of the following terms:
+    \\s*one-electron contribution =.*Ry
+    \\s*hartree contribution      =.*Ry
+    \\s*xc contribution           =.*Ry
+    \\s* ewald contribution        =.*Ry)?
+    \\s*(?<one>one-center paw contrib.*Ry
+    \\s*-> PAW hartree energy AE =.*Ry
+    \\s*-> PAW hartree energy PS =.*Ry
+    \\s*-> PAW xc energy AE      =.*Ry
+    \\s*-> PAW xc energy PS      =.*Ry
+    \\s*-> total E_H with PAW    =.*Ry
+    \\s*-> total E_XC with PAW   =.*Ry)?
+    \\s*(?<smearing>smearing contrib.*Ry)""",
+    "m",
+)
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
 const SUMMARY_TIME_BLOCK = r"""
