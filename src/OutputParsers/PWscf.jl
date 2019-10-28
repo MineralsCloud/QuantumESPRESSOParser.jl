@@ -272,12 +272,8 @@ function parse_scf_calculation(str::AbstractString)
             ks_energies = match(KS_ENERGIES_BLOCK, body)
             !isnothing(ks_energies) && parse_ks_energy(ks_energies[1])
 
-            energies = match(UNCONVERGED_ELECTRONS_ENERGY, body)
-            if !isnothing(energies)
-                ɛ, hf, δ = map(x -> parse(Float64, x), energies.captures)
-            else
-                ɛ, hf, δ = nothing, nothing, nothing
-            end
+            ɛ, hf, δ = parse_unconverged_electrons_energy(body)
+
             push!(df, [i j ecut solver ethr avg β t ɛ hf δ])
         end
     end
@@ -297,6 +293,15 @@ function parse_diagonalization(str::AbstractString)
     end  # Keep them `nothing` if `m` is `nothing`
     return solver, ethr, avg_iter
 end # function parse_diagonalization
+
+function parse_unconverged_electrons_energy(str::AbstractString)
+    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
+    m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
+    if !isnothing(m)
+        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
+    end  # Keep them `nothing` if `m` is `nothing`
+    return ɛ, hf, δ
+end # function parse_UNCONVERGED_ELECTRONS_ENERGY
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_ks_energy(str::AbstractString)
