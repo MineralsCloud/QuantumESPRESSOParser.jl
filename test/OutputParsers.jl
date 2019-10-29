@@ -5,11 +5,11 @@ using DataFrames
 using QuantumESPRESSOBase
 using QuantumESPRESSOParsers.OutputParsers.PWscf
 
-@testset "Parse scf output" begin
+@testset "Parse scf Al output" begin
     url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/example01/reference/al.scf.ppcg.out"
     str = open(download(url), "r") do io
         read(io, String)
-    end
+	end
 
     @test parse_summary(str) == Dict(
         "number of electrons" => 3.0,
@@ -126,19 +126,19 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     @test isempty(parse_atomic_positions(str))
 
-    # @test parse_scf_calculation(str) == groupby(
-    #     DataFrame(
-    #         [
-    #          1 1 15.0 "PPCG style diagonalization" 0.01 8.1 0.7 0.5 -4.1872583 -4.18806959 0.00586766; 
-    #          1 2 15.0 "PPCG style diagonalization" 0.000196 2.4 0.7 0.6 -4.18723304 -4.18727083 0.00049876; 
-    #          1 3 15.0 "PPCG style diagonalization" 1.66e-5 4.5 0.7 0.7 -4.18725801 -4.18725803 3.31e-6; 
-    #          1 4 15.0 "PPCG style diagonalization" 1.1e-7 5.9 0.7 1.0 -4.18725743 -4.18725817 4.08e-6; 
-    #          1 5 15.0 "PPCG style diagonalization" 1.1e-7 4.0 0.7 1.1 nothing nothing nothing
-    #         ],
-    #         [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
-    #     ),
-    #     :n,
-    # )
+    @test parse_scf_calculation(str) == groupby(
+        DataFrame(
+            [
+                1 1 15.0 PPCGDiagonalization() 0.01 8.1 0.7 0.5 -4.1872583 -4.18806959 0.00586766; 
+                1 2 15.0 PPCGDiagonalization() 0.000196 2.4 0.7 0.6 -4.18723304 -4.18727083 0.00049876; 
+                1 3 15.0 PPCGDiagonalization() 1.66e-5 4.5 0.7 0.7 -4.18725801 -4.18725803 3.31e-6; 
+                1 4 15.0 PPCGDiagonalization() 1.1e-7 5.9 0.7 1.0 -4.18725743 -4.18725817 4.08e-6; 
+                1 5 15.0 PPCGDiagonalization() 1.1e-7 4.0 0.7 1.1 nothing nothing nothing
+            ],
+            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
+        ),
+        :n,
+    )
 
     @test parse_converged_energy(str) == (-4.18725747, -4.18725747, 2.0e-8, nothing, [2.93900635, 0.00980673, -1.63461306, -5.50183453], nothing, 0.00037704)
 
@@ -147,6 +147,133 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 4)
 
     @test parse_fft_dimensions(str) == (869, (nr1 = 15, nr2 = 15, nr3 = 15))
+
+    @test parse_bands(str) == (
+        [
+            0.0625 0.0625 0.1875; 
+            0.0625 0.3125 0.3125; 
+            0.0625 0.9375 0.5625; 
+            0.0625 0.0625 0.1875; 
+            0.0625 0.4375 0.3125; 
+            0.1875 0.4375 0.6875; 
+            0.0625 0.0625 0.1875; 
+            0.0625 0.4375 0.3125; 
+            0.3125 0.5625 0.8125; 
+            0.0625 0.0625 0.1875; 
+            0.0625 0.4375 0.4375; 
+            0.4375 0.6875 0.4375; 
+            0.0625 0.0625 0.1875; 
+            0.0625 0.4375 0.4375; 
+            0.5625 0.8125 0.5625; 
+            0.0625 0.0625 0.1875; 
+            0.0625 0.4375 0.4375; 
+            0.6875 0.9375 0.6875; 
+            0.0625 0.0625 0.1875; 
+            0.0625 0.5625 0.4375; 
+            0.8125 0.5625 0.8125; 
+            0.0625 0.0625 0.1875; 
+            0.0625 0.5625 0.5625; 
+            0.9375 0.6875 0.5625; 
+            0.0625 0.0625 0.1875; 
+            0.1875 0.5625 0.5625; 
+            0.1875 0.8125 0.6875; 
+            0.0625 0.0625 0.1875; 
+            0.1875 0.6875 0.6875; 
+            0.3125 0.6875 0.6875; 
+            0.0625 0.0625 0.3125; 
+            0.1875 0.6875 0.3125; 
+            0.4375 0.8125 0.3125; 
+            0.0625 0.0625 0.3125; 
+            0.1875 0.8125 0.3125; 
+            0.5625 0.8125 0.4375; 
+            0.0625 0.1875 0.3125; 
+            0.1875 0.1875 0.3125; 
+            0.6875 0.1875 0.5625; 
+            0.0625 0.1875 0.3125; 
+            0.1875 0.1875 0.3125; 
+            0.8125 0.3125 0.6875; 
+            0.0625 0.1875 0.3125; 
+            0.1875 0.1875 0.4375; 
+            0.9375 0.4375 0.4375; 
+            0.0625 0.1875 0.3125; 
+            0.3125 0.1875 0.4375; 
+            0.3125 0.5625 0.5625; 
+            0.0625 0.1875 0.3125; 
+            0.3125 0.1875 0.4375; 
+            0.4375 0.6875 0.6875; 
+            0.0625 0.1875 0.3125; 
+            0.3125 0.1875 0.5625; 
+            0.5625 0.8125 0.5625; 
+            0.0625 0.1875 0.4375; 
+            0.3125 0.3125 0.4375; 
+            0.6875 0.3125 0.4375; 
+            0.0625 0.1875 0.4375; 
+            0.3125 0.3125 0.4375; 
+            0.8125 0.4375 0.5625
+        ],
+        [
+            -3.0797 -1.0176 5.603 5.8608 0.9944 -0.4378; 
+            19.3076 13.0419 8.1191 7.0399 8.6946 9.5218; 
+            20.7687 15.5184 8.8991 8.5733 15.1665 19.2621; 
+            20.7687 18.6013 11.613 13.7268 16.3382 19.2621; 
+            23.1341 19.5714 19.6079 18.1487 19.6303 22.2492; 
+            23.1341 22.3329 22.4241 24.3659 24.4258 22.2492; 
+            -2.7825 0.1391 0.426 5.3365 2.4087 0.4238; 
+            17.6261 11.9822 10.1492 7.8454 7.8868 8.1833; 
+            19.1894 14.4668 12.8402 8.7945 13.3831 18.0354; 
+            20.2773 15.6004 19.029 14.631 14.5391 19.5087; 
+            22.4674 18.5657 21.0994 16.1492 18.9094 19.7048; 
+            24.4737 21.5049 24.0188 22.0439 24.8576 22.9994; 
+            -2.19 1.5644 1.5649 -2.1898 4.064 1.5635; 
+            16.0987 11.1708 9.0862 14.208 7.3417 7.1008; 
+            17.7534 12.5881 11.7854 19.7035 10.8137 16.76; 
+            18.9164 13.8692 16.7675 19.7035 13.9894 17.0583; 
+            21.4298 17.7886 21.3158 23.0946 18.4051 18.8537; 
+            21.8084 20.8345 23.8776 24.4169 24.5588 24.0153; 
+            -1.3091 3.2368 2.9673 -1.6019 0.7109 2.9665; 
+            14.7953 9.9115 8.2851 12.6564 8.4338 6.2852; 
+            16.5529 10.7197 10.9631 18.2575 14.9986 13.9562; 
+            17.6162 13.3154 14.0396 19.7001 19.2759 16.3266; 
+            18.3713 17.2633 22.3899 21.8871 21.2448 18.147; 
+            20.6643 20.3729 23.2849 24.1379 22.2836 25.2903; 
+            -0.1498 5.0688 4.6119 -0.7292 1.8461 1.2792; 
+            13.7348 7.6401 7.7495 11.3381 7.3552 6.8358; 
+            15.2346 10.4177 10.3044 17.0422 13.9713 17.411; 
+            15.5868 13.0521 11.5748 18.5896 17.0145 19.7706; 
+            16.6095 17.0003 22.6878 18.9497 21.4663 20.782; 
+            19.8033 20.1369 23.8328 24.1623 22.2909 21.3528; 
+            1.2794 -1.3097 6.3931 0.4238 3.2462 2.4089; 
+            12.3165 12.7881 7.4661 10.2733 6.5442 5.746; 
+            12.985 15.3549 8.9448 15.7515 13.1255 16.438; 
+            14.8647 21.4111 10.4212 16.0746 14.3435 17.5062; 
+            15.7974 22.4619 22.4677 17.7757 21.5717 20.7542; 
+            19.0943 23.4833 24.6836 23.3713 22.7623 21.8472; 
+            2.9583 -0.438 2.6904 1.8457 4.8733 3.7928; 
+            9.6949 11.4707 8.0227 9.4654 6.0143 4.9322; 
+            12.428 14.1067 10.7233 12.9091 11.5323 14.689; 
+            14.3846 19.0234 17.0676 15.3511 12.8296 15.7815; 
+            15.2587 21.996 19.0231 16.9735 21.1473 20.215; 
+            18.6079 23.4258 26.0923 22.7219 24.1573 23.0301; 
+            4.8012 0.7108 4.0755 3.5136 2.9685 3.5179; 
+            7.3729 10.4082 7.2235 8.8966 6.2744 4.6557; 
+            12.159 13.0604 9.9082 10.3144 12.9436 15.4926; 
+            14.1471 16.0838 14.9934 14.8699 17.3102 17.7991; 
+            14.9896 21.1131 19.5279 16.4261 19.2582 19.6745; 
+            18.3589 23.5045 26.1777 22.2723 24.3074 22.7873; 
+            -2.4858 2.1277 5.686 -1.018 4.3403 2.1279; 
+            15.9032 9.6067 6.6998 11.0932 5.4705 5.4737; 
+            18.1436 12.1739 9.343 17.3994 12.1437 19.5275; 
+            21.3064 13.3553 12.5062 20.7075 15.2504 19.5275; 
+            23.3524 20.3734 20.9135 21.772 19.7671 20.5238; 
+            23.7856 23.0358 25.7071 23.2785 24.5023 20.5238; 
+            -1.8949 3.7901 5.4263 -0.1503 4.6029 3.2422; 
+            14.3535 9.0573 6.4366 9.7669 5.7552 4.3789; 
+            16.7501 10.4579 9.0996 16.202 11.3582 18.1679; 
+            20.7072 11.9433 15.6027 19.2545 15.8453 18.5363; 
+            21.6903 19.8656 17.3703 20.458 17.6337 20.0806; 
+            23.3065 22.6358 26.6302 23.5595 26.7367 21.5258
+        ]
+    )
 
     @test parse_clock(str) == groupby(
         DataFrame(
@@ -190,7 +317,453 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
     @test haserror(str) == false
 end
 
-@testset "Parse vc-relax output" begin
+@testset "Parse scf Si output" begin
+    url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/example01/reference/si.scf.cg.out"
+    str = open(download(url),"r") do io
+        read(io, String)
+    end
+    
+    @test parse_summary(str) == Dict{String, Any}(
+        "number of electrons" => 8.0,
+        "number of Kohn-Sham states" => 4,
+        "lattice parameter (alat)" => 10.2,
+        "number of iterations used" => 8,
+        "convergence threshold" => 1.0e-8,
+        "unit-cell volume" => 265.302,
+        "Exchange-correlation" => "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+        "kinetic-energy cutoff" => 18.0,
+        "bravais-lattice index" => 2,
+        "number of atoms/cell" => 2,
+        "number of atomic types" => 1,
+        "mixing beta" => 0.7,
+        "charge density cutoff" => 72.0
+    )
+
+    @test parse_fft_base_info(str) == groupby(
+        DataFrame(
+            [
+             "sticks" "Min" 63   63   21; 
+             "sticks" "Max" 64   64   22; 
+             "sticks" "Sum" 253  253  85; 
+             "gvecs"  "Min" 682  682  132; 
+             "gvecs"  "Max" 686  686  135; 
+             "gvecs"  "Sum" 2733 2733 531
+            ],
+            [:kind, :stats, :dense, :smooth, :PW],
+        ),
+        :kind,
+    )
+
+    @test parse_ibz(str) == (
+        cart = [
+            0.125 0.125 0.125 0.0625; 
+            0.125 0.125 0.375 0.1875; 
+            0.125 0.125 0.625 0.1875; 
+            0.125 0.125 0.875 0.1875; 
+            0.125 0.375 0.375 0.1875; 
+            0.125 0.375 0.625 0.375; 
+            0.125 0.375 0.875 0.375; 
+            0.125 0.625 0.625 0.1875; 
+            0.375 0.375 0.375 0.0625; 
+            0.375 0.375 0.625 0.1875
+        ], 
+        cryst = nothing
+    )
+
+    @test parse_stress(str) == (
+        [-10.24], 
+        Array{Float64,2}[[
+            -6.961e-5 0.0 0.0; 
+            0.0 -6.961e-5 0.0; 
+            0.0 -0.0 -6.961e-5
+        ]], 
+        Array{Float64,2}[[
+            -10.24 0.0 0.0; 
+            0.0 -10.24 0.0; 
+            0.0 -0.0 -10.24
+        ]]
+    )
+
+    @test isempty(parse_cell_parameters(str))
+
+    @test isempty(parse_atomic_positions(str))
+
+    @test parse_scf_calculation(str) == groupby(
+        DataFrame(
+            [
+                1 1 18.0 CGDiagonalization() 0.01 3.0 0.7 0.1 -15.8409163 -15.86196769 0.06153621; 
+                1 2 18.0 CGDiagonalization() 0.000769 3.0 0.7 0.1 -15.84402044 -15.84433077 0.0021625;
+                1 3 18.0 CGDiagonalization() 2.7e-5 3.8 0.7 0.1 -15.84450651 -15.84454243 7.508e-5; 
+                1 4 18.0 CGDiagonalization() 9.39e-7 4.1 0.7 0.1 -15.84452598 -15.8445296 8.06e-6; 
+                1 5 18.0 CGDiagonalization() 1.01e-7 3.9 0.7 0.1 -15.84452722 -15.84452725 7.0e-8; 
+                1 6 18.0 CGDiagonalization() 8.22e-10 4.5 0.7 0.2 nothing nothing nothing
+            ],
+            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
+        ),
+        :n
+    )
+
+    @test parse_converged_energy(str) == (-15.84452726, -15.84452726, 1.1e-9, nothing, [4.79352741, 1.07664069, -4.8149367, -16.89975867], nothing, nothing)
+
+    @test parse_version(str) == "6.0"
+
+    @test parse_parallel_info(str) == ("Parallel version (MPI)", 4)
+
+    @test parse_fft_dimensions(str) == (2733, (nr1 = 20, nr2 = 20, nr3 = 20))
+
+    @test parse_bands(str) == (
+        [
+            0.125 0.125 0.875; 
+            0.125 0.875 0.125; 
+            0.125 0.125 0.625; 
+            0.125 0.375 0.625; 
+            0.125 0.375 0.375; 
+            0.375 0.125 0.375; 
+            0.125 0.375 0.375; 
+            0.125 0.625 0.375; 
+            0.625 0.125 0.375; 
+            0.125 0.375 0.625
+        ],
+        [
+            -5.6039 3.5165 -3.549 2.1614; 
+            4.6467 3.9919 0.3751 4.323; 
+            5.9568 -2.4615 2.8565 -4.0849; 
+            5.9568 -0.5936 4.2745 0.2304; 
+            -5.0584 2.7226 -2.2719 5.1432; 
+            3.0175 3.5069 -0.7033 5.1432; 
+            4.9012 -4.5395 2.0784 -3.3347; 
+            4.9909 1.5909 3.2106 -0.5842; 
+            -3.9883 3.8905 -2.822 3.934; 
+            1.3106 5.4637 -0.439 4.6556
+        ]
+    )
+
+    @test parse_clock(str) == groupby(
+        DataFrame(
+            [
+				"" "init_run" 0.01 0.02 1; 
+				"" "electrons" 0.11 0.12 1; 
+				"" "forces" 0.0 0.0 1; 
+				"" "stress" 0.01 0.01 1; 
+				"init_run" "wfcinit" 0.01 0.01 1; 
+				"init_run" "potinit" 0.0 0.0 1; 
+				"electrons" "c_bands" 0.09 0.09 7; 
+				"electrons" "sum_band" 0.02 0.02 7; 
+				"electrons" "v_of_rho" 0.0 0.0 7; 
+				"electrons" "mix_rho" 0.0 0.0 7; 
+				"c_bands" "init_us_2" 0.0 0.0 170; 
+				"c_bands" "ccgdiagg" 0.08 0.07 70; 
+				"c_bands" "wfcrot" 0.01 0.02 60; 
+				"h_psi" "h_psi:pot" 0.06 0.06 828; 
+				"h_psi" "h_psi:calbec" 0.0 0.01 828; 
+				"h_psi" "vloc_psi" 0.05 0.05 828; 
+				"h_psi" "add_vuspsi" 0.0 0.0 828; 
+				"h_psi" "h_1psi" 0.05 0.05 768; 
+				"General routines" "calbec" 0.01 0.01 1646; 
+				"General routines" "fft" 0.0 0.0 34; 
+				"General routines" "fftw" 0.05 0.05 2376; 
+				"General routines" "davcio" 0.0 0.0 10; 
+				"Parallel routines" "fft_scatter" 0.02 0.02 2410
+            ],
+            [:subroutine, :item, :CPU, :wall, :calls]
+        ),
+        :subroutine
+	)
+	
+	@test whatinput(str) == "standard input"
+
+    @test isrelaxed(str) == false
+
+    @test isjobdone(str) == true
+
+    @test haserror(str) == false
+end
+
+@testset "Parse scf NaCl output" begin
+	url = "https://raw.githubusercontent.com/atztogo/phonopy/master/example/NaCl-pwscf/NaCl-001.out"
+	str = open(download(url),"r") do io
+		read(io, String)
+	end
+
+	@test parse_summary(str) == Dict{String, Any}(
+		"number of electrons" => 512.0,
+		"number of Kohn-Sham states" => 256,
+		"lattice parameter (alat)" => 21.5062,
+		"number of iterations used" => 8,
+		"convergence threshold" => 1.0e-9,
+		"unit-cell volume" => 9947.007,
+		"Exchange-correlation" => "SLA  PW   PBX  PBC ( 1  4  3  4 0 0)",
+		"kinetic-energy cutoff" => 70.0,
+		"bravais-lattice index" => 0,
+		"number of atoms/cell" => 64,
+		"number of atomic types" => 2,
+		"mixing beta" => 0.7,
+		"charge density cutoff" => 280.0
+	)
+
+	@test parse_fft_base_info(str) == groupby(
+		DataFrame(
+			[
+			 "sticks" "Min" 644 644 165; 
+			 "sticks" "Max" 645 645 167; 
+			 "sticks" "Sum" 10309 10309 2661; 
+			 "gvecs" "Min" 49140 49140 6426; 
+			 "gvecs" "Max" 49142 49142 6427; 
+			 "gvecs" "Sum" 786247 786247 102831
+			],
+			[:kind, :stats, :dense, :smooth, :PW]
+		),
+		:kind
+	)
+
+	@test parse_ibz(str) == (cart = [0.25 0.25 0.25 2.0], cryst = nothing)
+
+	@test parse_stress(str) == (
+		[0.63], 
+		Array{Float64,2}[[
+			4.28e-6 0.0 0.0; 
+			0.0 4.27e-6 0.0; 
+			0.0 0.0 4.27e-6
+		]], 
+		Array{Float64,2}[[
+			0.63 0.0 0.0; 
+			0.0 0.63 0.0; 
+			0.0 0.0 0.63
+		]]
+	)
+
+	@test isempty(parse_cell_parameters(str))
+
+	@test isempty(parse_atomic_positions(str))
+
+	@test parse_scf_calculation(str) == groupby(
+		DataFrame(
+			[
+				1 1 70.0 DavidsonDiagonalization() 0.01 1.0 0.7 10.7 -6041.20603805 -6045.69337535 5.2864571; 
+				1 2 70.0 DavidsonDiagonalization() 0.00103 4.0 0.7 22.7 -6043.01689773 -6043.59224951 0.77895678; 
+				1 3 70.0 DavidsonDiagonalization() 0.000152 2.0 0.7 32.3 -6043.23571556 -6043.25444434 0.0214773; 
+				1 4 70.0 DavidsonDiagonalization() 4.19e-6 4.0 0.7 44.8 -6043.24515439 -6043.24634462 0.00257225; 
+				1 5 70.0 DavidsonDiagonalization() 5.02e-7 2.0 0.7 52.9 -6043.24549219 -6043.24548845 2.587e-5; 
+				1 6 70.0 DavidsonDiagonalization() 5.05e-9 4.0 0.7 68.3 -6043.24556318 -6043.24556762 9.92e-6; 
+				1 7 70.0 DavidsonDiagonalization() 1.94e-9 2.0 0.7 75.9 -6043.24556342 -6043.24556419 1.4e-6; 
+				1 8 70.0 DavidsonDiagonalization() 2.73e-10 3.0 0.7 85.6 -6043.24556395 -6043.24556397 7.0e-8; 
+				1 9 70.0 DavidsonDiagonalization() 1.29e-11 2.0 0.7 94.5 -6043.24556394 -6043.24556396 2.0e-8; 
+				1 10 70.0 DavidsonDiagonalization() 3.22e-12 3.0 0.7 103.6 nothing nothing nothing
+			],
+			[:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
+		),
+		:n
+	)
+
+	@test parse_converged_energy(str) == (-6043.24556394, -6043.24556394, 9.5e-10, -39940.429322, [-2623.52269882, 1363.88574749, -789.46164384, -2182.32845246], nothing, nothing)
+
+	@test parse_version(str) == "5.4.0"
+
+	@test parse_parallel_info(str) == ("Parallel version (MPI)", 16)
+
+    @test parse_fft_dimensions(str) == (786247, (nr1 = 120, nr2 = 120, nr3 = 120))
+    
+    @test parse_bands(str) == (
+        [0.25 0.25 0.25],
+        [
+            -48.1202 -48.1201 -48.1201 -48.12 -48.1187 -48.1185 -48.1185 -48.1184 -48.1183 -48.1181 -48.1181 -48.1181 -48.1181 -48.1181 -48.1181 -48.118 -48.118 -48.118 -48.118 -48.1179 -48.1179 -48.1179 -48.1178 -48.1178 -48.1176 -48.1175 -48.1175 -48.1174 -48.1161 -48.116 -48.116 -48.1159 -20.0531 -20.0529 -20.0529 -20.0515 -20.0488 -20.0486 -20.0484 -20.0483 -20.0483 -20.0482 -20.0481 -20.048 -20.0478 -20.047 -20.0466 -20.0465 -20.0461 -20.0459 -20.0455 -20.0455 -20.0454 -20.0452 -20.0451 -20.0449 -20.0448 -20.0447 -20.0447 -20.0444 -20.0403 -20.0402 -20.0402 -20.0401 -20.0401 -20.04 -20.0395 -20.0394 -20.0393 -20.039 -20.039 -20.0388 -20.0381 -20.0379 -20.0378 -20.0367 -20.0365 -20.0365 -20.0364 -20.0363 -20.0361 -20.0361 -20.036 -20.0359 -20.0357 -20.0357 -20.0356 -20.0355 -20.0353 -20.035 -20.0346 -20.0345 -20.0344 -20.0341 -20.034 -20.0339 -20.0337 -20.0337 -20.0334 -20.0334 -20.0331 -20.0331 -20.033 -20.0327 -20.0326 -20.0326 -20.0326 -20.0325 -20.0325 -20.0324 -20.0322 -20.032 -20.0319 -20.0319 -20.0316 -20.0314 -20.0314 -20.0312 -20.0311 -20.031 -20.0308 -20.0305 -20.0304 -20.0302 -20.0301 -20.0296 -20.0294 -20.0293 -11.714 -11.6188 -11.6179 -11.6172 -11.5458 -11.545 -11.5442 -11.4969 -11.4925 -11.4917 -11.4909 -11.456 -11.4543 -11.4542 -11.4542 -11.4542 -11.4529 -11.4431 -11.443 -11.4428 -11.4169 -11.416 -11.4154 -11.4102 -11.4101 -11.4099 -11.4008 -11.3996 -11.3996 -11.3996 -11.3996 -11.3976 -0.8874 -0.8874 -0.8874 -0.783 -0.6658 -0.6658 -0.6658 -0.6358 -0.6349 -0.6341 -0.6261 -0.6257 -0.6254 -0.6253 -0.6249 -0.6246 -0.5201 -0.5201 -0.5195 -0.5195 -0.519 -0.5189 -0.483 -0.4824 -0.4818 -0.4217 -0.4216 -0.4215 -0.1146 -0.1146 -0.1143 -0.1143 -0.114 -0.114 -0.0591 -0.0588 -0.0585 -0.0383 -0.0381 -0.0378 0.1489 0.1489 0.1489 0.1899 0.1901 0.1905 0.1905 0.1909 0.1911 0.2862 0.2864 0.2869 0.2869 0.2874 0.2876 0.3165 0.3165 0.3165 0.3739 0.3739 0.3739 0.4176 0.4176 0.4176 0.449 0.4494 0.4499 0.469 0.4696 0.47 0.4839 0.4843 0.4847 0.4898 0.502 0.5028 0.503 0.503 0.5031 0.5041 0.5436 0.5436 0.5436 0.6285 0.6285 0.6504 0.6509 0.6513 0.6599 0.6608 0.6616 0.6888 0.6892 0.6896 0.8041 0.8041
+        ]
+    )
+
+	@test parse_clock(str) == groupby(
+		DataFrame(
+			[
+				"" "init_run" 4.14 4.3 1; 
+				"" "electrons" 98.15 99.0 1; 
+				"" "forces" 1.6 1.65 1; 
+				"" "stress" 11.58 11.58 1; 
+				"init_run" "wfcinit" 3.2 3.26 1; 
+				"init_run" "potinit" 0.31 0.32 1; 
+				"electrons" "c_bands" 84.89 85.71 10; 
+				"electrons" "sum_band" 9.46 9.49 10; 
+				"electrons" "v_of_rho" 1.01 1.02 11; 
+				"electrons" "newd" 1.14 1.19 11; 
+				"electrons" "PAW_pot" 1.73 1.73 11; 
+				"electrons" "mix_rho" 0.2 0.2 10; 
+				"c_bands" "init_us_2" 0.4 0.41 21; 
+				"c_bands" "cegterg" 83.49 84.29 10; 
+				"sum_band" "sum_band:bec" 0.01 0.01 10; 
+				"sum_band" "addusdens" 1.5 1.51 10; 
+				"*egterg" "h_psi" 41.33 41.44 38; 
+				"*egterg" "s_psi" 5.69 5.69 38; 
+				"*egterg" "g_psi" 0.24 0.24 27; 
+				"*egterg" "cdiaghg" 15.26 15.27 37; 
+				"h_psi" "add_vuspsi" 5.67 5.68 38; 
+				"General routines" "calbec" 9.12 9.13 53; 
+				"General routines" "fft" 0.73 0.77 167; 
+				"General routines" "fftw" 30.1 30.19 17922; 
+				"Parallel routines" "fft_scatter" 10.96 10.94 18089
+			],
+			[:subroutine, :item, :CPU, :wall, :calls]
+		),
+		:subroutine
+	)
+
+	@test whatinput(str) == "NaCl-001.in"
+
+    @test isrelaxed(str) == false
+
+    @test isjobdone(str) == true
+
+    @test haserror(str) == false
+end
+
+@testset "Parse scf SiO2 output" begin
+	url = "https://raw.githubusercontent.com/maxhutch/deprecated-quantum-espresso/master/XSpectra/examples/reference/SiO2.scf.out"
+	str = open(download(url), "r") do io
+		read(io, String)
+	end
+
+	@test parse_summary(str) == Dict{String, Any}(
+		"number of electrons" => 48.0,
+		"number of Kohn-Sham states" => 30,
+		"lattice parameter (alat)" => 9.2863,
+		"number of iterations used" => 8,
+		"convergence threshold" => 1.0e-9,
+		"unit-cell volume" => 762.9417,
+		"Exchange-correlation" => "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
+		"kinetic-energy cutoff" => 20.0,
+		"bravais-lattice index" => 4,
+		"number of atoms/cell" => 9,
+		"number of atomic types" => 3,
+		"mixing beta" => 0.3,
+		"charge density cutoff" => 150.0
+	)
+	@test parse_fft_base_info(str) == groupby(
+		DataFrame(
+			[
+				"sticks" "Sum" 889 475 151; 
+				"gvecs" "Sum" 23595 9203 1559
+			],
+			[:kind, :stats, :dense, :smooth, :PW]
+		),
+		:kind
+	)
+	@test parse_ibz(str) == (
+		cart = [
+			0.0 0.0 0.0 0.25; 
+			0.0 0.0 -0.4545041 0.25; 
+			0.0 -0.5773503 0.0 0.25; 
+			0.0 -0.5773503 -0.4545041 0.25; 
+			0.5 -0.2886751 0.0 0.5; 
+			0.5 -0.2886751 -0.4545041 0.5
+		], 
+		cryst = [
+			0.0 0.0 0.0 0.25; 
+			0.0 0.0 -0.5 0.25; 
+			0.0 -0.5 0.0 0.25; 
+			0.0 -0.5 -0.5 0.25; 
+			0.5 -0.5 0.0 0.5; 
+			0.5 -0.5 -0.5 0.5
+		]
+	)
+
+	@test parse_stress(str) == (Float64[], Array{Float64,2}[], Array{Float64,2}[])
+
+	@test isempty(parse_cell_parameters(str))
+
+	@test isempty(parse_atomic_positions(str))
+
+	@test parse_scf_calculation(str) == groupby(
+		DataFrame(
+			[
+				1 1 20.0 DavidsonDiagonalization() 0.01 3.3 0.3 4.8 -215.47818098 -215.53465529 0.3369274; 
+				1 2 20.0 DavidsonDiagonalization() 0.000702 1.0 0.3 5.8 -215.48170145 -215.48997319 0.1173383; 
+				1 3 20.0 DavidsonDiagonalization() 0.000244 2.7 0.3 6.9 -215.48819658 -215.48809974 0.01949303; 
+				1 4 20.0 DavidsonDiagonalization() 4.06e-5 4.8 0.3 8.1 -215.4897598 -215.48959757 0.0004444; 
+				1 5 20.0 DavidsonDiagonalization() 9.26e-7 5.3 0.3 9.8 -215.49021498 -215.49010809 3.11e-5; 
+				1 6 20.0 DavidsonDiagonalization() 6.48e-8 3.0 0.3 11.1 -215.49027155 -215.49022257 9.02e-6; 
+				1 7 20.0 DavidsonDiagonalization() 1.88e-8 3.0 0.3 12.5 -215.49029996 -215.49027536 3.07e-6; 
+				1 8 20.0 DavidsonDiagonalization() 6.39e-9 2.2 0.3 13.9 -215.49031266 -215.49030052 4.0e-8; 
+				1 9 20.0 DavidsonDiagonalization() 7.44e-11 3.0 0.3 15.3 -215.49031863 -215.49031268 3.5e-9; 
+				1 10 20.0 DavidsonDiagonalization() 7.39e-12 3.0 0.3 16.8 nothing nothing nothing
+			],
+			[:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
+		),
+		:n
+	)
+
+	@test parse_converged_energy(str) == (-215.49032431, -215.49031863, 5.2e-10, nothing, [-102.06258058, 76.26219017, -50.59625207, -139.09368184], nothing, 0.0)
+
+	@test parse_version(str) == "5.2.0"
+
+	@test parse_parallel_info(str) == ("Parallel version (MPI)", 1)
+
+    @test parse_fft_dimensions(str) == (23595, (nr1 = 40, nr2 = 40, nr3 = 40))
+    
+    @test parse_bands(str) == (
+        [
+            0.0 0.0 0.5; 
+            0.0 -0.5774 -0.2887; 
+            0.0 0.0 0.0; 
+            0.0 0.0 0.5; 
+            0.0 -0.5774 -0.2887; 
+            -0.4545 -0.4545 -0.4545
+        ],
+        [
+            -17.0334 -5.7053 -0.3559 1.0458 8.5471 -16.5782 -6.7838 -0.1516 0.6782 10.5342 -16.5545 -5.8544 -0.4926 0.8894 10.8541 -16.4867 -5.6872 -0.617 1.2993 11.5725 -16.554 -5.8545 -0.4923 0.8903 10.8543 -16.4862 -5.6873 -0.617 1.2994 11.5727; 
+            -15.5439 -5.7051 -0.3556 1.561 12.0141 -16.5775 -3.7867 -0.151 0.9906 10.535 -16.0878 -4.8542 -0.3446 1.4566 11.6301 -16.0555 -4.7586 -0.591 1.4355 12.0567 -16.0884 -4.8539 -0.3447 1.4561 11.6302 -16.056 -4.7583 -0.5911 1.4353 12.057; 
+            -15.5432 -2.9612 -0.1432 1.5616 12.0141 -14.9317 -3.7863 -0.0524 1.3044 11.7234 -15.4934 -3.3991 -0.1052 1.5187 12.3931 -15.6172 -3.9004 0.1213 1.6749 12.3288 -15.4938 -3.3993 -0.1058 1.5191 12.3931 -15.6177 -3.9004 0.1214 1.6744 12.3284; 
+            -14.9187 -2.9296 0.1125 1.8715 12.4598 -14.9147 -3.113 0.5108 2.3399 12.4599 -14.9799 -2.9537 0.2737 1.7938 12.4139 -15.0016 -2.8272 0.4585 1.7248 12.5029 -14.9796 -2.9541 0.273 1.7939 12.4142 -15.002 -2.8276 0.4579 1.7248 12.5031; 
+            -14.8904 -2.742 1.0266 2.2461 12.46 -14.9139 -3.1126 0.5114 2.34 12.4602 -14.9429 -2.916 0.4648 2.3038 13.2561 -14.9318 -2.5641 0.4729 1.9562 12.9247 -14.9439 -2.9156 0.4649 2.3042 13.2561 -14.9318 -2.564 0.4729 1.9573 12.9248; 
+            -14.8896 -2.7419 1.027 2.2465 13.768 -14.8691 -2.2079 0.678 2.4292 13.3749 -14.9202 -2.1394 0.8078 2.5349 13.3438 -14.9111 -2.4471 1.0148 2.3604 13.1935 -14.919 -2.1395 0.8082 2.5344 13.344 -14.91 -2.447 1.015 2.3604 13.1935]
+    )
+
+	@test parse_clock(str) == groupby(
+		DataFrame(
+			[
+				"" "init_run" 1.89 2.01 1; 
+				"" "electrons" 14.18 14.52 1; 
+				"init_run" "wfcinit" 0.69 0.69 1; 
+				"init_run" "potinit" 0.12 0.16 1; 
+				"electrons" "c_bands" 11.08 11.18 11; 
+				"electrons" "sum_band" 2.15 2.22 11; 
+				"electrons" "v_of_rho" 0.5 0.52 11; 
+				"electrons" "v_h" 0.03 0.03 11; 
+				"electrons" "v_xc" 0.47 0.5 11; 
+				"electrons" "newd" 0.45 0.56 11; 
+				"electrons" "mix_rho" 0.05 0.08 11; 
+				"c_bands" "init_us_2" 0.12 0.13 138; 
+				"c_bands" "cegterg" 10.79 10.88 66; 
+				"sum_band" "sum_band:bec" 0.0 0.0 66; 
+				"sum_band" "addusdens" 0.58 0.65 11; 
+				"*egterg" "h_psi" 6.87 6.89 270; 
+				"*egterg" "s_psi" 0.91 0.91 270; 
+				"*egterg" "g_psi" 0.07 0.07 198; 
+				"*egterg" "cdiaghg" 0.85 0.86 258; 
+				"*egterg" "cegterg:over" 1.14 1.14 198; 
+				"*egterg" "cegterg:upda" 0.63 0.63 198; 
+				"*egterg" "cegterg:last" 0.35 0.35 66; 
+				"h_psi" "h_psi:vloc" 4.93 4.95 270; 
+				"h_psi" "h_psi:vnl" 1.92 1.92 270; 
+				"h_psi" "add_vuspsi" 0.91 0.91 270; 
+				"General routines" "calbec" 1.36 1.36 336; 
+				"General routines" "fft" 0.26 0.29 175; 
+				"General routines" "ffts" 0.01 0.01 22; 
+				"General routines" "fftw" 4.87 4.89 13186; 
+				"General routines" "interpolate" 0.05 0.05 22; 
+				"Parallel routines" "fft_scatter" 0.33 0.34 13383
+			],
+			[:subroutine, :item, :CPU, :wall, :calls]
+		),
+		:subroutine
+	)
+
+	@test whatinput(str) == "standard input"
+
+    @test isrelaxed(str) == false
+
+    @test isjobdone(str) == true
+
+    @test haserror(str) == false
+end
+
+@testset "Parse vc-relax As output" begin
     url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/VCSexample/reference/As.vcs00.out"
     str = open(download(url), "r") do io
         read(io, String)
@@ -408,7 +981,7 @@ end
         ],
     ]
 
-     # @test parse_atomic_positions(vc) ==
+     # @test parse_atomic_positions(str) ==
      # QuantumESPRESSOBase.Cards.AtomicPositionsCard[
      #      QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}(
      #           "crystal", QuantumESPRESSOBase.Cards.AtomicPosition[
@@ -526,132 +1099,412 @@ end
      #      )
      # ]
 
-    # @test parse_scf_calculation(str) == groupby(
-    #     DataFrame(
-    #         [
-    #          1 1 25.0 "Davidson diagonalization with overlap" 0.01 4.3 0.7 0.3 nothing nothing nothing;
-    #          1 2 25.0 "Davidson diagonalization with overlap" 0.000156 1.0 0.7 0.4 nothing nothing nothing;
-    #          1 3 25.0 "Davidson diagonalization with overlap" 8.89e-6 1.6 0.7 0.4 nothing nothing nothing;
-    #          1 4 25.0 "Davidson diagonalization with overlap" 5.01e-8 3.1 0.7 0.5 nothing nothing nothing;
-    #          1 5 25.0 "Davidson diagonalization with overlap" 7.74e-9 1.4 0.7 0.5 nothing nothing nothing;
-    #          2 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 0.8 nothing nothing nothing;
-    #          2 2 25.0 "Davidson diagonalization with overlap" 8.24e-6 3.1 0.7 0.9 nothing nothing nothing;
-    #          2 3 25.0 "Davidson diagonalization with overlap" 6.78e-6 1.0 0.7 0.9 nothing nothing nothing;
-    #          2 4 25.0 "Davidson diagonalization with overlap" 1.49e-6 1.0 0.7 1.0 nothing nothing nothing;
-    #          2 5 25.0 "Davidson diagonalization with overlap" 4.63e-7 2.6 0.7 1.0 nothing nothing nothing;
-    #          2 6 25.0 "Davidson diagonalization with overlap" 1.04e-8 2.1 0.7 1.1 nothing nothing nothing;
-    #          2 7 25.0 "Davidson diagonalization with overlap" 1.89e-9 1.1 0.7 1.1 nothing nothing nothing;
-    #          3 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.9 0.7 1.4 nothing nothing nothing;
-    #          3 2 25.0 "Davidson diagonalization with overlap" 2.69e-5 3.1 0.7 1.5 nothing nothing nothing;
-    #          3 3 25.0 "Davidson diagonalization with overlap" 2.43e-5 1.0 0.7 1.5 nothing nothing nothing;
-    #          3 4 25.0 "Davidson diagonalization with overlap" 5.68e-6 1.0 0.7 1.6 nothing nothing nothing;
-    #          3 5 25.0 "Davidson diagonalization with overlap" 1.88e-6 2.2 0.7 1.6 nothing nothing nothing;
-    #          3 6 25.0 "Davidson diagonalization with overlap" 6.49e-8 2.5 0.7 1.7 nothing nothing nothing;
-    #          3 7 25.0 "Davidson diagonalization with overlap" 4.28e-9 1.8 0.7 1.7 nothing nothing nothing;
-    #          4 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 5.1 0.7 2.0 nothing nothing nothing;
-    #          4 2 25.0 "Davidson diagonalization with overlap" 3.7e-6 3.0 0.7 2.1 nothing nothing nothing;
-    #          4 3 25.0 "Davidson diagonalization with overlap" 2.05e-6 1.0 0.7 2.1 nothing nothing nothing;
-    #          4 4 25.0 "Davidson diagonalization with overlap" 3.6e-7 1.5 0.7 2.2 nothing nothing nothing;
-    #          4 5 25.0 "Davidson diagonalization with overlap" 1.95e-8 3.0 0.7 2.3 nothing nothing nothing;
-    #          4 6 25.0 "Davidson diagonalization with overlap" 2.0e-9 1.0 0.7 2.3 nothing nothing nothing;
-    #          4 7 25.0 "Davidson diagonalization with overlap" 1.16e-9 1.5 0.7 2.3 nothing nothing nothing;
-    #          5 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 5.3 0.7 2.6 nothing nothing nothing;
-    #          5 2 25.0 "Davidson diagonalization with overlap" 5.22e-6 3.0 0.7 2.7 nothing nothing nothing;
-    #          5 3 25.0 "Davidson diagonalization with overlap" 2.41e-6 1.0 0.7 2.7 nothing nothing nothing;
-    #          5 4 25.0 "Davidson diagonalization with overlap" 3.56e-7 1.3 0.7 2.8 nothing nothing nothing;
-    #          5 5 25.0 "Davidson diagonalization with overlap" 2.63e-8 3.0 0.7 2.9 nothing nothing nothing;
-    #          5 6 25.0 "Davidson diagonalization with overlap" 2.83e-9 1.0 0.7 2.9 nothing nothing nothing;
-    #          5 7 25.0 "Davidson diagonalization with overlap" 1.44e-9 2.0 0.7 2.9 nothing nothing nothing;
-    #          6 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 3.2 nothing nothing nothing;
-    #          6 2 25.0 "Davidson diagonalization with overlap" 1.41e-6 3.0 0.7 3.3 nothing nothing nothing;
-    #          6 3 25.0 "Davidson diagonalization with overlap" 1.41e-6 1.0 0.7 3.4 nothing nothing nothing;
-    #          6 4 25.0 "Davidson diagonalization with overlap" 6.85e-7 1.0 0.7 3.4 nothing nothing nothing;
-    #          6 5 25.0 "Davidson diagonalization with overlap" 8.37e-8 3.0 0.7 3.5 nothing nothing nothing;
-    #          6 6 25.0 "Davidson diagonalization with overlap" 4.29e-9 1.0 0.7 3.5 nothing nothing nothing;
-    #          6 7 25.0 "Davidson diagonalization with overlap" 1.47e-9 2.0 0.7 3.6 nothing nothing nothing;
-    #          7 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 4.2 0.7 3.8 nothing nothing nothing;
-    #          7 2 25.0 "Davidson diagonalization with overlap" 6.2e-6 3.0 0.7 3.9 nothing nothing nothing;
-    #          7 3 25.0 "Davidson diagonalization with overlap" 5.67e-6 1.0 0.7 4.0 nothing nothing nothing;
-    #          7 4 25.0 "Davidson diagonalization with overlap" 1.15e-6 1.0 0.7 4.0 nothing nothing nothing;
-    #          7 5 25.0 "Davidson diagonalization with overlap" 2.62e-7 3.0 0.7 4.1 nothing nothing nothing;
-    #          7 6 25.0 "Davidson diagonalization with overlap" 9.51e-9 1.0 0.7 4.1 nothing nothing nothing;
-    #          7 7 25.0 "Davidson diagonalization with overlap" 4.98e-9 2.0 0.7 4.2 nothing nothing nothing;
-    #          8 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.7 0.7 4.4 nothing nothing nothing;
-    #          8 2 25.0 "Davidson diagonalization with overlap" 1.9e-6 3.0 0.7 4.5 nothing nothing nothing;
-    #          8 3 25.0 "Davidson diagonalization with overlap" 1.54e-6 1.0 0.7 4.5 nothing nothing nothing;
-    #          8 4 25.0 "Davidson diagonalization with overlap" 2.67e-7 1.0 0.7 4.6 nothing nothing nothing;
-    #          8 5 25.0 "Davidson diagonalization with overlap" 7.53e-8 2.7 0.7 4.7 nothing nothing nothing;
-    #          9 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.8 0.7 4.9 nothing nothing nothing;
-    #          9 2 25.0 "Davidson diagonalization with overlap" 2.41e-6 3.0 0.7 5.0 nothing nothing nothing;
-    #          9 3 25.0 "Davidson diagonalization with overlap" 2.15e-6 1.0 0.7 5.0 nothing nothing nothing;
-    #          9 4 25.0 "Davidson diagonalization with overlap" 3.58e-7 1.0 0.7 5.1 nothing nothing nothing;
-    #          9 5 25.0 "Davidson diagonalization with overlap" 1.12e-7 2.7 0.7 5.1 nothing nothing nothing;
-    #          10 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.6 0.7 5.4 nothing nothing nothing;
-    #          10 2 25.0 "Davidson diagonalization with overlap" 3.74e-7 3.0 0.7 5.5 nothing nothing nothing;
-    #          10 3 25.0 "Davidson diagonalization with overlap" 1.98e-7 1.0 0.7 5.5 nothing nothing nothing;
-    #          10 4 25.0 "Davidson diagonalization with overlap" 2.5e-8 1.0 0.7 5.6 nothing nothing nothing;
-    #          10 5 25.0 "Davidson diagonalization with overlap" 4.09e-9 3.0 0.7 5.6 nothing nothing nothing;
-    #          11 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.4 0.7 5.9 nothing nothing nothing;
-    #          11 2 25.0 "Davidson diagonalization with overlap" 1.03e-7 2.7 0.7 6.0 nothing nothing nothing;
-    #          11 3 25.0 "Davidson diagonalization with overlap" 8.21e-8 1.0 0.7 6.0 nothing nothing nothing;
-    #          11 4 25.0 "Davidson diagonalization with overlap" 1.21e-8 2.2 0.7 6.1 nothing nothing nothing;
-    #          11 5 25.0 "Davidson diagonalization with overlap" 2.13e-9 1.7 0.7 6.1 nothing nothing nothing;
-    #          12 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.5 0.7 6.4 nothing nothing nothing;
-    #          12 2 25.0 "Davidson diagonalization with overlap" 1.3e-7 3.0 0.7 6.5 nothing nothing nothing;
-    #          12 3 25.0 "Davidson diagonalization with overlap" 1.25e-7 1.0 0.7 6.6 nothing nothing nothing;
-    #          12 4 25.0 "Davidson diagonalization with overlap" 2.09e-8 2.0 0.7 6.6 nothing nothing nothing;
-    #          13 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.6 0.7 6.9 nothing nothing nothing;
-    #          13 2 25.0 "Davidson diagonalization with overlap" 1.51e-7 3.0 0.7 7.0 nothing nothing nothing;
-    #          13 3 25.0 "Davidson diagonalization with overlap" 1.51e-7 1.0 0.7 7.0 nothing nothing nothing;
-    #          13 4 25.0 "Davidson diagonalization with overlap" 3.25e-8 1.4 0.7 7.1 nothing nothing nothing;
-    #          13 5 25.0 "Davidson diagonalization with overlap" 1.36e-9 3.0 0.7 7.1 nothing nothing nothing;
-    #          14 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 3.1 0.7 7.4 nothing nothing nothing;
-    #          14 2 25.0 "Davidson diagonalization with overlap" 1.52e-7 3.0 0.7 7.5 nothing nothing nothing;
-    #          14 3 25.0 "Davidson diagonalization with overlap" 1.52e-7 1.0 0.7 7.5 nothing nothing nothing;
-    #          14 4 25.0 "Davidson diagonalization with overlap" 3.4e-8 1.0 0.7 7.6 nothing nothing nothing;
-    #          14 5 25.0 "Davidson diagonalization with overlap" 9.49e-9 2.7 0.7 7.6 nothing nothing nothing;
-    #          15 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 2.2 0.7 8.0 nothing nothing nothing;
-    #          15 2 25.0 "Davidson diagonalization with overlap" 1.27e-8 3.0 0.7 8.1 nothing nothing nothing;
-    #          15 3 25.0 "Davidson diagonalization with overlap" 1.27e-8 1.0 0.7 8.1 nothing nothing nothing;
-    #          15 4 25.0 "Davidson diagonalization with overlap" 2.69e-9 1.0 0.7 8.1 nothing nothing nothing;
-    #          16 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.2 0.7 8.4 nothing nothing nothing;
-    #          16 2 25.0 "Davidson diagonalization with overlap" 1.06e-9 2.0 0.7 8.5 nothing nothing nothing;
-    #          17 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.6 0.7 8.8 nothing nothing nothing;
-    #          18 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.9 0.7 9.1 nothing nothing nothing;
-    #          19 1 25.0 "Davidson diagonalization with overlap" 1.0e-6 1.0 0.7 9.5 nothing nothing nothing
-    #         ],
-    #         [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ],
-    #     ),
-    #     :n,
-    # )
+    @test parse_scf_calculation(str) == groupby(
+        DataFrame(
+            [
+                1 1 25.0 DavidsonDiagonalization() 0.01 4.3 0.7 0.3 -25.43995582 -25.4437112 0.01555792; 
+                1 2 25.0 DavidsonDiagonalization() 0.000156 1.0 0.7 0.4 -25.44012469 -25.44030751 0.00088879; 
+                1 3 25.0 DavidsonDiagonalization() 8.89e-6 1.6 0.7 0.4 -25.44015903 -25.44016035 5.01e-6; 
+                1 4 25.0 DavidsonDiagonalization() 5.01e-8 3.1 0.7 0.5 -25.44016731 -25.44016767 7.7e-7; 
+                1 5 25.0 DavidsonDiagonalization() 7.74e-9 1.4 0.7 0.5 nothing nothing nothing; 
+                2 1 25.0 DavidsonDiagonalization() 1.0e-6 4.2 0.7 0.8 -25.45861709 -25.70454741 0.00082435; 
+                2 2 25.0 DavidsonDiagonalization() 8.24e-6 3.1 0.7 0.9 -25.46013239 -25.46040686 0.00067849; 
+                2 3 25.0 DavidsonDiagonalization() 6.78e-6 1.0 0.7 0.9 -25.46011089 -25.46016215 0.00014927; 
+                2 4 25.0 DavidsonDiagonalization() 1.49e-6 1.0 0.7 1.0 -25.46009315 -25.46011707 4.631e-5; 
+                2 5 25.0 DavidsonDiagonalization() 4.63e-7 2.6 0.7 1.0 -25.46010105 -25.46010159 1.04e-6; 
+                2 6 25.0 DavidsonDiagonalization() 1.04e-8 2.1 0.7 1.1 -25.46010129 -25.46010136 1.9e-7; 
+                2 7 25.0 DavidsonDiagonalization() 1.89e-9 1.1 0.7 1.1 nothing nothing nothing; 
+                3 1 25.0 DavidsonDiagonalization() 1.0e-6 4.9 0.7 1.4 -25.47745488 -25.91214701 0.00268934; 
+                3 2 25.0 DavidsonDiagonalization() 2.69e-5 3.1 0.7 1.5 -25.48276145 -25.48371495 0.00243353; 
+                3 3 25.0 DavidsonDiagonalization() 2.43e-5 1.0 0.7 1.5 -25.4826746 -25.48286068 0.0005678; 
+                3 4 25.0 DavidsonDiagonalization() 5.68e-6 1.0 0.7 1.6 -25.48260137 -25.48269578 0.00018831; 
+                3 5 25.0 DavidsonDiagonalization() 1.88e-6 2.2 0.7 1.6 -25.48262653 -25.48262997 6.49e-6; 
+                3 6 25.0 DavidsonDiagonalization() 6.49e-8 2.5 0.7 1.7 -25.48262992 -25.48263004 4.3e-7; 
+                3 7 25.0 DavidsonDiagonalization() 4.28e-9 1.8 0.7 1.7 nothing nothing nothing; 
+                4 1 25.0 DavidsonDiagonalization() 1.0e-6 5.1 0.7 2.0 -25.49248333 -25.62939439 0.00037033; 
+                4 2 25.0 DavidsonDiagonalization() 3.7e-6 3.0 0.7 2.1 -25.49296778 -25.49305279 0.00020532; 
+                4 3 25.0 DavidsonDiagonalization() 2.05e-6 1.0 0.7 2.1 -25.4929614 -25.49297819 3.596e-5; 
+                4 4 25.0 DavidsonDiagonalization() 3.6e-7 1.5 0.7 2.2 -25.49296383 -25.49296488 1.95e-6; 
+                4 5 25.0 DavidsonDiagonalization() 1.95e-8 3.0 0.7 2.3 -25.49296527 -25.4929653 2.0e-7; 
+                4 6 25.0 DavidsonDiagonalization() 2.0e-9 1.0 0.7 2.3 -25.49296521 -25.49296527 1.2e-7; 
+                4 7 25.0 DavidsonDiagonalization() 1.16e-9 1.5 0.7 2.3 nothing nothing nothing; 
+                5 1 25.0 DavidsonDiagonalization() 1.0e-6 5.3 0.7 2.6 -25.49636723 -25.64573313 0.00052245; 
+                5 2 25.0 DavidsonDiagonalization() 5.22e-6 3.0 0.7 2.7 -25.49696036 -25.49706357 0.00024087; 
+                5 3 25.0 DavidsonDiagonalization() 2.41e-6 1.0 0.7 2.7 -25.49695895 -25.49697471 3.557e-5; 
+                5 4 25.0 DavidsonDiagonalization() 3.56e-7 1.3 0.7 2.8 -25.49696079 -25.4969622 2.63e-6; 
+                5 5 25.0 DavidsonDiagonalization() 2.63e-8 3.0 0.7 2.9 -25.49696251 -25.49696257 2.8e-7; 
+                5 6 25.0 DavidsonDiagonalization() 2.83e-9 1.0 0.7 2.9 -25.49696244 -25.49696252 1.4e-7; 
+                5 7 25.0 DavidsonDiagonalization() 1.44e-9 2.0 0.7 2.9 nothing nothing nothing; 
+                6 1 25.0 DavidsonDiagonalization() 1.0e-6 4.2 0.7 3.2 -25.49530736 -25.61150725 0.00014094; 
+                6 2 25.0 DavidsonDiagonalization() 1.41e-6 3.0 0.7 3.3 -25.49570743 -25.49578663 0.00023062; 
+                6 3 25.0 DavidsonDiagonalization() 1.41e-6 1.0 0.7 3.4 -25.49568509 -25.49571515 6.854e-5; 
+                6 4 25.0 DavidsonDiagonalization() 6.85e-7 1.0 0.7 3.4 -25.49568478 -25.49568972 8.37e-6; 
+                6 5 25.0 DavidsonDiagonalization() 8.37e-8 3.0 0.7 3.5 -25.49568754 -25.49568767 4.3e-7; 
+                6 6 25.0 DavidsonDiagonalization() 4.29e-9 1.0 0.7 3.5 -25.49568746 -25.49568755 1.5e-7; 
+                6 7 25.0 DavidsonDiagonalization() 1.47e-9 2.0 0.7 3.6 nothing nothing nothing; 
+                7 1 25.0 DavidsonDiagonalization() 1.0e-6 4.2 0.7 3.8 -25.49684745 -25.30507535 0.00061972; 
+                7 2 25.0 DavidsonDiagonalization() 6.2e-6 3.0 0.7 3.9 -25.49795324 -25.49818001 0.0005669; 
+                7 3 25.0 DavidsonDiagonalization() 5.67e-6 1.0 0.7 4.0 -25.49793986 -25.49798289 0.0001145; 
+                7 4 25.0 DavidsonDiagonalization() 1.15e-6 1.0 0.7 4.0 -25.49793038 -25.49794575 2.62e-5; 
+                7 5 25.0 DavidsonDiagonalization() 2.62e-7 3.0 0.7 4.1 -25.49793823 -25.49793843 9.5e-7; 
+                7 6 25.0 DavidsonDiagonalization() 9.51e-9 1.0 0.7 4.1 -25.49793797 -25.49793825 5.0e-7; 
+                7 7 25.0 DavidsonDiagonalization() 4.98e-9 2.0 0.7 4.2 nothing nothing nothing; 
+                8 1 25.0 DavidsonDiagonalization() 1.0e-6 3.7 0.7 4.4 -25.49828297 -25.40005836 0.00019031; 
+                8 2 25.0 DavidsonDiagonalization() 1.9e-6 3.0 0.7 4.5 -25.49857725 -25.49864174 0.00015415; 
+                8 3 25.0 DavidsonDiagonalization() 1.54e-6 1.0 0.7 4.5 -25.49857749 -25.49858675 2.667e-5; 
+                8 4 25.0 DavidsonDiagonalization() 2.67e-7 1.0 0.7 4.6 -25.49857458 -25.49857875 7.53e-6; 
+                8 5 25.0 DavidsonDiagonalization() 7.53e-8 2.7 0.7 4.7 nothing nothing nothing; 
+                9 1 25.0 DavidsonDiagonalization() 1.0e-6 3.8 0.7 4.9 -25.49832741 -25.38301822 0.00024105; 
+                9 2 25.0 DavidsonDiagonalization() 2.41e-6 3.0 0.7 5.0 -25.49870513 -25.49879485 0.00021533; 
+                9 3 25.0 DavidsonDiagonalization() 2.15e-6 1.0 0.7 5.0 -25.49870766 -25.49871944 3.584e-5; 
+                9 4 25.0 DavidsonDiagonalization() 3.58e-7 1.0 0.7 5.1 -25.49870296 -25.4987092 1.123e-5; 
+                9 5 25.0 DavidsonDiagonalization() 1.12e-7 2.7 0.7 5.1 nothing nothing nothing; 
+                10 1 25.0 DavidsonDiagonalization() 1.0e-6 3.6 0.7 5.4 -25.49901709 -25.53840213 3.743e-5; 
+                10 2 25.0 DavidsonDiagonalization() 3.74e-7 3.0 0.7 5.5 -25.49906083 -25.49906974 1.984e-5; 
+                10 3 25.0 DavidsonDiagonalization() 1.98e-7 1.0 0.7 5.5 -25.49906136 -25.49906237 2.5e-6; 
+                10 4 25.0 DavidsonDiagonalization() 2.5e-8 1.0 0.7 5.6 -25.49906132 -25.49906154 4.1e-7; 
+                10 5 25.0 DavidsonDiagonalization() 4.09e-9 3.0 0.7 5.6 nothing nothing nothing; 
+                11 1 25.0 DavidsonDiagonalization() 1.0e-6 3.4 0.7 5.9 -25.49926138 -25.47952947 1.028e-5; 
+                11 2 25.0 DavidsonDiagonalization() 1.03e-7 2.7 0.7 6.0 -25.49927224 -25.49927575 8.21e-6; 
+                11 3 25.0 DavidsonDiagonalization() 8.21e-8 1.0 0.7 6.0 -25.4992721 -25.49927285 1.21e-6; 
+                11 4 25.0 DavidsonDiagonalization() 1.21e-8 2.2 0.7 6.1 -25.49927238 -25.49927249 2.1e-7; 
+                11 5 25.0 DavidsonDiagonalization() 2.13e-9 1.7 0.7 6.1 nothing nothing nothing; 
+                12 1 25.0 DavidsonDiagonalization() 1.0e-6 3.5 0.7 6.4 -25.49938883 -25.47370616 1.302e-5; 
+                12 2 25.0 DavidsonDiagonalization() 1.3e-7 3.0 0.7 6.5 -25.49940541 -25.49941055 1.25e-5; 
+                12 3 25.0 DavidsonDiagonalization() 1.25e-7 1.0 0.7 6.6 -25.49940503 -25.49940626 2.09e-6; 
+                12 4 25.0 DavidsonDiagonalization() 2.09e-8 2.0 0.7 6.6 nothing nothing nothing; 
+                13 1 25.0 DavidsonDiagonalization() 1.0e-6 3.6 0.7 6.9 -25.4994147 -25.46715169 1.51e-5; 
+                13 2 25.0 DavidsonDiagonalization() 1.51e-7 3.0 0.7 7.0 -25.49943827 -25.49944506 1.723e-5; 
+                13 3 25.0 DavidsonDiagonalization() 1.51e-7 1.0 0.7 7.0 -25.49943774 -25.49943933 3.25e-6; 
+                13 4 25.0 DavidsonDiagonalization() 3.25e-8 1.4 0.7 7.1 -25.499438 -25.49943808 1.4e-7; 
+                13 5 25.0 DavidsonDiagonalization() 1.36e-9 3.0 0.7 7.1 nothing nothing nothing; 
+                14 1 25.0 DavidsonDiagonalization() 1.0e-6 3.1 0.7 7.4 -25.49942959 -25.46106847 1.52e-5; 
+                14 2 25.0 DavidsonDiagonalization() 1.52e-7 3.0 0.7 7.5 -25.49946014 -25.49946654 1.647e-5; 
+                14 3 25.0 DavidsonDiagonalization() 1.52e-7 1.0 0.7 7.5 -25.49945989 -25.49946105 3.4e-6; 
+                14 4 25.0 DavidsonDiagonalization() 3.4e-8 1.0 0.7 7.6 -25.49945947 -25.49946003 9.5e-7; 
+                14 5 25.0 DavidsonDiagonalization() 9.49e-9 2.7 0.7 7.6 nothing nothing nothing; 
+                15 1 25.0 DavidsonDiagonalization() 1.0e-6 2.2 0.7 8.0 -25.49946121 -25.5097648 1.27e-6; 
+                15 2 25.0 DavidsonDiagonalization() 1.27e-8 3.0 0.7 8.1 -25.49946359 -25.49946413 1.37e-6; 
+                15 3 25.0 DavidsonDiagonalization() 1.27e-8 1.0 0.7 8.1 -25.49946358 -25.49946367 2.7e-7; 
+                15 4 25.0 DavidsonDiagonalization() 2.69e-9 1.0 0.7 8.1 nothing nothing nothing; 
+                16 1 25.0 DavidsonDiagonalization() 1.0e-6 1.2 0.7 8.4 -25.49946518 -25.49949373 1.1e-7; 
+                16 2 25.0 DavidsonDiagonalization() 1.06e-9 2.0 0.7 8.5 nothing nothing nothing; 
+                17 1 25.0 DavidsonDiagonalization() 1.0e-6 1.6 0.7 8.8 nothing nothing nothing; 
+                18 1 25.0 DavidsonDiagonalization() 1.0e-6 1.9 0.7 9.1 nothing nothing nothing; 
+                19 1 25.0 DavidsonDiagonalization() 1.0e-6 1.0 0.7 9.5 nothing nothing nothing
+            ],
+            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ],
+        ),
+        :n,
+    )
 
-    @test parse_converged_energy(str) == [
-        -25.4401674,
-        -25.46010129,
-        -25.48262993,
-        -25.49296522,
-        -25.49696246,
-        -25.49568749,
-        -25.49793805,
-        -25.49857642,
-        -25.49870559,
-        -25.49906146,
-        -25.4992724,
-        -25.49940546,
-        -25.49943809,
-        -25.49945971,
-        -25.49946354,
-        -25.4994652,
-        -25.4994663,
-        -25.49946664,
-        -25.49946688,
-    ]
-
+    @test parse_converged_energy(str) == (
+        -25.4401674, 
+        -25.44016741, 
+        2.0e-8, 
+        nothing, 
+        nothing, 
+        nothing, 
+        nothing
+    )
+    
     @test parse_version(str) == "6.0"
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 2)
 
     @test parse_fft_dimensions(str) == (4159, (nr1 = 24, nr2 = 24, nr3 = 24))
+
+    @test parse_bands(str) == (
+        [
+            0.0 0.2398 0.1432; 0.0 0.0469 0.5611; 
+            0.1535 -0.277 -0.0; -0.1436 0.0 -0.2386; 
+            -0.2488 0.328 0.0; 0.2558 0.1385 0.0; 
+            0.2873 0.7195 0.4295; 0.4976 0.0469 0.4208; 
+            -0.0512 0.0 0.7289; 0.1436 0.4797 0.1432; 
+            0.2488 0.1406 0.0; 0.0512 0.5539 -0.0; 
+            -0.2873 0.0 0.1439; 0.0 -0.2343 -0.1404; 
+            0.3581 0.0 -0.2432; 0.1436 0.0 0.2398; 
+            0.7464 0.4217 0.2808; 0.0512 0.4154 0.4863; 
+            0.0 0.7195 -0.048; 0.4976 0.1406 0.1404; 
+            0.1535 0.0 0.2432; 0.5746 -0.0 0.048; 
+            0.0 0.1408 -0.2808; -0.2558 -0.1396 0.0; 
+            0.0 -0.2418 0.3357; 0.0 0.2346 0.1404; 
+            0.4604 0.2792 0.7295; 0.4309 0.4836 0.048; 
+            0.7464 -0.0469 0.0; 0.1535 0.1396 0.4863; 
+            0.0 0.2418 0.1439; 0.0 0.0469 0.5616; 
+            0.152 -0.2792 -0.0; -0.1413 0.0 -0.2398; 
+            -0.2448 0.3285 0.0; 0.2534 0.1396 0.0; 
+            0.2826 0.7253 0.4316; 0.4895 0.0469 0.4212; 
+            -0.0507 0.0 0.7295; 0.1413 0.4836 0.1439; 
+            0.2448 0.1408 0.0; 0.0507 0.5584 0.0; 
+            -0.2826 0.0 0.1436; 0.0 -0.2346 -0.1404; 
+            0.3547 0.0 -0.2431; 0.1413 0.0 0.2394; 
+            0.7343 0.4223 0.2807; 0.0507 0.4188 0.4863; 
+            0.0 0.7253 -0.0479; 0.4895 0.1408 0.1404; 
+            0.152 0.0 0.2431; 0.5652 -0.0 0.0479; 
+            0.0 0.1411 -0.2807; -0.2534 -0.1408 0.0; 
+            0.0 -0.2439 0.3352; 0.0 0.2352 0.1404; 
+            0.4561 0.2817 0.7294; 0.4239 0.4879 0.0479; 
+            0.7343 -0.047 0.0; 0.152 0.1408 0.4863; 
+            0.0 0.2439 0.1436; 0.0 0.047 0.5615; 
+            0.149 -0.2817 -0.0; -0.1372 0.0 -0.2394; 
+            -0.2376 0.3293 0.0; 0.2484 0.1408 0.0; 
+            0.2744 0.7318 0.4309; 0.4753 0.047 0.4211; 
+            -0.0497 0.0 0.7294; 0.1372 0.4879 0.1436; 
+            0.2376 0.1411 0.0; 0.0497 0.5633 -0.0; 
+            -0.2744 0.0 0.1436; 0.0 -0.2352 -0.1404; 
+            0.3477 0.0 -0.2431; 0.1372 0.0 0.2394; 
+            0.7129 0.4233 0.2808; 0.0497 0.4225 0.4863; 
+            0.0 0.7318 -0.0479; 0.4753 0.1411 0.1404; 
+            0.149 0.0 0.2431; 0.5488 -0.0 0.0479; 
+            0.0 0.1415 -0.2808; -0.2484 -0.1402 -0.0; 
+            0.0 -0.2428 0.3352; 0.0 0.2358 0.1404; 
+            0.447 0.2803 0.7294; 0.4116 0.4855 0.0479; 
+            0.7129 -0.0472 0.0; 0.149 0.1402 0.4863; 
+            0.0 0.2428 0.1436; 0.0 0.0472 0.5615; 
+            0.1453 -0.2803 0.0; -0.1372 0.0 -0.2394; 
+            -0.2376 0.3301 0.0; 0.2422 0.1402 0.0; 
+            0.2744 0.7283 0.4309; 0.4753 0.0472 0.4211; 
+            -0.0484 0.0 0.7294; 0.1372 0.4855 0.1436; 
+            0.2376 0.1415 0.0; 0.0484 0.5606 -0.0; 
+            -0.2744 -0.0 0.1436; 0.0 -0.2358 -0.1404; 
+            0.3391 0.0 -0.2431; 0.1372 0.0 0.2394; 
+            0.7129 0.4245 0.2808; 0.0484 0.4205 0.4863; 
+            0.0 0.7283 -0.0479; 0.4753 0.1415 0.1404; 
+            0.1453 0.0 0.2431; 0.5488 0.0 0.0479; 
+            0.0 0.142 -0.2808; -0.2422 -0.1402 -0.0; 
+            0.0 -0.2428 0.3351; 0.0 0.2366 0.1404; 
+            0.436 0.2803 0.7294; 0.4116 0.4856 0.0479; 
+            0.7129 -0.0473 0.0; 0.1453 0.1402 0.4863; 
+            0.0 0.2428 0.1436; 0.0 0.0473 0.5615; 
+            0.1413 -0.2803 0.0; -0.1373 0.0 -0.2394; 
+            -0.2377 0.3312 0.0; 0.2355 0.1402 0.0; 
+            0.2745 0.7283 0.4309; 0.4755 0.0473 0.4211; 
+            -0.0471 0.0 0.7294; 0.1373 0.4856 0.1436; 
+            0.2377 0.142 0.0; 0.0471 0.5607 -0.0; 
+            -0.2745 -0.0 0.1436; 0.0 -0.2366 -0.1404; 
+            0.3297 0.0 -0.2431; 0.1373 0.0 0.2394; 
+            0.7132 0.4259 0.2808; 0.0471 0.4205 0.4863; 
+            0.0 0.7283 -0.0479; 0.4755 0.142 0.1404; 
+            0.1413 0.0 0.2431; 0.549 0.0 0.0479; 
+            0.0 0.1425 -0.2808; -0.2355 -0.1402 0.0; 
+            0.0 -0.2428 0.3351; 0.0 0.2375 0.1404; 
+            0.4239 0.2804 0.7294; 0.4118 0.4857 0.0479; 
+            0.7132 -0.0475 0.0; 0.1413 0.1402 0.4863; 
+            0.0 0.2428 0.1436; 0.0 0.0475 0.5615; 
+            0.1374 -0.2804 0.0; -0.1377 0.0 -0.2394; 
+            -0.2385 0.3325 0.0; 0.229 0.1402 0.0; 
+            0.2754 0.7285 0.4308; 0.4769 0.0475 0.4211; 
+            -0.0458 0.0 0.7294; 0.1377 0.4857 0.1436; 
+            0.2385 0.1425 0.0; 0.0458 0.5608 -0.0; 
+            -0.2754 -0.0 0.1436; 0.0 -0.2375 -0.1404; 
+            0.3205 0.0 -0.2431; 0.1377 0.0 0.2393; 
+            0.7154 0.4275 0.2807; 0.0458 0.4206 0.4863; 
+            0.0 0.7285 -0.0479; 0.4769 0.1425 0.1404; 
+            0.1374 0.0 0.2431; 0.5507 0.0 0.0479; 
+            0.0 0.1432 -0.2807; -0.229 -0.1403 -0.0; 
+            0.0 -0.243 0.335; 0.0 0.2386 0.1404; 
+            0.4121 0.2806 0.7294; 0.413 0.4859 0.0479; 
+            0.7154 -0.0477 0.0; 0.1374 0.1403 0.4863; 
+            0.0 0.243 0.1436; -0.0 0.0477 0.5615; 
+            0.1406 -0.2806 0.0; -0.1385 0.0 -0.2393; 
+            -0.2398 0.334 0.0; 0.2343 0.1403 -0.0; 
+            0.277 0.7289 0.4308; 0.4797 0.0477 0.4211; 
+            -0.0469 0.0 0.7294; 0.1385 0.4859 0.1436
+        ],
+        [
+            -6.996 -0.9951 3.9837 4.7763 5.4039 9.7649 11.0995 14.3053 15.7304; 
+            4.5198 4.2049 4.0324 6.0774 9.9174 12.2869 12.1495 14.9467 -4.899; 
+            5.9668 4.6912 5.5262 8.8711 11.8325 13.4241 13.6575 -5.9081 -2.0664; 
+            5.9668 7.4545 8.3361 9.3404 11.9263 13.8207 -4.4938 -1.5546 2.1328; 
+            8.4358 8.4354 9.0633 10.8065 13.8731 -5.1281 -1.9411 5.8115 4.6465; 
+            11.0403 9.6017 9.7281 12.9339 -4.3781 -2.3575 1.829 5.8115 5.9556; 
+            11.7602 11.6648 14.8956 -6.1544 -2.6717 2.6479 3.5028 7.0297 10.071; 
+            11.7603 13.8033 -6.9208 -1.1704 1.7851 4.6972 4.0923 8.5024 10.4058; 
+            16.5646 -5.0422 -0.681 2.4553 2.7624 5.8583 9.7647 8.5024 13.2094; 
+            -5.925 -3.4005 4.0063 3.5458 6.0707 9.275 12.8843 9.6236 15.2427; 
+            0.3918 3.9116 4.6905 5.0126 9.8877 10.9504 14.213 15.7323 -7.1154; 
+            5.3512 4.8912 5.9857 9.3681 12.3194 11.9438 14.8322 -4.8915 1.7766; 
+            5.6502 6.1714 8.6976 11.0897 13.4459 13.5275 -5.9434 -2.0734 5.6249; 
+            9.2996 8.9981 9.1861 11.2791 13.9087 -4.6234 -1.6135 2.1362 5.6249; 
+            10.5304 10.417 10.6243 13.2743 -5.1403 -2.1188 5.7742 4.6512 6.5386; 
+            11.7007 11.5751 12.7756 -4.6857 -2.3404 1.8198 5.7742 5.9524 9.9963; 
+            13.5632 15.8399 -6.1959 -3.063 2.6107 3.389 6.9792 10.0668 10.5594; 
+            15.7167 -6.8441 -1.3231 1.5249 4.7811 4.0354 8.4545 10.4092 10.5594; 
+            -4.349 -0.1812 2.3847 2.5047 5.818 9.5304 8.4545 13.2126 14.5365; 
+            -2.4704 3.9899 3.3903 5.6475 9.3853 12.7505 9.5573 15.2394 -6.094; 
+            4.7884 5.5436 4.8602 9.2662 11.0325 14.1736 15.6533 -7.1108 -0.8459; 
+            6.1554 6.9369 9.1833 11.7281 11.971 14.6501 -4.9332 1.7757 3.9954; 
+            7.8796 9.3856 10.8202 12.7816 13.5812 -6.1106 -2.1258 5.6317 5.6858; 
+            10.8149 10.0527 11.0477 13.3547 -4.6419 -1.6292 2.108 5.6317 8.0603; 
+            12.585 11.7987 13.0239 -5.4095 -2.1485 5.6038 4.6174 6.5384 8.314; 
+            13.8262 13.7047 -4.7575 -2.7484 1.9033 5.6038 5.9048 10.0096 9.0599; 
+            17.7262 -6.0763 -3.1967 2.3161 3.4069 6.787 10.0064 10.5641 11.8948; 
+            -6.3695 -0.5006 1.4397 4.4239 4.0957 8.4074 10.3403 10.5641 13.9393; 
+            1.3043 2.6581 2.4379 5.4463 9.4627 8.4074 13.1355 14.5342 -4.5664; 
+            4.986 3.3347 5.5196 8.9335 12.8455 9.4957 15.1626 -6.0886 -3.1902; 
+            7.1721 5.8635 9.02 10.3905 14.3489 15.4679 -7.0989 -0.845 4.5911; 
+            8.5435 9.0445 11.5236 11.3409 14.7342 -5.1359 1.8057 3.9993 4.7638; 
+            10.8048 11.4134 12.5778 13.0688 -6.1966 -2.1312 5.6498 5.6985 6.2495; 
+            12.4703 11.7446 13.1806 -4.9468 -1.5356 1.9967 5.6498 8.0637 9.3232; 
+            13.9613 14.3726 -5.4877 -2.544 5.607 4.4734 6.565 8.315 9.6674; 
+            15.351 -4.5948 -2.8812 1.6386 5.607 5.8554 10.0433 9.0512 10.4271; 
+            -5.5427 -2.8756 2.2417 3.0281 6.8472 9.9436 10.5907 11.8957 15.6461; 
+            1.1265 1.6092 4.2991 3.7829 8.5351 10.1472 10.5907 13.9457 -6.5362; 
+            3.5658 3.116 5.3834 9.0261 8.5351 12.928 14.5476 -4.5604 0.1901; 
+            4.2978 6.3908 8.7844 12.2207 9.6588 15.0609 -6.0745 -3.1879 4.7466; 
+            7.516 9.5726 10.1635 13.7255 15.4887 -7.1843 -0.8265 4.5938 5.3226; 
+            10.4216 11.763 11.143 14.0208 -5.2344 1.6069 4.0225 4.7741 6.711; 
+            13.7076 13.5185 12.9049 -6.399 -2.0181 5.5142 5.7245 6.2499 9.4311; 
+            13.7747 14.7116 -5.0299 -1.8369 1.9887 5.5142 8.0847 9.3292 10.2417; 
+            16.9047 -5.3726 -2.6528 5.1218 4.477 6.3899 8.3414 9.6598 11.4785; 
+            -3.8393 -2.5754 1.5419 5.1218 5.9747 9.8025 9.0623 10.4239 13.4721; 
+            -1.8099 2.2982 2.8887 6.1359 10.0835 10.4059 11.9275 15.6473 -5.7224; 
+            2.3271 5.1805 3.6882 8.0192 10.2109 10.4059 13.9679 -6.5319 -0.6125; 
+            4.2466 6.2807 8.9188 8.0192 12.9827 14.4545 -4.5446 0.1938 2.9736; 
+            8.0539 10.1401 12.0165 9.005 15.1491 -6.1759 -3.1732 4.7537 4.0583; 
+            11.6204 10.8753 13.4916 14.9399 -7.2695 -0.9554 4.618 5.3237 5.3454; 
+            13.3234 11.7936 13.7918 -5.4862 1.5088 3.8683 4.7962 6.7154 10.2064; 
+            15.7203 13.9318 -6.4142 -2.372 5.3895 5.5351 6.2689 9.4255 11.9703; 
+            17.349 -4.8394 -1.9398 1.7084 5.3895 7.934 9.3598 10.2543 12.0595; 
+            -4.7124 -2.4289 4.951 4.0591 6.2986 8.1613 9.6756 11.4771 13.7749; 
+            -1.4722 2.3698 4.951 5.4878 9.5708 8.9904 10.4575 13.4689 -4.1417; 
+            3.0016 2.8294 5.8619 9.4907 10.2722 11.7161 15.6841 -5.7161 -2.5595; 
+            6.6926 4.596 7.8002 9.5017 10.2722 13.8083 -6.5202 -0.6133 1.8734; 
+            7.7778 8.9677 7.8002 12.253 14.4335 -4.6599 0.2171 2.9814 2.8679; 
+            12.3034 13.3663 8.7364 14.637 -6.2756 -3.2771 4.7713 4.0637 6.2068; 
+            13.0675 14.9485 14.7778 -7.3588 -1.0283 4.459 5.348 5.3394 9.9288; 
+            13.4305 15.4149 -5.5128 1.3222 3.7527 4.6346 6.7436 10.2189 12.5149; 
+            16.0962 -6.3146 -2.5096 5.2062 5.3358 6.1379 9.4501 11.9732 13.7327; 
+            -4.0542 -0.676 1.623 5.2062 7.8289 9.1486 10.2873 12.0619 14.0356; 
+            -1.5061 4.8049 3.9141 6.1388 8.0622 9.576 11.5041 13.7668 -4.9945; 
+            3.7085 4.8049 5.2851 9.3093 9.0257 10.2467 13.4898 -4.1343 -2.1873; 
+            3.7297 5.6083 9.2247 10.0667 11.5982 15.4507 -5.6995 -2.5568 2.822; 
+            6.0243 8.3783 9.2626 10.0667 13.6775 -6.6049 -0.5914 1.8761 4.7961; 
+            10.0592 8.3783 11.9975 14.2992 -4.7705 0.0519 3.0011 2.8688 6.1168; 
+            15.9113 9.7417 14.4722 -6.3821 -3.3512 4.6402 4.0769 6.2082 9.4199; 
+            17.7151 15.4923 -7.6125 -1.1762 4.3516 5.1874 5.3514 9.928 11.1847; 
+            18.4776 -5.4147 0.4718 3.624 4.4664 6.5542 10.2454 12.5223 12.2121; 
+            -5.8586 -1.5595 4.6841 5.1214 6.0687 9.2928 12.0016 13.7382 13.7219; 
+            0.8362 1.7266 4.6841 7.6299 8.9884 10.0555 12.0881 14.0337 -4.4627; 
+            5.884 3.8322 5.4406 7.8773 9.5899 11.3253 13.7829 -4.9898 -1.8995; 
+            5.884 5.8418 8.5567 8.9246 10.1596 13.3541 -4.114 -2.183 1.8753; 
+            7.4111 9.5554 9.3412 11.3918 15.3139 -5.8178 -2.5402 2.8294 3.5244; 
+            10.0628 10.0386 9.3412 13.478 -6.6865 -0.7383 1.8876 4.793 4.1502; 
+            10.0628 12.468 13.7101 -4.9023 -0.0642 2.8617 2.8847 6.1226 9.8007; 
+            12.1193 15.5951 -6.689 -3.4709 4.5145 3.9753 6.2306 9.4136 12.9819; 
+            17.3945 -7.436 -1.7663 4.221 5.0875 5.2745 9.9489 11.1858 14.3191; 
+            -4.8493 1.5395 3.1355 4.2778 6.4226 10.0515 12.5469 12.2196 14.9494; 
+            -0.0497 4.8048 4.5745 5.9178 9.2498 11.801 13.7749 13.724 -5.919; 
+            2.4337 4.8048 6.9412 8.7657 9.8413 11.9049 14.0633 -4.4573 -1.5446; 
+            4.7831 6.3259 7.1207 9.4839 11.2437 13.6772 -4.9757 -1.8919 5.7999; 
+            7.5089 9.035 8.3087 10.0124 13.3043 -4.2587 -2.1641 1.8712 5.7999; 
+            11.6828 9.9139 10.529 15.1419 -5.9354 -2.6585 2.8477 3.5301 7.0178; 
+            12.0643 9.9139 12.8404 -6.7802 -0.8098 1.8057 4.8075 4.148 8.5064; 
+            14.476 14.2088 -5.2853 -0.2543 2.7294 2.7795 6.1537 9.8131 8.5064; 
+            17.7702 -6.478 -3.8985 4.3437 3.8812 6.0792 9.4365 12.9805 9.6297; 
+            -7.1388 -1.2449 3.6785 4.9435 5.2843 9.8037 11.2153 14.3105 15.7264; 
+            3.6956 3.8265 3.7857 6.2586 9.8553 12.3689 12.2497 14.949 -4.9053; 
+            5.5401 4.724 5.3076 9.1045 11.6756 13.5239 13.7477 -5.9105 -2.0632; 
+            5.5401 7.3009 7.9915 9.5958 11.7927 13.8701 -4.4401 -1.5508 2.1293; 
+            7.8027 7.9573 8.831 11.0663 13.6908 -5.0776 -1.868 5.809 4.6419; 
+            10.4 9.0674 9.1957 13.1578 -4.3973 -2.2988 1.8807 5.809 5.9558; 
+            11.1877 11.395 14.339 -6.0549 -2.7428 2.7173 3.5434 7.0272 10.0715; 
+            11.1878 13.3404 -7.0536 -0.9576 1.7417 4.7127 4.1645 8.5044 10.4012; 
+            15.8503 -5.0835 -0.9368 2.5877 2.7179 5.9458 9.8415 8.5044 13.2047; 
+            -6.1037 -3.5576 3.8678 3.7321 5.9903 9.293 13.0114 9.6264 15.2423; 
+            -0.0926 3.9312 4.3382 5.1961 9.7385 11.0148 14.334 15.7316 -7.1164; 
+            4.9491 4.473 5.607 9.6198 12.2206 12.0372 14.9881 -4.8947 1.7725; 
+            5.2926 5.8681 8.3399 11.431 13.3441 13.5853 -5.8905 -2.0696 5.6233; 
+            8.6212 8.6727 8.8753 11.578 13.7871 -4.5633 -1.5358 2.1348 5.6233; 
+            9.7784 9.7664 10.2625 13.5553 -5.1709 -2.0366 5.8281 4.6493 6.5349; 
+            10.9547 10.6825 12.4893 -4.5476 -2.4054 1.8204 5.8281 5.9542 9.9933; 
+            12.8747 15.5321 -6.3961 -2.883 2.5891 3.4417 7.0503 10.0691 10.5563; 
+            15.0275 -6.8848 -1.6089 1.6437 4.6889 4.0579 8.5173 10.408 10.5563; 
+            -4.5986 -0.4112 2.178 2.623 5.7876 9.6405 8.5173 13.2115 14.5339; 
+            -2.7947 3.9874 3.312 5.8421 9.2678 12.8067 9.6441 15.2412 -6.0951; 
+            4.4624 5.1343 4.676 9.5559 10.9025 14.184 15.763 -7.1126 -0.8483; 
+            5.7105 6.4719 8.9763 12.0 11.8686 14.728 -4.8706 1.7767 3.9926; 
+            7.2601 9.2608 10.5361 13.0876 13.4827 -6.0312 -2.0576 5.6292 5.6839; 
+            10.1666 9.4341 10.7628 13.6109 -4.6742 -1.6275 2.1486 5.6292 8.0577; 
+            11.8235 11.2463 12.8153 -5.2874 -2.1874 5.6831 4.6659 6.5393 8.3103; 
+            13.0623 13.2718 -4.986 -2.5616 1.8239 5.6831 5.9674 10.0043 9.0571; 
+            17.0368 -6.1416 -3.3787 2.4482 3.3447 6.8748 10.0862 10.5628 11.8906; 
+            -6.5393 -0.8719 1.32 4.5905 4.0215 8.425 10.4357 10.5628 13.9366; 
+            0.7863 2.4926 2.2161 5.6137 9.4371 8.425 13.2425 14.5361 -4.5677; 
+            4.6177 3.3541 5.2311 9.1465 12.711 9.5187 15.2663 -6.0907 -3.1919; 
+            6.583 5.3896 8.8126 10.6894 14.1741 15.5513 -7.1098 -0.8449 4.588; 
+            7.9753 9.0956 11.2671 11.6274 14.5936 -5.0402 1.7735 3.9979 4.7621; 
+            10.2973 11.1517 12.1522 13.3037 -6.1796 -2.1336 5.6333 5.6934 6.2468; 
+            11.59 11.4229 12.7936 -4.8089 -1.6241 2.0483 5.6333 8.0632 9.3197; 
+            13.1956 13.7248 -5.6398 -2.3643 5.5372 4.5405 6.5369 8.315 9.6642; 
+            14.7697 -4.6815 -3.0833 1.7627 5.5372 5.874 10.0135 9.0559 10.422; 
+            -5.7323 -3.0196 2.0565 3.2007 6.7154 9.9672 10.5647 11.8963 15.6409; 
+            0.5606 1.5298 4.086 3.9278 8.3977 10.2343 10.5647 13.9436 -6.5372; 
+            3.2351 2.7767 4.9615 9.2229 8.3977 13.0217 14.5323 -4.5627 0.1874; 
+            3.9403 5.9601 8.4258 12.511 9.4837 15.1029 -6.0874 -3.1885 4.7451; 
+            6.9283 9.3485 9.831 14.0188 15.4022 -7.1332 -0.846 4.593 5.3194; 
+            9.9143 11.6508 10.8208 14.3524 -5.2181 1.6841 3.9996 4.77 6.7076; 
+            12.8591 13.0513 12.6196 -6.3108 -2.1239 5.5937 5.7025 6.2504 9.427; 
+            13.0476 13.9653 -5.2229 -1.693 1.9534 5.5937 8.0639 9.3273 10.2387; 
+            16.0006 -5.4306 -2.9101 5.342 4.4168 6.4597 8.3138 9.664 11.4746; 
+            -4.1082 -2.7216 1.3876 5.342 5.8452 9.9473 9.0464 10.4261 13.4684; 
+            -2.186 2.2628 2.8013 6.4606 9.9306 10.4972 11.8944 15.6477 -5.7238; 
+            2.0667 4.7589 3.4427 8.2602 10.0777 10.4972 13.9472 -6.5336 -0.6156; 
+            3.845 5.8349 8.6291 8.2602 12.8531 14.4822 -4.559 0.1927 2.9718; 
+            7.4613 9.5421 11.6029 9.3097 15.0327 -6.1156 -3.188 4.7511 4.0571; 
+            10.8724 10.5695 13.1358 15.1917 -7.23 -0.9003 4.5937 5.3237 5.3427; 
+            12.7555 11.4492 13.2865 -5.3759 1.5499 3.9438 4.7772 6.7138 10.2041; 
+            14.9539 13.38 -6.6619 -2.2039 5.4462 5.6573 6.2487 9.429 11.9667; 
+            16.4086 -4.9359 -2.202 1.8347 5.4462 8.0071 9.3302 10.2495 12.0562; 
+            -4.9483 -2.5328 4.8234 4.2488 6.3374 8.2372 9.6554 11.4786 13.7713; 
+            -1.8627 1.9629 4.8234 5.7147 9.6763 8.9876 10.4208 13.4713 -4.1434; 
+            2.7438 2.85 5.7482 9.7734 10.3314 11.8041 15.6462 -5.7186 -2.5614; 
+            6.1567 4.1652 7.6864 9.8218 10.3314 13.8948 -6.531 -0.6125 1.872; 
+            7.2477 8.9254 7.6864 12.5879 14.4396 -4.5915 0.1938 2.9784 2.8657; 
+            11.5344 12.7248 8.5388 14.8745 -6.2294 -3.2266 4.7556 4.0618 6.2038; 
+            12.2785 14.3057 14.4177 -7.264 -0.9972 4.5321 5.3228 5.3426 9.9258; 
+            12.861 14.6319 -5.7926 1.6217 3.8047 4.7369 6.7157 10.2141 12.5122; 
+            15.3162 -6.3754 -2.7079 5.4677 5.4272 6.1914 9.4217 11.973 13.7284; 
+            -4.3343 -1.2789 1.4961 5.4677 7.8753 9.2552 10.258 12.0617 14.0312; 
+            -1.8251 4.8634 3.792 6.39 8.104 9.5881 11.4749 13.7714 -4.9958; 
+            3.2422 4.8634 5.1633 9.6238 9.0054 10.3192 13.4664 -4.1372 -2.1892; 
+            3.3821 5.7349 8.9887 10.3683 11.6487 15.547 -5.7145 -2.5576 2.8203; 
+            5.5124 8.1057 9.0906 10.3683 13.7359 -6.5552 -0.6151 1.8753 4.7934; 
+            9.6601 8.1057 11.7007 14.578 -4.7197 0.1323 2.9835 2.8688 6.1132; 
+            15.0078 9.2552 14.1384 -6.2658 -3.3181 4.7189 4.0649 6.208 9.4159; 
+            16.7382 15.1548 -7.435 -0.9324 4.3992 5.2561 5.3358 9.9293 11.1808; 
+            17.3744 -5.4784 1.0583 3.7731 4.5438 6.6456 10.2228 12.5199 12.2088; 
+            -6.0209 -1.9928 4.9875 5.3684 6.0979 9.336 11.9727 13.7367 13.7185; 
+            0.3364 1.6598 4.9875 7.9481 9.06 10.193 12.0612 14.0355 -4.4643; 
+            5.4804 3.8624 5.9294 8.1784 9.5788 11.392 13.762 -4.9915 -1.9016; 
+            5.4804 5.5866 9.0505 9.1896 10.1951 13.396 -4.1325 -2.1844 1.8731; 
+            6.706 9.3935 9.8112 11.7134 15.3737 -5.7469 -2.557 2.8266 3.5232; 
+            9.4593 9.6757 9.8112 13.7731 -6.6488 -0.6817 1.8764 4.7947 4.1475; 
+            9.4593 12.2441 14.0536 -4.7413 -0.0129 2.9452 2.8681 6.1204 9.7981; 
+            11.2677 15.0567 -6.4764 -3.2936 4.572 4.0354 6.2074 9.4173 12.9775; 
+            16.7047 -7.4695 -1.3873 4.3857 5.1318 5.2833 9.9263 11.1863 14.3146; 
+            -5.0508 0.875 3.5017 4.5004 6.4802 10.1737 12.5241 12.2171 14.9441; 
+            -0.5731 4.8152 4.9215 6.174 9.2661 11.8929 13.7386 13.7239 -5.9205; 
+            2.1761 4.8152 7.3549 9.0738 9.9376 11.9873 14.0312 -4.4593 -1.5476; 
+            4.4291 5.8062 7.6221 9.7383 11.2773 13.6897 -4.9889 -1.8947 5.7985; 
+            6.9023 8.8912 8.6863 10.2382 13.3248 -4.1734 -2.1824 1.8733 5.7985; 
+            10.9014 9.6303 11.1145 15.362 -5.8809 -2.6011 2.8314 3.528 7.0158; 
+            11.3372 9.6303 13.2324 -6.6706 -0.7798 1.8476 4.7906 4.1494 8.5042; 
+            13.7576 13.8295 -5.0352 0.0324 2.7895 2.824 6.1235 9.8082 8.5042; 
+            16.9829 -6.522 -3.6224 4.5757 3.9239 6.1449 9.4095 12.9821 9.6263; 
+            -7.3956 -1.5504 4.0845 5.1413 5.2765 9.8592 11.1846 14.3155 15.7223; 
+            2.1406 3.4605 4.0969 6.4761 9.9447 12.4666 12.2212 14.9503 -4.9071; 
+            4.8134 4.7994 5.6973 9.3666 11.7297 13.6447 13.7235 -5.914 -2.0658; 
+            4.8134 7.1287 8.5065 9.9048 11.8411 13.9405 -4.4562 -1.5478 2.128; 
+            6.7362 7.4391 9.2561 11.3662 13.6799 -5.0194 -1.8901 5.8055 4.6405; 
+            9.2817 8.4662 9.8166 13.4192 -4.3336 -2.2285 1.8686 5.8055 5.9535; 
+            10.156 10.9266 14.9562 -5.9309 -2.7052 2.7959 3.5314 7.0242 10.0688; 
+            10.156 13.052 -6.8699 -0.7135 1.7705 4.7389 4.146 8.5061 10.3982; 
+            14.5874 -5.1183 -0.4992 2.7516 2.7446 6.0503 9.817 8.5061 13.2013; 
+            -6.4261 -3.7324 4.1509 3.9535 6.0285 9.3275 12.9782 9.6283 15.2383
+        ]
+    )
 
     @test parse_clock(str) == groupby(
         DataFrame(
@@ -695,3 +1548,207 @@ end
 
     @test haserror(str) == false
 end
+
+@testset "Parse relax CO output" begin
+    url = "https://raw.githubusercontent.com/maxhutch/deprecated-quantum-espresso/master/PW/tests/relax-damped.ref"
+    str = open(download(url), "r") do io
+        read(io, String)
+    end
+
+    @test parse_summary(str) == Dict{String, Any}(
+        "number of electrons" => 10.0,
+        "number of Kohn-Sham states" => 5,
+        "lattice parameter (alat)" => 12.0,
+        "number of iterations used" => 8,
+        "nstep" => 50,
+        "convergence threshold" => 1.0e-6,
+        "unit-cell volume" => 1728.0,
+        "Exchange-correlation" => "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+        "kinetic-energy cutoff" => 24.0,
+        "bravais-lattice index" => 1,
+        "number of atoms/cell" => 2,
+        "number of atomic types" => 2,
+        "mixing beta" => 0.7,
+        "charge density cutoff" => 144.0
+    )
+
+    @test parse_fft_base_info(str) == groupby(
+        DataFrame(
+            [
+                "sticks" "Sum" 1649 1101 277; 
+                "gvecs" "Sum" 50541 27609 3407
+            ],
+            [:kind, :stats, :dense, :smooth, :PW]
+        ),
+        :kind
+    )
+
+    @test parse_ibz(str) == (cart = [0.0 0.0 0.0 2.0], cryst = nothing)
+
+    @test parse_stress(str) == (Float64[], Array{Float64,2}[], Array{Float64,2}[])
+
+    @test parse_cell_parameters(str) == Array{Float64,2}[[
+        12.0 0.0 0.0; 
+        0.0 12.0 0.0; 
+        0.0 0.0 12.0
+    ]]
+
+    # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.161309101, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.05503841, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.111613831, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.178918345, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.166035881, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.140753228, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.115110591, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.127180324, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.144570629, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.142564627, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139519983, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr",QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])])
+    # ]
+
+    @test parse_scf_calculation(str) == groupby(
+        DataFrame(
+            [
+                1 1 24.0 DavidsonDiagonalization() 0.01 2.0 0.7 1.1 -43.00560028 -43.13946473 0.20142084; 
+                1 2 24.0 DavidsonDiagonalization() 0.00201 4.0 0.7 1.2 -42.97192905 -43.22189611 0.69794621; 
+                1 3 24.0 DavidsonDiagonalization() 0.00201 3.0 0.7 1.4 -43.09499395 -43.09749186 0.00768862; 
+                1 4 24.0 DavidsonDiagonalization() 7.69e-5 2.0 0.7 1.5 -43.09571104 -43.09617585 0.00118904; 
+                1 5 24.0 DavidsonDiagonalization() 1.19e-5 3.0 0.7 1.7 -43.09622618 -43.09637952 0.00054718; 
+                1 6 24.0 DavidsonDiagonalization() 5.47e-6 1.0 0.7 1.8 -43.09619459 -43.09625737 0.000193; 
+                1 7 24.0 DavidsonDiagonalization() 1.93e-6 3.0 0.7 1.9 -43.0962549 -43.09626006 1.788e-5; 
+                1 8 24.0 DavidsonDiagonalization() 1.79e-7 2.0 0.7 2.1 -43.09625733 -43.09625777 2.56e-6; 
+                1 9 24.0 DavidsonDiagonalization() 2.56e-8 3.0 0.7 2.2 nothing nothing nothing; 
+                2 1 24.0 DavidsonDiagonalization() 1.0e-6 5.0 0.7 2.6 -43.10825672 -43.11074971 0.00435174; 
+                2 2 24.0 DavidsonDiagonalization() 4.35e-5 2.0 0.7 2.7 -43.10912901 -43.10942463 0.00053892; 
+                2 3 24.0 DavidsonDiagonalization() 5.39e-6 2.0 0.7 2.9 -43.10924328 -43.10925158 2.323e-5; 
+                2 4 24.0 DavidsonDiagonalization() 2.32e-7 4.0 0.7 3.0 -43.10925024 -43.10928148 0.00012258; 
+                2 5 24.0 DavidsonDiagonalization() 2.32e-7 3.0 0.7 3.2 -43.10925169 -43.10925836 1.614e-5; 
+                2 6 24.0 DavidsonDiagonalization() 1.61e-7 3.0 0.7 3.3 nothing nothing nothing; 
+                3 1 24.0 DavidsonDiagonalization() 1.0e-6 5.0 0.7 3.7 -43.09901792 -43.10284311 0.00652404; 
+                3 2 24.0 DavidsonDiagonalization() 6.52e-5 2.0 0.7 3.8 -43.10034879 -43.10058877 0.00048248; 
+                3 3 24.0 DavidsonDiagonalization() 4.82e-6 2.0 0.7 4.0 -43.10043294 -43.10046987 6.432e-5; 
+                3 4 24.0 DavidsonDiagonalization() 6.43e-7 3.0 0.7 4.1 -43.10044299 -43.10046877 6.082e-5; 
+                3 5 24.0 DavidsonDiagonalization() 6.08e-7 2.0 0.7 4.2 nothing nothing nothing; 
+                4 1 24.0 DavidsonDiagonalization() 1.0e-6 5.0 0.7 4.6 -43.10834553 -43.10952579 0.00199952; 
+                4 2 24.0 DavidsonDiagonalization() 2.0e-5 2.0 0.7 4.8 -43.10876348 -43.10883933 0.00015055; 
+                4 3 24.0 DavidsonDiagonalization() 1.51e-6 2.0 0.7 4.9 -43.10879034 -43.10880265 2.306e-5; 
+                4 4 24.0 DavidsonDiagonalization() 2.31e-7 3.0 0.7 5.0 -43.10879483 -43.10880208 1.729e-5; 
+                4 5 24.0 DavidsonDiagonalization() 1.73e-7 2.0 0.7 5.2 nothing nothing nothing; 
+                5 1 24.0 DavidsonDiagonalization() 1.0e-6 5.0 0.7 5.6 -43.10753695 -43.10895232 0.00243803; 
+                5 2 24.0 DavidsonDiagonalization() 2.44e-5 2.0 0.7 5.7 -43.10804643 -43.10816059 0.0002229; 
+                5 3 24.0 DavidsonDiagonalization() 2.23e-6 2.0 0.7 5.8 -43.10808784 -43.10809655 1.679e-5; 
+                5 4 24.0 DavidsonDiagonalization() 1.68e-7 4.0 0.7 6.0 -43.10808706 -43.10810564 5.311e-5; 
+                5 5 24.0 DavidsonDiagonalization() 1.68e-7 3.0 0.7 6.1 nothing nothing nothing; 
+                6 1 24.0 DavidsonDiagonalization() 1.0e-6 3.0 0.7 6.5 -43.10898535 -43.10903872 9.066e-5; 
+                6 2 24.0 DavidsonDiagonalization() 9.07e-7 2.0 0.7 6.6 -43.1090036 -43.10901149 1.401e-5; 
+                6 3 24.0 DavidsonDiagonalization() 1.4e-7 2.0 0.7 6.8 nothing nothing nothing; 
+                7 1 24.0 DavidsonDiagonalization() 1.0e-6 4.0 0.7 7.2 -43.10969039 -43.10988487 0.00033653; 
+                7 2 24.0 DavidsonDiagonalization() 3.37e-6 2.0 0.7 7.3 -43.10975976 -43.1097782 3.482e-5; 
+                7 3 24.0 DavidsonDiagonalization() 3.48e-7 2.0 0.7 7.4 -43.10976646 -43.10976749 2.17e-6; 
+                7 4 24.0 DavidsonDiagonalization() 2.17e-8 3.0 0.7 7.6 -43.10976648 -43.10976919 8.37e-6; 
+                7 5 24.0 DavidsonDiagonalization() 2.17e-8 4.0 0.7 7.7 nothing nothing nothing; 
+                8 1 24.0 DavidsonDiagonalization() 1.0e-6 4.0 0.7 8.1 -43.10894342 -43.10915529 0.00036499; 
+                8 2 24.0 DavidsonDiagonalization() 3.65e-6 2.0 0.7 8.2 -43.10901923 -43.109033 2.773e-5; 
+                8 3 24.0 DavidsonDiagonalization() 2.77e-7 2.0 0.7 8.4 -43.10902396 -43.10902655 4.42e-6; 
+                8 4 24.0 DavidsonDiagonalization() 4.42e-8 4.0 0.7 8.5 -43.1090247 -43.10902628 3.82e-6; 
+                8 5 24.0 DavidsonDiagonalization() 3.82e-8 2.0 0.7 8.6 nothing nothing nothing; 
+                9 1 24.0 DavidsonDiagonalization() 1.0e-6 3.0 0.7 9.0 -43.10955328 -43.10960346 8.548e-5; 
+                9 2 24.0 DavidsonDiagonalization() 8.55e-7 2.0 0.7 9.2 -43.10957201 -43.10957598 7.68e-6; 
+                9 3 24.0 DavidsonDiagonalization() 7.68e-8 2.0 0.7 9.3 nothing nothing nothing; 
+                10 1 24.0 DavidsonDiagonalization() 1.0e-6 4.0 0.7 9.7 -43.10970375 -43.10980381 0.00017021; 
+                10 2 24.0 DavidsonDiagonalization() 1.7e-6 2.0 0.7 9.8 -43.10973953 -43.10975061 2.032e-5; 
+                10 3 24.0 DavidsonDiagonalization() 2.03e-7 2.0 0.7 10.0 nothing nothing nothing; 
+                11 1 24.0 DavidsonDiagonalization() 1.0e-6 2.0 0.7 10.4 -43.10975884 -43.10976234 5.12e-6; 
+                11 2 24.0 DavidsonDiagonalization() 5.12e-8 2.0 0.7 10.5 -43.10975993 -43.10976118 2.18e-6; 
+                11 3 24.0 DavidsonDiagonalization() 2.18e-8 2.0 0.7 10.7 nothing nothing nothing; 
+                12 1 24.0 DavidsonDiagonalization() 1.0e-6 3.0 0.7 11.1 -43.10976664 -43.10976925 4.59e-6; 
+                12 2 24.0 DavidsonDiagonalization() 4.59e-8 2.0 0.7 11.3 nothing nothing nothing; 
+                13 1 24.0 DavidsonDiagonalization() 1.0e-6 2.0 0.7 11.7 nothing nothing nothing
+            ],
+            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ]
+        ),
+        :n
+    )
+
+    @test parse_converged_energy(str) == (-43.09625738, -43.0962577, 3.9e-7, nothing, nothing, nothing, nothing)
+
+    @test parse_version(str) == "5.2.1"
+
+    @test parse_parallel_info(str) == ("Serial version", 1)
+
+    @test parse_fft_dimensions(str) == (25271, (nr1 = 45, nr2 = 45, nr3 = 45))
+
+    @test parse_bands(str) == (
+        [
+            0.0 0.0 0.0; 0.0 0.0 0.0; 
+            0.0 0.0 0.0; 0.0 0.0 0.0; 
+            0.0 0.0 0.0; 0.0 0.0 0.0; 
+            0.0 0.0 0.0; 0.0 0.0 0.0; 
+            0.0 0.0 0.0; 0.0 0.0 0.0; 
+            0.0 0.0 0.0; 0.0 0.0 0.0; 
+            0.0 0.0 0.0
+        ],
+        [
+            -27.899 -11.819 -13.383 -8.3482 -11.3791; 
+            -13.4027 -8.2731 -11.265 -28.922 -11.3791; 
+            -10.8557 -29.051 -11.265 -13.3805 -8.3809; 
+            -10.8557 -13.3798 -8.4098 -11.4526 -28.8213; 
+            -8.5036 -11.5296 -28.8126 -11.4526 -13.3817; 
+            -28.647 -11.5296 -13.3815 -8.3634 -11.3917; 
+            -13.3852 -8.3451 -11.3867 -28.7792 -11.3917; 
+            -11.289 -28.5063 -11.3867 -13.3817 -8.3738; 
+            -11.289 -13.3873 -8.3802 -11.3676 -28.8231; 
+            -8.4016 -11.2059 -29.0227 -11.3676 -13.383; 
+            -29.5199 -11.2059 -13.3812 -8.383 -11.3935; 
+            -13.3829 -8.422 -11.5131 -28.7994 -11.3935; 
+            -11.819 -28.6088 -11.5131 -13.3835 -8.381
+        ]
+    )
+
+    @test parse_clock(str) == groupby(
+        DataFrame(
+            [
+                "" "init_run" 0.86 0.88 1; 
+                "" "electrons" 7.88 7.95 13; 
+                "" "update_pot" 0.9 0.93 12; 
+                "" "forces" 1.03 1.02 13; 
+                "init_run" "wfcinit" 0.0 0.01 1; 
+                "init_run" "potinit" 0.04 0.05 1; 
+                "electrons" "c_bands" 1.2 1.21 58; 
+                "electrons" "sum_band" 3.48 3.5 58; 
+                "electrons" "v_of_rho" 0.89 0.89 68; 
+                "electrons" "newd" 2.08 2.1 68; 
+                "electrons" "mix_rho" 0.36 0.37 58; 
+                "c_bands" "init_us_2" 0.09 0.1 117; 
+                "c_bands" "regterg" 1.1 1.09 58; 
+                "sum_band" "sum_band:bec" 0.0 0.0 58; 
+                "sum_band" "addusdens" 2.8 2.81 58; 
+                "*egterg" "h_psi" 0.92 0.88 213; 
+                "*egterg" "s_psi" 0.02 0.02 213; 
+                "*egterg" "g_psi" 0.05 0.04 154; 
+                "*egterg" "rdiaghg" 0.02 0.02 197; 
+                "h_psi" "add_vuspsi" 0.02 0.02 213; 
+                "General routines" "calbec" 0.05 0.05 323; 
+                "General routines" "fft" 0.88 0.94 610; 
+                "General routines" "ffts" 0.17 0.13 126; 
+                "General routines" "fftw" 0.76 0.73 1276; 
+                "General routines" "interpolate" 0.49 0.48 126; 
+                "General routines" "davcio" 0.0 0.0 13
+            ],
+            [:subroutine, :item, :CPU, :wall, :calls],
+        ),
+        :subroutine,
+    )
+
+    @test whatinput(str) == "/home/giannozz/trunk/espresso/PW/tests/relax-damped.in"
+
+    @test isrelaxed(str) == true
+
+    @test isjobdone(str) == true
+
+    @test haserror(str) == false
+end
+
