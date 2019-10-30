@@ -444,7 +444,7 @@ end # function Base.tryparse
 
 # If the string does not contain what we want, an error is raised.
 function Base.parse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
-    haserror(str) ? tryparse_internal(T, str) : throw(ParseError("No error found!"))
+    haserror(str) ? tryparse_internal(T, str) : throw(Meta.ParseError("No info found!"))
 end # function Base.parse
 
 end
