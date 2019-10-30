@@ -13,7 +13,7 @@ module PWscf
 
 using Compat: isnothing
 # using Dates: DateTime, DateFormat
-using DataFrames: DataFrame, GroupedDataFrame, groupby
+using DataFrames: AbstractDataFrame, DataFrame, GroupedDataFrame, groupby
 using Fortran90Namelists.FortranToJulia
 using MLStyle: @match
 using QuantumESPRESSOBase.Cards.PWscf
@@ -373,7 +373,7 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{Tuple{Int,NamedTuple}}
     return parsed[1], NamedTuple{(:nr1,:nr2,:nr3)}(parsed[2:end])
 end # function parse_fft_dimensions
 
-function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
+function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     m = match(TIME_BLOCK, str)
     isnothing(m) && return
     content = m.captures[1]
@@ -404,7 +404,7 @@ function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
     end
     # m = match(TERMINATED_DATE, content)
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
-    return groupby(info, :subroutine)
+    return info
 end # function parse_clock
 
 function whatinput(str::AbstractString)::Maybe{String}
