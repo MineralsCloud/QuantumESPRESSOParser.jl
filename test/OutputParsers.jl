@@ -29,11 +29,11 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Min" 30 30 10
-         "sticks" "Max" 31 31 11
-         "sticks" "Sum" 121 121 43
-         "gvecs" "Min" 216 216 45
-         "gvecs" "Max" 218 218 46
+         "sticks" "Min" 30 30 10; 
+         "gvecs" "Min" 216 216 45; 
+         "sticks" "Max" 31 31 11; 
+         "gvecs" "Max" 218 218 46; 
+         "sticks" "Sum" 121 121 43; 
          "gvecs" "Sum" 869 869 181
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -341,11 +341,11 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Min" 63 63 21
-         "sticks" "Max" 64 64 22
-         "sticks" "Sum" 253 253 85
-         "gvecs" "Min" 682 682 132
-         "gvecs" "Max" 686 686 135
+         "sticks" "Min" 63 63 21; 
+         "gvecs" "Min" 682 682 132; 
+         "sticks" "Max" 64 64 22; 
+         "gvecs" "Max" 686 686 135; 
+         "sticks" "Sum" 253 253 85; 
          "gvecs" "Sum" 2733 2733 531
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -503,11 +503,11 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Min" 644 644 165
-         "sticks" "Max" 645 645 167
-         "sticks" "Sum" 10309 10309 2661
-         "gvecs" "Min" 49140 49140 6426
-         "gvecs" "Max" 49142 49142 6427
+         "sticks" "Min" 644 644 165; 
+         "gvecs" "Min" 49140 49140 6426; 
+         "sticks" "Max" 645 645 167; 
+         "gvecs" "Max" 49142 49142 6427; 
+         "sticks" "Sum" 10309 10309 2661; 
          "gvecs" "Sum" 786247 786247 102831
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -634,7 +634,7 @@ end
     )
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Sum" 889 475 151
+         "sticks" "Sum" 889 475 151; 
          "gvecs" "Sum" 23595 9203 1559
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -788,11 +788,11 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Min" 174 174 60
-         "sticks" "Max" 175 175 61
-         "sticks" "Sum" 349 349 121
-         "gvecs" "Min" 2079 2079 416
-         "gvecs" "Max" 2080 2080 417
+         "sticks" "Min" 174 174 60; 
+         "gvecs" "Min" 2079 2079 416; 
+         "sticks" "Max" 175 175 61; 
+         "gvecs" "Max" 2080 2080 417; 
+         "sticks" "Sum" 349 349 121; 
          "gvecs" "Sum" 4159 4159 833
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -1661,11 +1661,11 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Min" 63 63 22
-         "sticks" "Max" 64 64 23
-         "sticks" "Sum" 255 255 91
-         "gvecs" "Min" 4920 4920 1053
-         "gvecs" "Max" 4924 4924 1065
+         "sticks" "Min" 63 63 22; 
+         "gvecs" "Min" 4920 4920 1053; 
+         "sticks" "Max" 64 64 23; 
+         "gvecs" "Max" 4924 4924 1065; 
+         "sticks" "Sum" 255 255 91; 
          "gvecs" "Sum" 19689 19689 4231
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -3507,7 +3507,7 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Sum" 1649 1101 277
+         "sticks" "Sum" 1649 1101 277; 
          "gvecs" "Sum" 50541 27609 3407
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -3716,7 +3716,7 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Sum" 1369 1369 349
+         "sticks" "Sum" 1369 1369 349; 
          "gvecs" "Sum" 38401 38401 4801
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -3886,7 +3886,7 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Sum" 1369 1369 349
+         "sticks" "Sum" 1369 1369 349; 
          "gvecs" "Sum" 38401 38401 4801
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -4044,11 +4044,11 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Min" 253 124 37
-         "sticks" "Max" 255 125 38
-         "sticks" "Sum" 1015 499 151
-         "gvecs" "Min" 77613 26474 4339
-         "gvecs" "Max" 77637 26515 4364
+         "sticks" "Min" 253 124 37; 
+         "gvecs" "Min" 77613 26474 4339;
+         "sticks" "Max" 255 125 38; 
+         "gvecs" "Max" 77637 26515 4364; 
+         "sticks" "Sum" 1015 499 151; 
          "gvecs" "Sum" 310487 105989 17427
         ],
         [:kind, :stats, :dense, :smooth, :PW],
@@ -4308,11 +4308,11 @@ end
 
     @test parse_fft_base_info(str) == DataFrame(
         [
-         "sticks" "Min" 187 187 54
-         "sticks" "Max" 188 188 56
-         "sticks" "Sum" 749 749 221
-         "gvecs" "Min" 8037 8037 1261
-         "gvecs" "Max" 8044 8044 1262
+         "sticks" "Min" 187 187 54; 
+         "gvecs" "Min" 8037 8037 1261; 
+         "sticks" "Max" 188 188 56; 
+         "gvecs" "Max" 8044 8044 1262; 
+         "sticks" "Sum" 749 749 221; 
          "gvecs" "Sum" 32157 32157 5047
         ],
         [:kind, :stats, :dense, :smooth, :PW],
