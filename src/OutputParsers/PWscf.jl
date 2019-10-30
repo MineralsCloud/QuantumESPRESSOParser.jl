@@ -13,7 +13,7 @@ module PWscf
 
 using Compat: isnothing
 # using Dates: DateTime, DateFormat
-using DataFrames: AbstractDataFrame, DataFrame, GroupedDataFrame, groupby
+using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Fortran90Namelists.FortranToJulia
 using MLStyle: @match
 using QuantumESPRESSOBase.Cards.PWscf
@@ -128,14 +128,14 @@ end # function parse_summary
 """
     parse_fft_base_info(str::AbstractString)
 
-Parse the FFT base information from `pw.x`'s output and return a `GroupedDataFrame`.
+Parse the FFT base information from `pw.x`'s output and return a `DataFrame`.
 
 If there are more than one processors, the title is "Parallelization info" and three
 rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is
 "G-vector sticks info" and only the "Sum" row is printed. If no information is found,
 return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
-function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
+function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
     df = DataFrame(
         kind = String[],
         stats = String[],
@@ -146,9 +146,8 @@ function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
     m = match(FFT_BASE_INFO, str)
     if isnothing(m)
         @info("The FFT base info is not found!") && return
-    else
-        body = m[:body]
     end
+    body = m[:body]
     for line in split(body, '\n')
         # "Min",4X,2I8,I7,12X,2I9,I8
         sp = split(strip(line), r"\s+")
@@ -156,7 +155,7 @@ function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
         push!(df, ["sticks" sp[1] numbers[1:3]...])
         push!(df, ["gvecs" sp[1] numbers[4:6]...])
     end
-    return groupby(df, :kind)
+    return df
 end # function parse_fft_base_info
 
 # Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
