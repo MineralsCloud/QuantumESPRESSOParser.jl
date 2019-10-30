@@ -418,12 +418,8 @@ end # function isrelaxed
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
-function haserror(str::AbstractString)
-    isnothing(match(ERROR_IDENTIFIER, str)) ? false : true
-end # function haserror
-
 # This is an internal function and should not be exported.
-function tryparse_internal(::Type{T}, str::AbstractString) where {T<:SubroutineError}
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:SubroutineError}
     errors = T[]
     for em in eachmatch(ERROR_BLOCK, str)
         body = strip(em[:body])
@@ -434,17 +430,18 @@ function tryparse_internal(::Type{T}, str::AbstractString) where {T<:SubroutineE
     end
     # According to my observation, a QE output can have at most one type of
     # `SubroutineError`. Warn me if there can be multiple types of errors.
+    if isempty(errors)
+        # `tryparse` returns nothing if the string does not contain what we want,
+        # while `parse` raises an error.
+        raise ? throw(Meta.ParseError("No error found!")) : return
+    end
     return first(unique(errors))
 end # function tryparse_internal
-
-# Like `parse`, but returns nothing if the string does not contain what we want.
 function Base.tryparse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
-    haserror(str) ? tryparse_internal(T, str) : return
+    return tryparse_internal(T, str, false)
 end # function Base.tryparse
-
-# If the string does not contain what we want, an error is raised.
 function Base.parse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
-    haserror(str) ? tryparse_internal(T, str) : throw(Meta.ParseError("No info found!"))
+    return tryparse_internal(T, str, true)
 end # function Base.parse
 
 end

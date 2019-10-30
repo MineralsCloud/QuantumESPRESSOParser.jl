@@ -321,8 +321,6 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
     @test isrelaxed(str) == false
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse scf Si output" begin
@@ -491,8 +489,6 @@ end
     @test isrelaxed(str) == false
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse scf NaCl output" begin
@@ -631,8 +627,6 @@ end
     @test isrelaxed(str) == false
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse scf SiO2 output" begin
@@ -790,8 +784,6 @@ end
     @test isrelaxed(str) == false
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse vc-relax As output" begin
@@ -1671,8 +1663,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse vc-relax graphene output" begin
@@ -1824,14 +1814,14 @@ end
     @test parse_cell_parameters(str) == []
 
     # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.038428924, 0.020283963, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.032025555, 1.501346494, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.052503797, 0.028271169, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.03617185, 1.458627758, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.047848423, 0.02095099, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.014559869, 1.37569809, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.039029671, 0.02192862, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.007333179, 1.392506815, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.041681224, 0.018998183, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.007340697, 1.389283028, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.041394146, 0.020079401, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.003730145, 1.388883645, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040390405, 0.020188548, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000341993, 1.389654118, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040179553, 0.020179171, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000179347, 1.390083827, 0.0], [1, 1, 1])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.038428924, 0.020283963, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.032025555, 1.501346494, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.052503797, 0.028271169, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.03617185, 1.458627758, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.047848423, 0.02095099, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.014559869, 1.37569809, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.039029671, 0.02192862, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.007333179, 1.392506815, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.041681224, 0.018998183, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.007340697, 1.389283028, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.041394146, 0.020079401, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.003730145, 1.388883645, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040390405, 0.020188548, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000341993, 1.389654118, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040179553, 0.020179171, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000179347, 1.390083827, 0.0], [1, 1, 1])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040179553, 0.020179171, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000179347, 1.390083827, 0.0], [1, 1, 1])])
     # ]
 
@@ -3525,8 +3515,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax CO output" begin
@@ -3574,18 +3562,18 @@ end
     ]]
 
     # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.161309101, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.05503841, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.111613831, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.178918345, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.166035881, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.140753228, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.115110591, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.127180324, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.144570629, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.142564627, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.161309101, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.05503841, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.111613831, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.178918345, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.166035881, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.140753228, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.115110591, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.127180324, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.144570629, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.142564627, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139519983, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr",QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr",QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])])
     # ]
 
@@ -3742,8 +3730,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax H2O output" begin
@@ -3787,12 +3773,12 @@ end
     @test isempty(parse_cell_parameters(str))
 
     # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.071762144, 1.071762144, 1.079345568], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.071762144, 1.071762144, 1.079345568], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.056119834, 1.056119834, 1.077852061], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.056119834, 1.056119834, 1.077852061], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.043633568, 1.043633568, 1.087578917], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.043633568, 1.043633568, 1.087578917], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.033898772, 1.033898772, 1.105355925], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.033898772, 1.033898772, 1.105355925], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.028292878, 1.028292878, 1.124227412], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.028292878, 1.028292878, 1.124227412], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.071762144, 1.071762144, 1.079345568], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.071762144, 1.071762144, 1.079345568], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.056119834, 1.056119834, 1.077852061], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.056119834, 1.056119834, 1.077852061], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.043633568, 1.043633568, 1.087578917], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.043633568, 1.043633568, 1.087578917], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.033898772, 1.033898772, 1.105355925], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.033898772, 1.033898772, 1.105355925], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.028292878, 1.028292878, 1.124227412], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.028292878, 1.028292878, 1.124227412], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1])])
     # ]
 
@@ -3920,8 +3906,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax NH4 output" begin
@@ -3965,10 +3949,10 @@ end
     @test isempty(parse_cell_parameters(str))
 
     # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1])])
     # ]
 
@@ -4086,8 +4070,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax MoS output" begin
@@ -4358,8 +4340,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax Al output" begin
@@ -4548,6 +4528,4 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
