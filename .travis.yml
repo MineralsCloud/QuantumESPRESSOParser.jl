@@ -12,16 +12,18 @@ matrix:
   fast_finish: true
 notifications:
   email: false
+  slack:
+    secure: gb3Oezs31nbitupvzT2GgePkuTzkYStZUFg74MoMK5qdYbr1bdlQho0ZHFDewzUeHrVUXqbq54qFCHLQVqJSYjzV4kLttJ+HQE9xjGc6Muy2AqNs5LutWGhTcmuoabHXiJ6AudB2A8+NA6PsTrfwmhiTU6o416SSLNBgxqcMAuoRZQ+v39mxx82lRpisZpMFVpRnTs+JPCi+tV8OPcTLeNEdqGplVOSI+KVYiP3ozu2rIFLj9toUuurEp26WhzPZl9IKgfY/Hm7YsOyBn820Z3ljfK2bP5jHR9SUcgK10Ss3i5C6RPSilgHx0n4fERiu64RH/SVrLg5tQREwuKAV4NZkdqtzBfXhxCzC9L7yOF+wbzNNfQp4VRqEq2ogzrcrnKevrHk4T6Iryc9dHBr5/aQmcFIoHthTBjppqVPzJWqkQVRK1JDnibMPolK/CQHWLOuGjyOsfk5PxMFSy4m7VsDgeYUjT9ldITHZyfZsRn2HHKCvH9rtvoO0QYuRGXnOq1tMN3JQbZ4DODW7GYzup1GcWXQTCkw7cMe7exI50rkNhLZVCr/UDUC4ac/nTW/qoQIvGO2rIF3sS5bD7kkafCtp/bwTPpTwLto6VWBWdbKvm7QGrE3u47ku0YhD+kMOI0FBKbE0dskVLCQRq+1wTrL4ej4E+MIwO3n6EU+vL/0=
 after_success:
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Coveralls.submit(process_folder())'
-jobs:
-  include:
-    - stage: Documentation
-      julia: 1.0
-      script: julia --project=docs -e '
-          using Pkg;
-          Pkg.develop(PackageSpec(path=pwd()));
-          Pkg.instantiate();
-          include("docs/make.jl");'
-      after_success: skip
+# jobs:
+#   include:
+#     - stage: Documentation
+#       julia: 1.0
+#       script: julia --project=docs -e '
+#           using Pkg;
+#           Pkg.develop(PackageSpec(path=pwd()));
+#           Pkg.instantiate();
+#           include("docs/make.jl");'
+#       after_success: skip

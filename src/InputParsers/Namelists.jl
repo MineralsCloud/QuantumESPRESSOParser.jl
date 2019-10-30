@@ -16,71 +16,92 @@ using Fortran90Namelists.FortranToJulia: FortranData
 
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
+using QuantumESPRESSOBase.Namelists.CP
+using QuantumESPRESSOBase.Namelists.PHonon
 
-export read_namelist
+# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+const NAMELIST_ITEM = r"""
+                      [ \t]* (?<key> \S+? )(?: (?<kind> [\(%]) (?<index> \w+) \)? )? [ \t]*  # match and store key
+                      =                              # equals sign separates key and value
+                      [ \t]* (?<value> \S+?) [ \t]*  # match and store value
+                      [\n,]                          # return or comma separates "key = value" pairs
+                      """mx
+const NAMELIST_HEADS = Dict{Any,String}(
+    PWscf.ControlNamelist => "CONTROL",
+    PWscf.SystemNamelist => "SYSTEM",
+    PWscf.ElectronsNamelist => "ELECTRONS",
+    PWscf.CellNamelist => "CELL",
+    PWscf.IonsNamelist => "IONS",
+    CP.ControlNamelist => "CONTROL",
+    CP.SystemNamelist => "SYSTEM",
+    CP.ElectronsNamelist => "ELECTRONS",
+    CP.CellNamelist => "CELL",
+    CP.IonsNamelist => "IONS",
+    WannierNamelist => "WANNIER",
+    PHNamelist => "INPUTPH",
+    Q2RNamelist => "INPUT",
+    MatdynNamelist => "INPUT",
+    DynmatNamelist => "INPUT",
+)
 
-function read_title_line(title_line, regex)
-    m = match(regex, title_line)
+function Base.parse(T::Type{<:Namelist}, str::AbstractString)
+    result = Dict{Symbol,Any}()
+    head = NAMELIST_HEADS[T]
+    # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+    NAMELIST_BLOCK = Regex("""
+                           ^ [ \t]* &$head [ \t]* \$\n
+                           (?<body>
+                               [\\S\\s]*?
+                           )
+                           ^ [ \t]* / [ \t]* \$
+                           """, "imx")
+    m = match(NAMELIST_BLOCK, str)
     if isnothing(m)
-        # The first line should be '&<NAMELIST>', if it is not, either the regular expression
-        # wrong or something worse happened.
-        error("No match found in $(title_line)!")
+        @info("Namelist not found in string!")
+        return
     else
-        namelist_name = m.captures[1]  # The first parenthesized subgroup will be `namelist_name`.
-    end
-    return lowercase(namelist_name)
-end  # function read_title_line
-
-function read_namelist(lines)
-    result = Dict()
-    namelist_name = read_title_line(first(lines), r"&(\w+)"i)
-    regex = r"\s*([\w\d]+)(?:\((.*)\))?\s*=\s*([^,\n]*)"i
-    T = Dict(
-        "control" => ControlNamelist,
-        "system" => SystemNamelist,
-        "electrons" => ElectronsNamelist,
-        "ions" => IonsNamelist,
-        "cell" => CellNamelist
-    )[namelist_name]
-    for line in Iterators.drop(lines, 1)  # Drop the title line
-        str = strip(line)
-        # Use '=' as the delimiter, split the stripped line into a key and a value.
-        # Skip this line if a line starts with '!' (comment) or this line is empty ('').
-        isempty(str) || any(startswith(str, x) for x in ('!', '/')) && continue
-
-        m = match(regex, str)
-        isnothing(m) && error("Matching not found!")
-        captures = m.captures
-        k = Symbol(string(captures[1]))
-        # TODO: Does not match "ibrav = 2, celldm(1) =10.20, nat=  2, ntyp= 1,"
-        if !isnothing(captures[2])  # An entry with multiple values, e.g., `celldm[2] = 3.0`.
-            val = parse(Float64, FortranData(string(captures[3])))
-            # If `celldm` occurs before, push the new value, else create a vector of pairs.
-            index = parse(Int, captures[2])
-            haskey(result, k) ? result[k] = fillbyindex!(result[k], Pair(index, val)) : result[k] = fillbyindex!([], Pair(index, val))
-        else
-            v = FortranData(string(captures[3]))
-            # `result` is a `Dict{Symbol,Any}`, we need to parse `FortranData` from QuantumESPRESSO's input
-            # as type of the field of the namelist.
-            result[k] = parse(fieldtype(T, k), v)
+        for item in eachmatch(NAMELIST_ITEM, m[:body])
+            k = Symbol(item[:key])
+            v = FortranData(string(item[:value]))
+            # Parse a `FortranData` from `value` as type of the field of the namelist `T`
+            if isnothing(item[:index])  # Cases like `ntyp = 2`
+                result[k] = parse(fieldtype(T, k), v)
+            else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
+                if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
+                    i = parse(Int, item[:index])
+                    v = parse(Float64, v)  # TODO: This is tricky.
+                    result[k] = if haskey(result, k)
+                        # If `celldm` occurs before, push the new value, else create a vector of pairs.
+                        fillbyindex!(result[k], i, v)
+                    else
+                        fillbyindex!([], i, v)
+                    end
+                else  # item[:kind] == '%'
+                    i = string(item[:index])
+                    # TODO: This is not finished!
+                end
+            end
         end
     end
-    dict = merge(to_dict(T()), result)
-    return T((dict[f] for f in fieldnames(T))...)
-end  # function read_namelist
+    return if isempty(result)
+        @info("Namelist found, but it is empty! Default values will be used!")
+        T()
+    else
+        T(T(), result)  # TODO: This does not dynamically change
+    end
+end # function Base.parse
 
-function fillbyindex!(x::AbstractVector, p::Pair{Int, T}) where {T}
-    index, value = p
+function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
     if isempty(x)
-        x = Vector{Union{Missing, T}}(missing, index)
+        x = Vector{Union{Nothing,T}}(nothing, index)
     else
-        if index > length(x)
-            append!(x, Vector{Union{Missing, T}}(missing, index - length(x)))
-        else
-        end
+        index > length(x) && append!(
+            x,
+            Vector{Union{Nothing,T}}(nothing, index - length(x)),
+        )
     end
     x[index] = value
     return x
-end
+end # function fillbyindex!
 
 end
