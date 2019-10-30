@@ -437,10 +437,12 @@ function tryparse_internal(::Type{T}, str::AbstractString) where {T<:SubroutineE
     return first(unique(errors))
 end # function tryparse_internal
 
+# Like `parse`, but returns nothing if the string does not contain what we want.
 function Base.tryparse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
     haserror(str) ? tryparse_internal(T, str) : return
 end # function Base.tryparse
 
+# If the string does not contain what we want, an error is raised.
 function Base.parse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
     haserror(str) ? tryparse_internal(T, str) : throw(ParseError("No error found!"))
 end # function Base.parse
