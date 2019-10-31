@@ -13,35 +13,35 @@ const FFT_DIMENSIONS = Regex("Dense  grid:\\s*$INTEGER\\s+G-vectors\\s+FFT dimen
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
-const BRAVAIS_LATTICE_INDEX = Regex("(bravais-lattice index)$EQUAL_SIGN$INTEGER")
+const BRAVAIS_LATTICE_INDEX = Regex("bravais-lattice index$EQUAL_SIGN$INTEGER")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
-const LATTICE_PARAMETER = Regex("(lattice parameter \\(alat\\))$EQUAL_SIGN$FIXED_POINT_REAL")
+const LATTICE_PARAMETER = Regex("lattice parameter \\(alat\\)$EQUAL_SIGN$FIXED_POINT_REAL")
 # 'unit-cell volume          = ',F12.4,' (a.u.)^3'
-const UNIT_CELL_VOLUME = Regex("(unit-cell volume)$EQUAL_SIGN$FIXED_POINT_REAL")
+const UNIT_CELL_VOLUME = Regex("unit-cell volume$EQUAL_SIGN$FIXED_POINT_REAL")
 # 'number of atoms/cell      = ',I12
-const NUMBER_OF_ATOMS_PER_CELL = Regex("(number of atoms\\/cell)$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_ATOMS_PER_CELL = Regex("number of atoms\\/cell$EQUAL_SIGN$INTEGER")
 # 'number of atomic types    = ',I12
-const NUMBER_OF_ATOMIC_TYPES = Regex("(number of atomic types)$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_ATOMIC_TYPES = Regex("number of atomic types$EQUAL_SIGN$INTEGER")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = Regex("(number of electrons)$EQUAL_SIGN$FIXED_POINT_REAL" *
+const NUMBER_OF_ELECTRONS = Regex("number of electrons$EQUAL_SIGN$FIXED_POINT_REAL" *
                                   "(?:\\(up:\\s*$FIXED_POINT_REAL, down:\\s*$FIXED_POINT_REAL\\))?")
 # 'number of Kohn-Sham states= ',I12
-const NUMBER_OF_KOHN_SHAM_STATES = Regex("(number of Kohn-Sham states)$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_KOHN_SHAM_STATES = Regex("number of Kohn-Sham states$EQUAL_SIGN$INTEGER")
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
-const KINETIC_ENERGY_CUTOFF = Regex("(kinetic-energy cutoff)$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const KINETIC_ENERGY_CUTOFF = Regex("kinetic-energy cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
 # 'charge density cutoff     = ',F12.4,'  Ry'
-const CHARGE_DENSITY_CUTOFF = Regex("(charge density cutoff)$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const CHARGE_DENSITY_CUTOFF = Regex("charge density cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
 # 'cutoff for Fock operator  = ',F12.4,'  Ry'
-const CUTOFF_FOR_FOCK_OPERATOR = Regex("(cutoff for Fock operator)$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const CUTOFF_FOR_FOCK_OPERATOR = Regex("cutoff for Fock operator$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
 # 'convergence threshold     = ',1PE12.1
-const CONVERGENCE_THRESHOLD = Regex("(convergence threshold)$EQUAL_SIGN$GENERAL_REAL")
+const CONVERGENCE_THRESHOLD = Regex("convergence threshold$EQUAL_SIGN$GENERAL_REAL")
 # 'mixing beta               = ',0PF12.4
-const MIXING_BETA = Regex("(mixing beta)$EQUAL_SIGN$FIXED_POINT_REAL")
+const MIXING_BETA = Regex("mixing beta$EQUAL_SIGN$FIXED_POINT_REAL")
 # 'number of iterations used = ',I12,2X,A,' mixing'
-const NUMBER_OF_ITERATIONS_USED = Regex("(number of iterations used)\\s*=\\s*$INTEGER\\s+([-+\\w]+)\\s+mixing")
-const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"
+const NUMBER_OF_ITERATIONS_USED = Regex("number of iterations used$EQUAL_SIGN$INTEGER\\s+([-+\\w]+)\\s+mixing")
+const EXCHANGE_CORRELATION = r"Exchange-correlation\s*=\s*(.*)"
 # "nstep                     = ",I12
-const NSTEP = Regex("(nstep)$EQUAL_SIGN$INTEGER")
+const NSTEP = Regex("nstep$EQUAL_SIGN$INTEGER")
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/Modules/fft_base.f90#L70-L91.
 const FFT_BASE_INFO = r"""\s*(?<head>Parallelization info|G-vector sticks info)
 \s*--------------------
@@ -55,9 +55,7 @@ number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
 \s*Dense  grid)?"""m
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-const K_POINTS_ITEM = Regex(  # Ignore the k-point's index
-    "k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL"
-)
+const K_POINTS_ITEM = Regex("k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL")
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
@@ -245,9 +243,7 @@ init_run\s+:.*
 \s*(?:stress\s+:.*)?     # This does not always exist.
 )
 """mx
-const TIME_ITEM = Regex(
-    "\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)"
-)
+const TIME_ITEM = Regex("\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)")
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"m
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
