@@ -22,10 +22,10 @@ using QuantumESPRESSOBase.Cards.PWscf
 using QuantumESPRESSOParsers: SubroutineError
 
 export DiagonalizationStyle,
+       Preamble,
        DavidsonDiagonalization,
        CGDiagonalization,
        PPCGDiagonalization,
-       parse_summary,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
@@ -54,7 +54,7 @@ struct DavidsonDiagonalization <: DiagonalizationStyle end
 struct CGDiagonalization <: DiagonalizationStyle end
 struct PPCGDiagonalization <: DiagonalizationStyle end
 
-@with_kw struct Summary
+@with_kw struct Preamble
     ibrav::Int
     alat::Float64
     omega::Float64
@@ -75,7 +75,7 @@ struct PPCGDiagonalization <: DiagonalizationStyle end
     nstep::Maybe{Int} = nothing
 end
 
-function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Summary}
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Preamble}
     arr = Pair{Symbol,Any}[]
     m = match(SUMMARY_BLOCK, str)
     if isnothing(m)
@@ -99,7 +99,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     ]
         m = match(regex, body)
         if !isnothing(m)
-            push!(arr, field => parse(nonnothingtype(fieldtype(Summary, field)), m[1]))
+            push!(arr, field => parse(nonnothingtype(fieldtype(Preamble, field)), m[1]))
         end
     end
     m = match(NUMBER_OF_ELECTRONS, body)
@@ -111,10 +111,10 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     push!(arr, :xc => match(EXCHANGE_CORRELATION, body)[1])
     return T(; arr...)
 end # function tryparse_internal
-function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Summary}
+function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Preamble}
     return tryparse_internal(T, str, false)
 end # function Base.tryparse
-function Base.parse(::Type{T}, str::AbstractString) where {T<:Summary}
+function Base.parse(::Type{T}, str::AbstractString) where {T<:Preamble}
     return tryparse_internal(T, str, true)
 end # function Base.parse
 
