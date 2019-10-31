@@ -104,12 +104,11 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     end
     m = match(NUMBER_OF_ELECTRONS, body)
     push!(arr, :nelec => parse(Float64, m[1]))
-    if all(!isnothing, [m[2], m[3]])
-        push!(arr, :nelup => parse(Float64, m[2]), :neldw => parse(Float64, m[3]))
+    if all(!isnothing, m.captures[2:end])
+        push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
     end
     push!(arr, :mixing_mode => match(NUMBER_OF_ITERATIONS_USED, body)[2])
     push!(arr, :xc => match(EXCHANGE_CORRELATION, body)[1])
-    println(arr)
     return T(; arr...)
 end # function tryparse_internal
 function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Summary}
