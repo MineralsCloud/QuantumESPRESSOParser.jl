@@ -75,55 +75,6 @@ struct PPCGDiagonalization <: DiagonalizationStyle end
     nstep::Maybe{Int} = nothing
 end
 
-# This is an internal function and should not be exported.
-function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Preamble}
-    arr = Pair{Symbol,Any}[]
-    m = match(SUMMARY_BLOCK, str)
-    if isnothing(m)
-        raise ? throw(Meta.ParseError("No info found!")) : return
-    end
-    body = first(m.captures)
-    for (field, regex) in [
-        :ibrav => NUMBER_OF_ATOMS_PER_CELL,
-        :alat => LATTICE_PARAMETER,
-        :omega => UNIT_CELL_VOLUME,
-        :nat => NUMBER_OF_ATOMS_PER_CELL,
-        :ntyp => NUMBER_OF_ATOMIC_TYPES,
-        :nelec => NUMBER_OF_ELECTRONS,
-        :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
-        :ecutwfc => KINETIC_ENERGY_CUTOFF,
-        :ecutrho => CHARGE_DENSITY_CUTOFF,
-        :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
-        :conv_thr => CONVERGENCE_THRESHOLD,
-        :mixing_beta => MIXING_BETA,
-        :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
-        :xc => EXCHANGE_CORRELATION,
-        :nstep => NSTEP,
-    ]
-        m = match(regex, body)
-        if !isnothing(m)
-            S = nonnothingtype(fieldtype(Preamble, field))
-            push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
-        end
-    end
-    # 2 special cases
-    m = match(NUMBER_OF_ELECTRONS, body)
-    if all(!isnothing, m.captures[2:end])
-        push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
-    end
-    m = match(NUMBER_OF_ITERATIONS_USED, body)
-    if !isnothing(m)
-        push!(arr, :mixing_mode => m[2])
-    end
-    return T(; arr...)
-end # function tryparse_internal
-function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Preamble}
-    return tryparse_internal(T, str, false)
-end # function Base.tryparse
-function Base.parse(::Type{T}, str::AbstractString) where {T<:Preamble}
-    return tryparse_internal(T, str, true)
-end # function Base.parse
-
 """
     parse_fft_base_info(str::AbstractString)
 
@@ -417,6 +368,48 @@ end # function isrelaxed
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
 # This is an internal function and should not be exported.
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Preamble}
+    arr = Pair{Symbol,Any}[]
+    m = match(SUMMARY_BLOCK, str)
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("No info found!")) : return
+    end
+    body = first(m.captures)
+    for (field, regex) in [
+        :ibrav => NUMBER_OF_ATOMS_PER_CELL,
+        :alat => LATTICE_PARAMETER,
+        :omega => UNIT_CELL_VOLUME,
+        :nat => NUMBER_OF_ATOMS_PER_CELL,
+        :ntyp => NUMBER_OF_ATOMIC_TYPES,
+        :nelec => NUMBER_OF_ELECTRONS,
+        :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
+        :ecutwfc => KINETIC_ENERGY_CUTOFF,
+        :ecutrho => CHARGE_DENSITY_CUTOFF,
+        :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
+        :conv_thr => CONVERGENCE_THRESHOLD,
+        :mixing_beta => MIXING_BETA,
+        :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
+        :xc => EXCHANGE_CORRELATION,
+        :nstep => NSTEP,
+    ]
+        m = match(regex, body)
+        if !isnothing(m)
+            S = nonnothingtype(fieldtype(Preamble, field))
+            push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
+        end
+    end
+    # 2 special cases
+    m = match(NUMBER_OF_ELECTRONS, body)
+    if all(!isnothing, m.captures[2:end])
+        push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
+    end
+    m = match(NUMBER_OF_ITERATIONS_USED, body)
+    if !isnothing(m)
+        push!(arr, :mixing_mode => m[2])
+    end
+    return T(; arr...)
+end # function tryparse_internal
+# This is an internal function and should not be exported.
 function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:SubroutineError}
     # According to my observation, a QE output can have at most one type of
     # `SubroutineError`. Warn me if there can be multiple types of errors.
@@ -432,10 +425,13 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     m = match(ERROR_IN_ROUTINE, e)
     return T(m[1], m[2], msg)
 end # function tryparse_internal
-function Base.tryparse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
+
+const _INTERNAL_TYPES = Union{Preamble,SubroutineError}
+
+function Base.tryparse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, false)
 end # function Base.tryparse
-function Base.parse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
+function Base.parse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, true)
 end # function Base.parse
 
