@@ -88,6 +88,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
         :omega => UNIT_CELL_VOLUME,
         :nat => NUMBER_OF_ATOMS_PER_CELL,
         :ntyp => NUMBER_OF_ATOMIC_TYPES,
+        :nelec => NUMBER_OF_ELECTRONS,
         :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
         :ecutwfc => KINETIC_ENERGY_CUTOFF,
         :ecutrho => CHARGE_DENSITY_CUTOFF,
@@ -95,20 +96,24 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
         :conv_thr => CONVERGENCE_THRESHOLD,
         :mixing_beta => MIXING_BETA,
         :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
+        :xc => EXCHANGE_CORRELATION,
         :nstep => NSTEP,
     ]
         m = match(regex, body)
         if !isnothing(m)
-            push!(arr, field => parse(nonnothingtype(fieldtype(Preamble, field)), m[1]))
+            S = nonnothingtype(fieldtype(Preamble, field))
+            push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
         end
     end
+    # 2 special cases
     m = match(NUMBER_OF_ELECTRONS, body)
-    push!(arr, :nelec => parse(Float64, m[1]))
     if all(!isnothing, m.captures[2:end])
         push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
     end
-    push!(arr, :mixing_mode => match(NUMBER_OF_ITERATIONS_USED, body)[2])
-    push!(arr, :xc => match(EXCHANGE_CORRELATION, body)[1])
+    m = match(NUMBER_OF_ITERATIONS_USED, body)
+    if !isnothing(m)
+        push!(arr, :mixing_mode => m[2])
+    end
     return T(; arr...)
 end # function tryparse_internal
 function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Preamble}
