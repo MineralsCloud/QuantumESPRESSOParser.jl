@@ -14,7 +14,7 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 1,
@@ -356,7 +356,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 2,
@@ -548,7 +548,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 64,
@@ -710,7 +710,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 9,
@@ -894,7 +894,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 2,
@@ -1796,7 +1796,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 2,
@@ -3671,7 +3671,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 2,
@@ -3909,7 +3909,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 3,
@@ -4108,7 +4108,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 5,
@@ -4295,7 +4295,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 3,
@@ -4588,7 +4588,7 @@ end
 
     @test tryparse(SubroutineError, str) == nothing
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Base.Meta.ParseError("No error found!") parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) == Preamble(
         ibrav = 4,
@@ -4789,205 +4789,4 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-end
-
-@testset "error" begin
-str = raw"""
-
-Program PWSCF v.6.1 (svn rev. 13369) starts on 31Oct2019 at 12:22:44 
-
-This program is part of the open-source Quantum ESPRESSO suite
-for quantum simulation of materials; please cite
-    "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
-     URL http://www.quantum-espresso.org", 
-in publications or presentations arising from this work. More details at
-http://www.quantum-espresso.org/quote
-
-Parallel version (MPI), running on    24 processors
-R & G space division:  proc/nbgrp/npool/nimage =      24
-Reading input from 0.in
-Warning: card &IONS ignored
-Warning: card     ION_DYNAMICS = 'BFGS' ignored
-Warning: card / ignored
-Warning: card &CELL ignored
-Warning: card     CELL_DYNAMICS = 'BFGS' ignored
-Warning: card / ignored
-
-Current dimensions of program PWSCF are:
-Max number of different atomic species (ntypx) = 10
-Max number of k-points (npk) =  40000
-Max angular momentum in pseudopotentials (lmaxx) =  3
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-"""
-
-    @test tryparse(SubroutineError, str) == SubroutineError("readpp", "696", "file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found")
-
-    @test parse(SubroutineError, str) == SubroutineError("readpp", "696", "file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found")
 end
