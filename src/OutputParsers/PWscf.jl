@@ -13,18 +13,19 @@ module PWscf
 
 using Compat: isnothing
 # using Dates: DateTime, DateFormat
-using DataFrames: DataFrame, GroupedDataFrame, groupby
+using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Fortran90Namelists.FortranToJulia
 using MLStyle: @match
+using Parameters: @with_kw
 using QuantumESPRESSOBase.Cards.PWscf
 
 using QuantumESPRESSOParsers: SubroutineError
 
 export DiagonalizationStyle,
+       Preamble,
        DavidsonDiagonalization,
        CGDiagonalization,
        PPCGDiagonalization,
-       parse_summary,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
@@ -39,103 +40,100 @@ export DiagonalizationStyle,
        parse_clock,
        whatinput,
        isrelaxed,
-       isjobdone,
-       haserror
+       isjobdone
 
 include("regexes.jl")
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
-const Maybe{T} = Union{T,Nothing}
+const Maybe{T} = Union{T,Nothing}  # Should not be exported
+# Referenced from https://discourse.julialang.org/t/how-to-get-the-non-nothing-type-from-union-t-nothing/30523
+nonnothingtype(::Type{T}) where {T} = Core.Compiler.typesubtract(T, Nothing)  # Should not be exported
 
 abstract type DiagonalizationStyle end
 struct DavidsonDiagonalization <: DiagonalizationStyle end
 struct CGDiagonalization <: DiagonalizationStyle end
 struct PPCGDiagonalization <: DiagonalizationStyle end
 
-struct Summary
+@with_kw struct Preamble
     ibrav::Int
     alat::Float64
-    v::Float64
+    omega::Float64
     nat::Int
     ntyp::Int
     nelec::Float64
-    nelup::Float64
-    neldw::Float64
+    nelup::Maybe{Float64} = nothing
+    neldw::Maybe{Float64} = nothing
     nbnd::Int
     ecutwfc::Float64
     ecutrho::Float64
-    ecutfock::Float64
-    ethr::Float64
-    mixing_beta::Float64
-    nmix::Int
-    mixing_style::String
+    ecutfock::Maybe{Float64} = nothing
+    conv_thr::Maybe{Float64} = nothing
+    mixing_beta::Maybe{Float64} = nothing
+    mixing_ndim::Maybe{Int} = nothing
+    mixing_mode::Maybe{String} = nothing
     xc::String
-    nstep::Int
+    nstep::Maybe{Int} = nothing
 end
 
-# function Base.parse(::T, str::AbstractString)
-#     m = match(SUMMARY_BLOCK, str)
-#     if isnothing(m)
-#         @info("The head message is not found!") && return
-#     else
-#         content = first(m.captures)
-#     end
-# end # function Base.parse
-
-function parse_summary(str::AbstractString)
-    dict = Dict{String,Any}()
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Preamble}
+    arr = Pair{Symbol,Any}[]
     m = match(SUMMARY_BLOCK, str)
     if isnothing(m)
-        @info("The head message is not found!") && return
-    else
-        content = first(m.captures)
+        raise ? throw(Meta.ParseError("No info found!")) : return
     end
-
-    for (f, r) in zip(
-        [x -> parse(Int, x), x -> parse(Float64, x), string],
-        [
-         [
-          BRAVAIS_LATTICE_INDEX
-          NUMBER_OF_ATOMS_PER_CELL
-          NUMBER_OF_ATOMIC_TYPES
-          NUMBER_OF_KOHN_SHAM_STATES
-          NUMBER_OF_ITERATIONS_USED
-          NSTEP
-         ],
-         [
-          LATTICE_PARAMETER
-          UNIT_CELL_VOLUME
-          NUMBER_OF_ELECTRONS  # TODO: This one is special.
-          KINETIC_ENERGY_CUTOFF
-          CHARGE_DENSITY_CUTOFF
-          CUTOFF_FOR_FOCK_OPERATOR
-          CONVERGENCE_THRESHOLD
-          MIXING_BETA
-         ],
-         [EXCHANGE_CORRELATION],
-        ],
-    )
-        for regex in r
-            m = match(regex, content)
-            if !isnothing(m)
-                push!(dict, m.captures[1] => f(m.captures[2]))
-            end
+    body = first(m.captures)
+    for (field, regex) in [
+        :ibrav => NUMBER_OF_ATOMS_PER_CELL,
+        :alat => LATTICE_PARAMETER,
+        :omega => UNIT_CELL_VOLUME,
+        :nat => NUMBER_OF_ATOMS_PER_CELL,
+        :ntyp => NUMBER_OF_ATOMIC_TYPES,
+        :nelec => NUMBER_OF_ELECTRONS,
+        :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
+        :ecutwfc => KINETIC_ENERGY_CUTOFF,
+        :ecutrho => CHARGE_DENSITY_CUTOFF,
+        :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
+        :conv_thr => CONVERGENCE_THRESHOLD,
+        :mixing_beta => MIXING_BETA,
+        :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
+        :xc => EXCHANGE_CORRELATION,
+        :nstep => NSTEP,
+    ]
+        m = match(regex, body)
+        if !isnothing(m)
+            S = nonnothingtype(fieldtype(Preamble, field))
+            push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
         end
     end
-    return dict
-end # function parse_summary
+    # 2 special cases
+    m = match(NUMBER_OF_ELECTRONS, body)
+    if all(!isnothing, m.captures[2:end])
+        push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
+    end
+    m = match(NUMBER_OF_ITERATIONS_USED, body)
+    if !isnothing(m)
+        push!(arr, :mixing_mode => m[2])
+    end
+    return T(; arr...)
+end # function tryparse_internal
+function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Preamble}
+    return tryparse_internal(T, str, false)
+end # function Base.tryparse
+function Base.parse(::Type{T}, str::AbstractString) where {T<:Preamble}
+    return tryparse_internal(T, str, true)
+end # function Base.parse
 
 """
     parse_fft_base_info(str::AbstractString)
 
-Parse the FFT base information from `pw.x`'s output and return a `GroupedDataFrame`.
+Parse the FFT base information from `pw.x`'s output and return a `DataFrame`.
 
 If there are more than one processors, the title is "Parallelization info" and three
 rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is
 "G-vector sticks info" and only the "Sum" row is printed. If no information is found,
 return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
-function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
+function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
     df = DataFrame(
         kind = String[],
         stats = String[],
@@ -146,17 +144,16 @@ function parse_fft_base_info(str::AbstractString)::Maybe{GroupedDataFrame}
     m = match(FFT_BASE_INFO, str)
     if isnothing(m)
         @info("The FFT base info is not found!") && return
-    else
-        body = m[:body]
     end
-    for line in split(body, '\n')
+    body = m[:body]
+    for line in split(body, r"[\r\n]+")  # Don’t want empty lines
         # "Min",4X,2I8,I7,12X,2I9,I8
-        sp = split(strip(line), r"\s+")
+        sp = split(line, " ", keepempty = false)  # Don't want empty strings
         numbers = map(x -> parse(Int, x), sp[2:7])
         push!(df, ["sticks" sp[1] numbers[1:3]...])
         push!(df, ["gvecs" sp[1] numbers[4:6]...])
     end
-    return groupby(df, :kind)
+    return df
 end # function parse_fft_base_info
 
 # Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
@@ -190,8 +187,8 @@ function parse_stress(str::AbstractString)
         push!(pressures, parse(Float64, pressure))
 
         stress_atomic, stress_kbar = ntuple(_ -> Matrix{Float64}(undef, 3, 3), 2)
-        for (i, line) in enumerate(split(content, '\n'))
-            tmp = map(x -> parse(Float64, x), split(strip(line), " ", keepempty = false))
+        for (i, line) in enumerate(split(content, r"[\r\n]+"))
+            tmp = map(x -> parse(Float64, x), split(line, " ", keepempty = false))
             stress_atomic[i, :], stress_kbar[i, :] = tmp[1:3], tmp[4:6]
         end
         push!(atomic_stresses, stress_atomic)
@@ -373,7 +370,7 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{Tuple{Int,NamedTuple}}
     return parsed[1], NamedTuple{(:nr1,:nr2,:nr3)}(parsed[2:end])
 end # function parse_fft_dimensions
 
-function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
+function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     m = match(TIME_BLOCK, str)
     isnothing(m) && return
     content = m.captures[1]
@@ -404,7 +401,7 @@ function parse_clock(str::AbstractString)::Maybe{GroupedDataFrame}
     end
     # m = match(TERMINATED_DATE, content)
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
-    return groupby(info, :subroutine)
+    return info
 end # function parse_clock
 
 function whatinput(str::AbstractString)::Maybe{String}
@@ -418,22 +415,27 @@ end # function isrelaxed
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
-function haserror(str::AbstractString)
-    isnothing(match(ERROR_IDENTIFIER, str)) ? false : true
-end # function haserror
-
-function Base.parse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
-    errors = T[]
-    if haserror(str)
-        for e in eachmatch(ERROR_BLOCK, str)
-            body = strip(e[:body])
-            s, msg = split(body, '\n')
-            m = match(ERROR_IN_ROUTINE, s)
-            push!(errors, T(m[1], m[2], strip(msg)))
-        end
-        return errors
+# This is an internal function and should not be exported.
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:SubroutineError}
+    # According to my observation, a QE output can have at most one type of
+    # `SubroutineError`. Warn me if there can be multiple types of errors.
+    m = match(ERROR_BLOCK, str)
+    if isnothing(m)
+        # `tryparse` returns nothing if the string does not contain what we want,
+        # while `parse` raises an error.
+        raise ? throw(Meta.ParseError("No error found!")) : return
     end
-    return
+    body = strip(m[:body])
+    # Referenced from https://stackoverflow.com/a/454919/3260253
+    e, msg = map(strip, split(body, r"[\r\n]+"))
+    m = match(ERROR_IN_ROUTINE, e)
+    return T(m[1], m[2], msg)
+end # function tryparse_internal
+function Base.tryparse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
+    return tryparse_internal(T, str, false)
+end # function Base.tryparse
+function Base.parse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
+    return tryparse_internal(T, str, true)
 end # function Base.parse
 
 end
