@@ -26,9 +26,6 @@ export DiagonalizationStyle,
        DavidsonDiagonalization,
        CGDiagonalization,
        PPCGDiagonalization,
-       tryparse_internal,
-       tryparse,
-       parse,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
@@ -78,6 +75,7 @@ struct PPCGDiagonalization <: DiagonalizationStyle end
     nstep::Maybe{Int} = nothing
 end
 
+# This is an internal function and should not be exported.
 function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Preamble}
     arr = Pair{Symbol,Any}[]
     m = match(SUMMARY_BLOCK, str)
