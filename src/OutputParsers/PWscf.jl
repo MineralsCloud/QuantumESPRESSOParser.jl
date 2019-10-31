@@ -148,9 +148,9 @@ function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
         @info("The FFT base info is not found!") && return
     end
     body = m[:body]
-    for line in split(body, '\n')
+    for line in split(body, r"[\r\n]+")  # Don’t want empty lines
         # "Min",4X,2I8,I7,12X,2I9,I8
-        sp = split(strip(line), r"\s+")
+        sp = split(line, " ", keepempty = false)  # Don't want empty strings
         numbers = map(x -> parse(Int, x), sp[2:7])
         push!(df, ["sticks" sp[1] numbers[1:3]...])
         push!(df, ["gvecs" sp[1] numbers[4:6]...])
@@ -189,8 +189,8 @@ function parse_stress(str::AbstractString)
         push!(pressures, parse(Float64, pressure))
 
         stress_atomic, stress_kbar = ntuple(_ -> Matrix{Float64}(undef, 3, 3), 2)
-        for (i, line) in enumerate(split(content, '\n'))
-            tmp = map(x -> parse(Float64, x), split(strip(line), " ", keepempty = false))
+        for (i, line) in enumerate(split(content, r"[\r\n]+"))
+            tmp = map(x -> parse(Float64, x), split(line, " ", keepempty = false))
             stress_atomic[i, :], stress_kbar[i, :] = tmp[1:3], tmp[4:6]
         end
         push!(atomic_stresses, stress_atomic)
