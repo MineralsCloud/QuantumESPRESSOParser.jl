@@ -16,6 +16,7 @@ using Compat: isnothing
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Fortran90Namelists.FortranToJulia
 using MLStyle: @match
+using Parameters: @with_kw
 using QuantumESPRESSOBase.Cards.PWscf
 
 using QuantumESPRESSOParsers: SubroutineError
@@ -51,23 +52,23 @@ struct DavidsonDiagonalization <: DiagonalizationStyle end
 struct CGDiagonalization <: DiagonalizationStyle end
 struct PPCGDiagonalization <: DiagonalizationStyle end
 
-struct Summary
+@with_kw struct Summary
     ibrav::Int
     alat::Float64
-    v::Float64
+    omega::Float64
     nat::Int
     ntyp::Int
     nelec::Float64
-    nelup::Float64
-    neldw::Float64
+    nelup::Maybe{Float64} = nothing
+    neldw::Maybe{Float64} = nothing
     nbnd::Int
     ecutwfc::Float64
     ecutrho::Float64
-    ecutfock::Float64
-    ethr::Float64
-    mixing_beta::Float64
-    nmix::Int
-    mixing_style::String
+    ecutfock::Maybe{Float64} = nothing
+    conv_thr::Maybe{Float64} = nothing
+    mixing_beta::Maybe{Float64} = nothing
+    mixing_ndim::Maybe{Int} = nothing
+    mixing_mode::Maybe{String} = nothing
     xc::String
     nstep::Int
 end
