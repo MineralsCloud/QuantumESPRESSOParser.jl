@@ -12,32 +12,11 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 1,
-        alat = 7.5,
-        omega = 105.4688,
-        nat = 1,
-        ntyp = 1,
-        nelec = 3.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 6,
-        ecutwfc = 15.0,
-        ecutrho = 60.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-6,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA PZ NOGX NOGC ( 1  1  0  0 0 0)",
-        nstep = nothing,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 1,
         alat = 7.5,
         omega = 105.4688,
@@ -354,32 +333,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 2,
-        alat = 10.2,
-        omega = 265.302,
-        nat = 2,
-        ntyp = 1,
-        nelec = 8.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 4,
-        ecutwfc = 18.0,
-        ecutrho = 72.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-8,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-        nstep = nothing,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 2,
         alat = 10.2,
         omega = 265.302,
@@ -546,32 +504,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 64,
-        alat = 21.5062,
-        omega = 9947.007,
-        nat = 64,
-        ntyp = 2,
-        nelec = 512.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 256,
-        ecutwfc = 70.0,
-        ecutrho = 280.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-9,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA  PW   PBX  PBC ( 1  4  3  4 0 0)",
-        nstep = nothing,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 64,
         alat = 21.5062,
         omega = 9947.007,
@@ -708,11 +645,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 9,
         alat = 9.2863,
         omega = 762.9417,
@@ -732,28 +669,6 @@ end
         xc = "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
         nstep = nothing,
     )
-
-    @test parse(Preamble, str) == Preamble(
-        ibrav = 9,
-        alat = 9.2863,
-        omega = 762.9417,
-        nat = 9,
-        ntyp = 3,
-        nelec = 48.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 30,
-        ecutwfc = 20.0,
-        ecutrho = 150.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-9,
-        mixing_beta = 0.3,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
-        nstep = nothing,
-    )
-
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -892,32 +807,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 2,
-        alat = 7.0103,
-        omega = 245.3705,
-        nat = 2,
-        ntyp = 1,
-        nelec = 10.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 9,
-        ecutwfc = 25.0,
-        ecutrho = 100.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-7,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-        nstep = 55,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 2,
         alat = 7.0103,
         omega = 245.3705,
@@ -1794,32 +1688,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 2,
-        alat = 5.0,
-        omega = 675.0316,
-        nat = 2,
-        ntyp = 1,
-        nelec = 8.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 8,
-        ecutwfc = 36.0,
-        ecutrho = 144.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-8,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-        nstep = 50,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 2,
         alat = 5.0,
         omega = 675.0316,
@@ -3669,32 +3542,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 2,
-        alat = 12.0,
-        omega = 1728.0,
-        nat = 2,
-        ntyp = 2,
-        nelec = 10.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 5,
-        ecutwfc = 24.0,
-        ecutrho = 144.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-6,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-        nstep = 50,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 2,
         alat = 12.0,
         omega = 1728.0,
@@ -3907,32 +3759,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 3,
-        alat = 12.0,
-        omega = 1728.0,
-        nat = 3,
-        ntyp = 2,
-        nelec = 8.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 8,
-        ecutwfc = 30.0,
-        ecutrho = 120.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-7,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA PW PBX PBC ( 1  4  3  4 0 0)",
-        nstep = 50,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 3,
         alat = 12.0,
         omega = 1728.0,
@@ -4106,32 +3937,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 5,
-        alat = 12.0,
-        omega = 1728.0,
-        nat = 5,
-        ntyp = 2,
-        nelec = 8.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 8,
-        ecutwfc = 30.0,
-        ecutrho = 120.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-7,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA PW PBX PBC ( 1  4  3  4 0 0)",
-        nstep = 50,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 5,
         alat = 12.0,
         omega = 1728.0,
@@ -4293,32 +4103,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 3,
-        alat = 5.9716,
-        omega = 2213.0132,
-        nat = 3,
-        ntyp = 2,
-        nelec = 25.9,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 17,
-        ecutwfc = 50.0,
-        ecutrho = 410.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-9,
-        mixing_beta = 0.7,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "LDA ( 1  1  0  0 0 0)",
-        nstep = 300,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 3,
         alat = 5.9716,
         omega = 2213.0132,
@@ -4586,32 +4375,11 @@ end
         read(io, String)
     end
 
-    @test tryparse(SubroutineError, str) == nothing
+    @test isnothing(tryparse(SubroutineError, str))
 
-    @test try parse(SubroutineError, str) catch error; error == Base.Meta.ParseError("No error found!") end
+    @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == Preamble(
-        ibrav = 4,
-        alat = 10.8223,
-        omega = 2655.9321,
-        nat = 4,
-        ntyp = 1,
-        nelec = 12.0,
-        nelup = nothing,
-        neldw = nothing,
-        nbnd = 10,
-        ecutwfc = 20.0,
-        ecutrho = 80.0,
-        ecutfock = nothing,
-        conv_thr = 1.0e-6,
-        mixing_beta = 0.3,
-        mixing_ndim = 8,
-        mixing_mode = "plain",
-        xc = "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
-        nstep = 50,
-    )
-
-    @test parse(Preamble, str) == Preamble(
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
         ibrav = 4,
         alat = 10.8223,
         omega = 2655.9321,
@@ -4789,205 +4557,4 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-end
-
-@testset "error" begin
-str = raw"""
-
-Program PWSCF v.6.1 (svn rev. 13369) starts on 31Oct2019 at 12:22:44 
-
-This program is part of the open-source Quantum ESPRESSO suite
-for quantum simulation of materials; please cite
-    "P. Giannozzi et al., J. Phys.:Condens. Matter 21 395502 (2009);
-     URL http://www.quantum-espresso.org", 
-in publications or presentations arising from this work. More details at
-http://www.quantum-espresso.org/quote
-
-Parallel version (MPI), running on    24 processors
-R & G space division:  proc/nbgrp/npool/nimage =      24
-Reading input from 0.in
-Warning: card &IONS ignored
-Warning: card     ION_DYNAMICS = 'BFGS' ignored
-Warning: card / ignored
-Warning: card &CELL ignored
-Warning: card     CELL_DYNAMICS = 'BFGS' ignored
-Warning: card / ignored
-
-Current dimensions of program PWSCF are:
-Max number of different atomic species (ntypx) = 10
-Max number of k-points (npk) =  40000
-Max angular momentum in pseudopotentials (lmaxx) =  3
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Error in routine readpp (696):
-file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-stopping ...
-"""
-
-    @test tryparse(SubroutineError, str) == SubroutineError("readpp", "696", "file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found")
-
-    @test parse(SubroutineError, str) == SubroutineError("readpp", "696", "file /rigel/edu/m6085/users/jw369/pseudo/Cu_US_PBE_3pj_lowE.UPF not found")
 end
