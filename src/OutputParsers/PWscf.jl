@@ -45,7 +45,9 @@ export DiagonalizationStyle,
 include("regexes.jl")
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
-const Maybe{T} = Union{T,Nothing}
+const Maybe{T} = Union{T,Nothing}  # Should not be exported
+# Referenced from https://discourse.julialang.org/t/how-to-get-the-non-nothing-type-from-union-t-nothing/30523
+nonnothingtype(::Type{T}) where {T} = Core.Compiler.typesubtract(T, Nothing)  # Should not be exported
 
 abstract type DiagonalizationStyle end
 struct DavidsonDiagonalization <: DiagonalizationStyle end
@@ -70,72 +72,51 @@ struct PPCGDiagonalization <: DiagonalizationStyle end
     mixing_ndim::Maybe{Int} = nothing
     mixing_mode::Maybe{String} = nothing
     xc::String
-    nstep::Int
+    nstep::Maybe{Int} = nothing
 end
 
-function parse_summary(str::AbstractString)
-    dict = Dict{String,Any}()
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Summary}
+    dict = Dict{Symbol,Any}()
     m = match(SUMMARY_BLOCK, str)
     if isnothing(m)
-        @info("The head message is not found!") && return
+        raise ? throw(Meta.ParseError("No info found!")) : return
     end
-    content = first(m.captures)
-
+    body = first(m.captures)
     for (field, regex) in [
         :ibrav => NUMBER_OF_ATOMS_PER_CELL,
         :alat => LATTICE_PARAMETER,
-        :v => UNIT_CELL_VOLUME,
+        :omega => UNIT_CELL_VOLUME,
         :nat => NUMBER_OF_ATOMS_PER_CELL,
         :ntyp => NUMBER_OF_ATOMIC_TYPES,
-        :nelec => NUMBER_OF_ELECTRONS,
         :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
         :ecutwfc => KINETIC_ENERGY_CUTOFF,
         :ecutrho => CHARGE_DENSITY_CUTOFF,
         :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
-        :ethr => CONVERGENCE_THRESHOLD,
+        :conv_thr => CONVERGENCE_THRESHOLD,
         :mixing_beta => MIXING_BETA,
-        :nmix => NUMBER_OF_ITERATIONS_USED,
+        :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
         :nstep => NSTEP,
     ]
-        m = match(regex, content)
+        m = match(regex, body)
         if !isnothing(m)
-            push!(dict, field => parse(fieldtype(Summary, field), m.captures[2]))
+            push!(dict, field => parse(nonnothingtype(fieldtype(Summary, field)), m[2]))
         end
     end
-
-    for (f, r) in zip(
-        [x -> parse(Int, x), x -> parse(Float64, x), string],
-        [
-         [
-          BRAVAIS_LATTICE_INDEX
-          NUMBER_OF_ATOMS_PER_CELL
-          NUMBER_OF_ATOMIC_TYPES
-          NUMBER_OF_KOHN_SHAM_STATES
-          NUMBER_OF_ITERATIONS_USED
-          NSTEP
-         ],
-         [
-          LATTICE_PARAMETER
-          UNIT_CELL_VOLUME
-          NUMBER_OF_ELECTRONS  # TODO: This one is special.
-          KINETIC_ENERGY_CUTOFF
-          CHARGE_DENSITY_CUTOFF
-          CUTOFF_FOR_FOCK_OPERATOR
-          CONVERGENCE_THRESHOLD
-          MIXING_BETA
-         ],
-         [EXCHANGE_CORRELATION],
-        ],
-    )
-        for regex in r
-            m = match(regex, content)
-            if !isnothing(m)
-                push!(dict, m.captures[1] => f(m.captures[2]))
-            end
-        end
+    m = match(NUMBER_OF_ELECTRONS, body)
+    push!(dict, :nelec => parse(Float64, m[2]))
+    if all(!isnothing, [m[3], m[4]])
+        push!(dict, :nelup => parse(Float64, m[3]), :neldw => parse(Float64, m[4]))
     end
-    return dict
-end # function parse_summary
+    push!(dict, :mixing_mode => match(NUMBER_OF_ITERATIONS_USED, body)[3])
+    push!(dict, :xc => match(EXCHANGE_CORRELATION, body)[2])
+    return T(; dict...)
+end # function tryparse_internal
+function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Summary}
+    return tryparse_internal(T, str, false)
+end # function Base.tryparse
+function Base.parse(::Type{T}, str::AbstractString) where {T<:Summary}
+    return tryparse_internal(T, str, true)
+end # function Base.parse
 
 """
     parse_fft_base_info(str::AbstractString)
