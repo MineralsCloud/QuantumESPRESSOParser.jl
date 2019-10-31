@@ -76,7 +76,7 @@ struct PPCGDiagonalization <: DiagonalizationStyle end
 end
 
 function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Summary}
-    dict = Dict{Symbol,Any}()
+    arr = Pair{Symbol,Any}[]
     m = match(SUMMARY_BLOCK, str)
     if isnothing(m)
         raise ? throw(Meta.ParseError("No info found!")) : return
@@ -99,17 +99,18 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     ]
         m = match(regex, body)
         if !isnothing(m)
-            push!(dict, field => parse(nonnothingtype(fieldtype(Summary, field)), m[1]))
+            push!(arr, field => parse(nonnothingtype(fieldtype(Summary, field)), m[1]))
         end
     end
     m = match(NUMBER_OF_ELECTRONS, body)
-    push!(dict, :nelec => parse(Float64, m[1]))
+    push!(arr, :nelec => parse(Float64, m[1]))
     if all(!isnothing, [m[2], m[3]])
-        push!(dict, :nelup => parse(Float64, m[2]), :neldw => parse(Float64, m[3]))
+        push!(arr, :nelup => parse(Float64, m[2]), :neldw => parse(Float64, m[3]))
     end
-    push!(dict, :mixing_mode => match(NUMBER_OF_ITERATIONS_USED, body)[2])
-    push!(dict, :xc => match(EXCHANGE_CORRELATION, body)[1])
-    return T(; dict...)
+    push!(arr, :mixing_mode => match(NUMBER_OF_ITERATIONS_USED, body)[2])
+    push!(arr, :xc => match(EXCHANGE_CORRELATION, body)[1])
+    println(arr)
+    return T(; arr...)
 end # function tryparse_internal
 function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Summary}
     return tryparse_internal(T, str, false)
