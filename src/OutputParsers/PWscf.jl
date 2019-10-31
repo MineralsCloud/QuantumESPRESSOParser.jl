@@ -39,8 +39,7 @@ export DiagonalizationStyle,
        parse_clock,
        whatinput,
        isrelaxed,
-       isjobdone,
-       haserror
+       isjobdone
 
 include("regexes.jl")
 
@@ -73,22 +72,34 @@ struct Summary
     nstep::Int
 end
 
-# function Base.parse(::T, str::AbstractString)
-#     m = match(SUMMARY_BLOCK, str)
-#     if isnothing(m)
-#         @info("The head message is not found!") && return
-#     else
-#         content = first(m.captures)
-#     end
-# end # function Base.parse
-
 function parse_summary(str::AbstractString)
     dict = Dict{String,Any}()
     m = match(SUMMARY_BLOCK, str)
     if isnothing(m)
         @info("The head message is not found!") && return
-    else
-        content = first(m.captures)
+    end
+    content = first(m.captures)
+
+    for (field, regex) in [
+        :ibrav => NUMBER_OF_ATOMS_PER_CELL,
+        :alat => LATTICE_PARAMETER,
+        :v => UNIT_CELL_VOLUME,
+        :nat => NUMBER_OF_ATOMS_PER_CELL,
+        :ntyp => NUMBER_OF_ATOMIC_TYPES,
+        :nelec => NUMBER_OF_ELECTRONS,
+        :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
+        :ecutwfc => KINETIC_ENERGY_CUTOFF,
+        :ecutrho => CHARGE_DENSITY_CUTOFF,
+        :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
+        :ethr => CONVERGENCE_THRESHOLD,
+        :mixing_beta => MIXING_BETA,
+        :nmix => NUMBER_OF_ITERATIONS_USED,
+        :nstep => NSTEP,
+    ]
+        m = match(regex, content)
+        if !isnothing(m)
+            push!(dict, field => parse(fieldtype(Summary, field), m.captures[2]))
+        end
     end
 
     for (f, r) in zip(
