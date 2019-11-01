@@ -198,14 +198,7 @@ function parse_scf_calculation(str::AbstractString)
         n = Int[],  # Step number
         i = Int[],  # Iteration number
         ecut = Float64[],  # Cutoff energy
-        diag = Maybe{DiagonalizationStyle}[],  # Diagonalization style
-        ethr = Maybe{Float64}[],  # Energy threshold
-        avg = Maybe{Float64}[],  # Average # of iterations
         β = Float64[],  # Mixing beta
-        t = Float64[],  # Time
-        ɛ = Maybe{Float64}[],  # Total energy
-        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
-        δ = Maybe{Float64}[],  # Estimated scf accuracy
     )
     # (step counter, relax step)
     for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
@@ -216,14 +209,8 @@ function parse_scf_calculation(str::AbstractString)
             n = parse(Int, head[1])  # Iteration number
             @assert(n == j, "Something went wrong when parsing iteration number!")
             ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
-
-            solver, ethr, avg = parse_diagonalization(body)
-
             t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
-
-            ɛ, hf, δ = parse_unconverged_energy(body)
-
-            push!(df, [i j ecut solver ethr avg β t ɛ hf δ])
+            push!(df, [i j ecut β t])
         end
     end
     return groupby(df, :n)
@@ -240,15 +227,23 @@ function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString
     return df
 end # function _iterationwise
 
-# This is a helper function and should not be exported.
-function _parse_iteration_time(str::AbstractString)
-    return parse(Float64, match(TOTAL_CPU_TIME, str)[1])
-end # function _parse_iteration_time
 function parse_iteration_time(str::AbstractString)
     df = DataFrame(time = Float64[])
     return _iterationwise!(_parse_iteration_time, df, str)
 end # function parse_iteration_time
+# This is a helper function and should not be exported.
+function _parse_iteration_time(str::AbstractString)
+    return parse(Float64, match(TOTAL_CPU_TIME, str)[1])
+end # function _parse_iteration_time
 
+function parse_diagonalization(str::AbstractString)
+    df = DataFrame(
+        diag = DiagonalizationStyle[],  # Diagonalization style
+        ethr = Float64[],  # Energy threshold
+        avg = Float64[],  # Average # of iterations
+    )
+    return _iterationwise!(_parse_diagonalization, df, str)
+end # function parse_diagonalization
 # This is a helper function and should not be exported.
 function _parse_diagonalization(str::AbstractString)
     solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
@@ -263,23 +258,7 @@ function _parse_diagonalization(str::AbstractString)
     end  # Keep them `nothing` if `m` is `nothing`
     return solver, ethr, avg_iter
 end # function _parse_diagonalization
-function parse_diagonalization(str::AbstractString)
-    df = DataFrame(
-        diag = DiagonalizationStyle[],  # Diagonalization style
-        ethr = Float64[],  # Energy threshold
-        avg = Float64[],  # Average # of iterations
-    )
-    return _iterationwise!(_parse_diagonalization, df, str)
-end # function parse_diagonalization
 
-function _parse_unconverged_energy(str::AbstractString)
-    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
-    m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
-    if !isnothing(m)
-        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
-    end  # Keep them `nothing` if `m` is `nothing`
-    return ɛ, hf, δ
-end # function _parse_unconverged_energy
 function parse_unconverged_energy(str::AbstractString)
     df = DataFrame(
         ɛ = Maybe{Float64}[],  # Total energy
@@ -288,6 +267,15 @@ function parse_unconverged_energy(str::AbstractString)
     )
     return _iterationwise!(_parse_unconverged_energy, df, str)
 end # function parse_unconverged_energy
+# This is a helper function and should not be exported.
+function _parse_unconverged_energy(str::AbstractString)
+    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
+    m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
+    if !isnothing(m)
+        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
+    end  # Keep them `nothing` if `m` is `nothing`
+    return ɛ, hf, δ
+end # function _parse_unconverged_energy
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_bands(str::AbstractString)
@@ -299,7 +287,10 @@ function parse_bands(str::AbstractString)
         regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES :
                 KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
-            push!(kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])))
+            push!(
+                kpts,
+                map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])),
+            )
             push!(
                 bands,
                 map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])),
@@ -359,7 +350,7 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{Tuple{Int,NamedTuple}}
     m = match(FFT_DIMENSIONS, str)
     isnothing(m) && return
     parsed = map(x -> parse(Int, x), m.captures)
-    return parsed[1], NamedTuple{(:nr1,:nr2,:nr3)}(parsed[2:end])
+    return parsed[1], NamedTuple{(:nr1, :nr2, :nr3)}(parsed[2:end])
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
@@ -449,7 +440,11 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     end
     return T(; arr...)
 end # function tryparse_internal
-function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:SubroutineError}
+function tryparse_internal(
+    ::Type{T},
+    str::AbstractString,
+    raise::Bool,
+) where {T<:SubroutineError}
     # According to my observation, a QE output can have at most one type of
     # `SubroutineError`. Warn me if there can be multiple types of errors.
     m = match(ERROR_BLOCK, str)
