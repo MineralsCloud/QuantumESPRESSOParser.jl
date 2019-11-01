@@ -149,8 +149,8 @@ function parse_stress(str::AbstractString)
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
 
-function parse_cell_parameters(str::AbstractString)::Vector{<:Matrix}
-    cell_parameters = Matrix{Float64}[]
+function parse_cell_parameters(str::AbstractString)::Vector{<:CellParametersCard}
+    cell_parameters = CellParametersCard[]
     for m in eachmatch(CELL_PARAMETERS_BLOCK, str)
         alat = parse(Float64, m.captures[1])
         content = m.captures[3]
@@ -163,7 +163,7 @@ function parse_cell_parameters(str::AbstractString)::Vector{<:Matrix}
                 [captured[1], captured[4], captured[7]],
             )
         end
-        push!(cell_parameters, alat * data)
+        push!(cell_parameters, CellParametersCard("bohr", alat * data))
     end
     return cell_parameters
 end # function parse_cell_parameters
