@@ -29,6 +29,8 @@ export DiagonalizationStyle,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
+       parse_unconverged_energy,
+       parse_bands,
        parse_converged_energy,
        parse_version,
        parse_parallel_info,
@@ -218,7 +220,7 @@ function parse_scf_calculation(str::AbstractString)
 
             t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
 
-            ɛ, hf, δ = parse_unconverged_electrons_energy(body)
+            ɛ, hf, δ = parse_unconverged_energy(body)
 
             push!(df, [i j ecut solver ethr avg β t ɛ hf δ])
         end
@@ -260,14 +262,14 @@ function parse_diagonalization(str::AbstractString)
     return _iterationwise!(_parse_diagonalization, df, str)
 end # function parse_diagonalization
 
-function parse_unconverged_electrons_energy(str::AbstractString)
+function parse_unconverged_energy(str::AbstractString)
     ɛ, hf, δ = nothing, nothing, nothing  # Initialization
     m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
     if !isnothing(m)
         ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
     end  # Keep them `nothing` if `m` is `nothing`
     return ɛ, hf, δ
-end # function parse_UNCONVERGED_ELECTRONS_ENERGY
+end # function parse_unconverged_energy
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_bands(str::AbstractString)
