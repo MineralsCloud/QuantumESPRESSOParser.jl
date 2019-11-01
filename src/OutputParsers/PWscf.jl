@@ -38,7 +38,7 @@ export DiagonalizationStyle,
        parse_fft_dimensions,
        parse_cell_parameters,
        parse_atomic_positions,
-       parse_scf_calculation,
+       parse_iteration_head,
        parse_bands,
        parse_clock,
        whatinput,
@@ -193,29 +193,6 @@ function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCa
     return atomic_positions
 end # parse_atomic_positions
 
-function parse_scf_calculation(str::AbstractString)
-    df = DataFrame(
-        n = Int[],  # Step number
-        i = Int[],  # Iteration number
-        ecut = Float64[],  # Cutoff energy
-        β = Float64[],  # Mixing beta
-    )
-    # (step counter, relax step)
-    for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
-        # (iteration counter, scf iteration)
-        for (j, iter) in enumerate(eachmatch(ITERATION_BLOCK, scf[1]))
-            body = iter[1]
-            head = match(ITERATION_HEAD, body)
-            n = parse(Int, head[1])  # Iteration number
-            @assert(n == j, "Something went wrong when parsing iteration number!")
-            ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
-            t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
-            push!(df, [i j ecut β t])
-        end
-    end
-    return groupby(df, :n)
-end # function parse_scf_calculation
-
 function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString)
     # Loop relax steps
     for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
@@ -226,6 +203,21 @@ function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString
     end
     return df
 end # function _iterationwise
+
+function parse_iteration_head(str::AbstractString)
+    df = DataFrame(
+        step = Int[],  # Step number
+        iteration = Int[],  # Iteration number
+        ecut = Float64[],  # Cutoff energy
+        β = Float64[],  # Mixing beta
+    )
+    return _iterationwise!(_parse_iteration_head, df, str)
+end # function parse_iteration_head
+# This is a helper function and should not be exported.
+function _parse_iteration_head(str::AbstractString)
+    head = match(ITERATION_HEAD, str)
+    return map(x -> parse(Float64, x), head.captures[2:3])
+end # function _parse_iteration_head
 
 function parse_iteration_time(str::AbstractString)
     df = DataFrame(step = Int[], iteration = Int[], time = Float64[])
