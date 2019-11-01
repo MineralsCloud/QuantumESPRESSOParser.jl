@@ -375,7 +375,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
         raise ? throw(Meta.ParseError("No info found!")) : return
     end
     body = first(m.captures)
-    for (field, regex) in [
+    for (field, regex) in (
         :ibrav => NUMBER_OF_ATOMS_PER_CELL,
         :alat => LATTICE_PARAMETER,
         :omega => UNIT_CELL_VOLUME,
@@ -391,7 +391,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
         :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
         :xc => EXCHANGE_CORRELATION,
         :nstep => NSTEP,
-    ]
+    )
         m = match(regex, body)
         if !isnothing(m)
             S = nonnothingtype(fieldtype(Preamble, field))
