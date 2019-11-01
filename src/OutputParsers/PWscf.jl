@@ -29,13 +29,20 @@ export DiagonalizationStyle,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
+       parse_iteration_time,
+       parse_unconverged_energy,
+       parse_bands,
        parse_converged_energy,
+       parse_all_electron_energy,
+       parse_energy_decomposition,
+       parse_paw_contribution,
+       parse_smearing_energy,
        parse_version,
        parse_parallel_info,
        parse_fft_dimensions,
        parse_cell_parameters,
        parse_atomic_positions,
-       parse_scf_calculation,
+       parse_iteration_head,
        parse_bands,
        parse_clock,
        whatinput,
@@ -75,55 +82,6 @@ struct PPCGDiagonalization <: DiagonalizationStyle end
     nstep::Maybe{Int} = nothing
 end
 
-# This is an internal function and should not be exported.
-function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Preamble}
-    arr = Pair{Symbol,Any}[]
-    m = match(SUMMARY_BLOCK, str)
-    if isnothing(m)
-        raise ? throw(Meta.ParseError("No info found!")) : return
-    end
-    body = first(m.captures)
-    for (field, regex) in [
-        :ibrav => NUMBER_OF_ATOMS_PER_CELL,
-        :alat => LATTICE_PARAMETER,
-        :omega => UNIT_CELL_VOLUME,
-        :nat => NUMBER_OF_ATOMS_PER_CELL,
-        :ntyp => NUMBER_OF_ATOMIC_TYPES,
-        :nelec => NUMBER_OF_ELECTRONS,
-        :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
-        :ecutwfc => KINETIC_ENERGY_CUTOFF,
-        :ecutrho => CHARGE_DENSITY_CUTOFF,
-        :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
-        :conv_thr => CONVERGENCE_THRESHOLD,
-        :mixing_beta => MIXING_BETA,
-        :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
-        :xc => EXCHANGE_CORRELATION,
-        :nstep => NSTEP,
-    ]
-        m = match(regex, body)
-        if !isnothing(m)
-            S = nonnothingtype(fieldtype(Preamble, field))
-            push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
-        end
-    end
-    # 2 special cases
-    m = match(NUMBER_OF_ELECTRONS, body)
-    if all(!isnothing, m.captures[2:end])
-        push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
-    end
-    m = match(NUMBER_OF_ITERATIONS_USED, body)
-    if !isnothing(m)
-        push!(arr, :mixing_mode => m[2])
-    end
-    return T(; arr...)
-end # function tryparse_internal
-function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Preamble}
-    return tryparse_internal(T, str, false)
-end # function Base.tryparse
-function Base.parse(::Type{T}, str::AbstractString) where {T<:Preamble}
-    return tryparse_internal(T, str, true)
-end # function Base.parse
-
 """
     parse_fft_base_info(str::AbstractString)
 
@@ -157,27 +115,27 @@ function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
     return df
 end # function parse_fft_base_info
 
-# Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_ibz(str::AbstractString)::Maybe{NamedTuple}
+# Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
+function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
         @info("The k-points info is not found!") && return
     end
     nk = parse(Int, m[:nk])
     result = []
-    kinds = (:cart, :cryst)
-    for k in kinds
+    kinds = (:cart => "tpiba", :cryst => "crystal")
+    for (k, v) in kinds
         if !isnothing(m[k])
             x = Matrix{Float64}(undef, nk, 4)
             for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
                 x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
             end
+            push!(result, KPointsCard(v, x))
         else
-            x = nothing
+            push!(result, nothing)
         end
-        push!(result, x)
     end
-    return NamedTuple{kinds}(result)
+    return Tuple(result)
 end # function parse_ibz
 
 function parse_stress(str::AbstractString)
@@ -198,8 +156,8 @@ function parse_stress(str::AbstractString)
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
 
-function parse_cell_parameters(str::AbstractString)::Vector{<:Matrix}
-    cell_parameters = Matrix{Float64}[]
+function parse_cell_parameters(str::AbstractString)::Vector{<:CellParametersCard}
+    cell_parameters = CellParametersCard[]
     for m in eachmatch(CELL_PARAMETERS_BLOCK, str)
         alat = parse(Float64, m.captures[1])
         content = m.captures[3]
@@ -212,7 +170,7 @@ function parse_cell_parameters(str::AbstractString)::Vector{<:Matrix}
                 [captured[1], captured[4], captured[7]],
             )
         end
-        push!(cell_parameters, alat * data)
+        push!(cell_parameters, CellParametersCard("bohr", alat * data))
     end
     return cell_parameters
 end # function parse_cell_parameters
@@ -239,43 +197,53 @@ function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCa
     return atomic_positions
 end # parse_atomic_positions
 
-function parse_scf_calculation(str::AbstractString)
-    df = DataFrame(
-        n = Int[],  # Step number
-        i = Int[],  # Iteration number
-        ecut = Float64[],  # Cutoff energy
-        diag = Maybe{DiagonalizationStyle}[],  # Diagonalization style
-        ethr = Maybe{Float64}[],  # Energy threshold
-        avg = Maybe{Float64}[],  # Average # of iterations
-        β = Float64[],  # Mixing beta
-        t = Float64[],  # Time
-        ɛ = Maybe{Float64}[],  # Total energy
-        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
-        δ = Maybe{Float64}[],  # Estimated scf accuracy
-    )
-    # (step counter, relax step)
+function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString)
+    # Loop relax steps
     for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
-        # (iteration counter, scf iteration)
+        # Loop scf iterations
         for (j, iter) in enumerate(eachmatch(ITERATION_BLOCK, scf[1]))
-            body = iter[1]
-            head = match(ITERATION_HEAD, body)
-            n = parse(Int, head[1])  # Iteration number
-            @assert(n == j, "Something went wrong when parsing iteration number!")
-            ecut, β = map(x -> parse(Float64, x), head.captures[2:3])
-
-            solver, ethr, avg = parse_diagonalization(body)
-
-            t = parse(Float64, match(TOTAL_CPU_TIME, body)[1])
-
-            ɛ, hf, δ = parse_unconverged_electrons_energy(body)
-
-            push!(df, [i j ecut solver ethr avg β t ɛ hf δ])
+            push!(df, [i j f(iter[1])...])
         end
     end
-    return groupby(df, :n)
-end # function parse_scf_calculation
+    return df
+end # function _iterationwise
+
+function parse_iteration_head(str::AbstractString)
+    df = DataFrame(
+        step = Int[],  # Step number
+        iteration = Int[],  # Iteration number
+        ecut = Float64[],  # Cutoff energy
+        β = Float64[],  # Mixing beta
+    )
+    return _iterationwise!(_parse_iteration_head, df, str)
+end # function parse_iteration_head
+# This is a helper function and should not be exported.
+function _parse_iteration_head(str::AbstractString)
+    head = match(ITERATION_HEAD, str)
+    return map(x -> parse(Float64, x), head.captures[2:3])
+end # function _parse_iteration_head
+
+function parse_iteration_time(str::AbstractString)
+    df = DataFrame(step = Int[], iteration = Int[], time = Float64[])
+    return _iterationwise!(_parse_iteration_time, df, str)
+end # function parse_iteration_time
+# This is a helper function and should not be exported.
+function _parse_iteration_time(str::AbstractString)
+    return parse(Float64, match(TOTAL_CPU_TIME, str)[1])
+end # function _parse_iteration_time
 
 function parse_diagonalization(str::AbstractString)
+    df = DataFrame(
+        step = Int[],
+        iteration = Int[],
+        diag = DiagonalizationStyle[],  # Diagonalization style
+        ethr = Float64[],  # Energy threshold
+        avg = Float64[],  # Average # of iterations
+    )
+    return _iterationwise!(_parse_diagonalization, df, str)
+end # function parse_diagonalization
+# This is a helper function and should not be exported.
+function _parse_diagonalization(str::AbstractString)
     solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
     m = match(C_BANDS, str)
     if !isnothing(m)
@@ -287,16 +255,27 @@ function parse_diagonalization(str::AbstractString)
         ethr, avg_iter = map(x -> parse(Float64, x), m.captures[2:end])
     end  # Keep them `nothing` if `m` is `nothing`
     return solver, ethr, avg_iter
-end # function parse_diagonalization
+end # function _parse_diagonalization
 
-function parse_unconverged_electrons_energy(str::AbstractString)
+function parse_unconverged_energy(str::AbstractString)
+    df = DataFrame(
+        step = Int[],
+        iteration = Int[],
+        ɛ = Maybe{Float64}[],  # Total energy
+        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
+        δ = Maybe{Float64}[],  # Estimated scf accuracy
+    )
+    return _iterationwise!(_parse_unconverged_energy, df, str)
+end # function parse_unconverged_energy
+# This is a helper function and should not be exported.
+function _parse_unconverged_energy(str::AbstractString)
     ɛ, hf, δ = nothing, nothing, nothing  # Initialization
     m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
     if !isnothing(m)
         ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
     end  # Keep them `nothing` if `m` is `nothing`
     return ɛ, hf, δ
-end # function parse_UNCONVERGED_ELECTRONS_ENERGY
+end # function _parse_unconverged_energy
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_bands(str::AbstractString)
@@ -308,7 +287,10 @@ function parse_bands(str::AbstractString)
         regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES :
                 KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
-            push!(kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])))
+            push!(
+                kpts,
+                map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])),
+            )
             push!(
                 bands,
                 map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])),
@@ -322,36 +304,91 @@ function parse_bands(str::AbstractString)
 end # function parse_bands
 
 function parse_converged_energy(str::AbstractString)
-    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
-    m = match(CONVERGED_ELECTRONS_ENERGY, str)
-    if !isnothing(m)
-        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures[1:3])
-    else
-        return
-    end  # Keep them `nothing` if `m` is `nothing`
-    regex = Regex(FIXED_POINT_REAL)
-    ae = if !isnothing(m[:ae])  # 1 energy
-        parse(Float64, match(regex, m[:ae])[1])
-    else
-        nothing
+    df = DataFrame(
+        step = Int[],
+        ɛ = Maybe{Float64}[],  # Total energy
+        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
+        δ = Maybe{Float64}[],  # Estimated scf accuracy
+    )
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        data = if !isnothing(m)
+            map(x -> parse(Float64, x), m.captures[1:3])
+        else
+            ntuple(_ -> nothing, 3)
+        end  # Keep them `nothing` if `m` is `nothing`
+        push!(df, [i data...])
     end
-    decomp = if !isnothing(m[:decomp])  # 4 energies
-        map(x -> parse(Float64, x[1]), eachmatch(regex, m[:decomp]))
-    else
-        nothing
-    end
-    onecenter = if !isnothing(m[:one])  # 7 energies
-        map(x -> parse(Float64, x[1]), eachmatch(regex, m[:one]))
-    else
-        nothing
-    end
-    smearing = if !isnothing(m[:smearing])  # 1 energy
-        parse(Float64, match(regex, m[:smearing])[1])
-    else
-        nothing
-    end
-    return ɛ, hf, δ, ae, decomp, onecenter, smearing
+    return df
 end # function parse_converged_energy
+
+function parse_all_electron_energy(str::AbstractString)
+    df = DataFrame(step = Int[], ae = Maybe{Float64}[])
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        ae = if any(isnothing, (m, m[:ae]))
+            nothing
+        else
+            parse(Float64, match(Regex(FIXED_POINT_REAL), m[:ae])[1])
+        end
+        push!(df, [i ae])
+    end
+    return df
+end # function parse_all_electron_energy
+
+function parse_energy_decomposition(str::AbstractString)
+    df = DataFrame(
+        step = Int[],
+        onelectron = Maybe{Float64}[],
+        hartree = Maybe{Float64}[],
+        xc = Maybe{Float64}[],
+        ewald = Maybe{Float64}[],
+    )
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        data = if any(isnothing, (m, m[:decomp]))
+            ntuple(_ -> nothing, 4)
+        else
+            map(
+                x -> parse(Float64, x[1]),
+                eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]),
+            )
+        end
+        push!(df, [i data...])
+    end
+    return df
+end # function parse_energy_decomposition
+
+function parse_paw_contribution(str::AbstractString)
+    df = DataFrame(
+        step = Int[],
+        hartree_ae = Maybe{Float64}[],
+        hartree_ps = Maybe{Float64}[],
+        xc_ae = Maybe{Float64}[],
+        xc_ps = Maybe{Float64}[],
+        eh = Maybe{Float64}[],
+        exc = Maybe{Float64}[],
+    )
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        data = if any(isnothing, (m, m[:one]))
+            ntuple(_ -> nothing, 6)
+        else
+            map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:one]))
+        end
+        push!(df, [i data...])
+    end
+    return df
+end # function parse_paw_contribution
+
+function parse_smearing_energy(str::AbstractString)
+    df = DataFrame(step = Int[], smearing = Maybe{Float64}[])
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        smearing = if any(isnothing, (m, m[:smearing]))
+            nothing
+        else
+            parse(Float64, match(Regex(FIXED_POINT_REAL), m[:smearing])[1])
+        end
+        push!(df, [i smearing])
+    end
+    return df
+end # function parse_smearing_energy
 
 function parse_version(str::AbstractString)::Maybe{String}
     m = match(PWSCF_VERSION, str)
@@ -368,7 +405,7 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{Tuple{Int,NamedTuple}}
     m = match(FFT_DIMENSIONS, str)
     isnothing(m) && return
     parsed = map(x -> parse(Int, x), m.captures)
-    return parsed[1], NamedTuple{(:nr1,:nr2,:nr3)}(parsed[2:end])
+    return parsed[1], NamedTuple{(:nr1, :nr2, :nr3)}(parsed[2:end])
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
@@ -417,7 +454,52 @@ end # function isrelaxed
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
 # This is an internal function and should not be exported.
-function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:SubroutineError}
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Preamble}
+    arr = Pair{Symbol,Any}[]
+    m = match(SUMMARY_BLOCK, str)
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("No info found!")) : return
+    end
+    body = first(m.captures)
+    for (field, regex) in (
+        :ibrav => NUMBER_OF_ATOMS_PER_CELL,
+        :alat => LATTICE_PARAMETER,
+        :omega => UNIT_CELL_VOLUME,
+        :nat => NUMBER_OF_ATOMS_PER_CELL,
+        :ntyp => NUMBER_OF_ATOMIC_TYPES,
+        :nelec => NUMBER_OF_ELECTRONS,
+        :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
+        :ecutwfc => KINETIC_ENERGY_CUTOFF,
+        :ecutrho => CHARGE_DENSITY_CUTOFF,
+        :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
+        :conv_thr => CONVERGENCE_THRESHOLD,
+        :mixing_beta => MIXING_BETA,
+        :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
+        :xc => EXCHANGE_CORRELATION,
+        :nstep => NSTEP,
+    )
+        m = match(regex, body)
+        if !isnothing(m)
+            S = nonnothingtype(fieldtype(Preamble, field))
+            push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
+        end
+    end
+    # 2 special cases
+    m = match(NUMBER_OF_ELECTRONS, body)
+    if all(!isnothing, m.captures[2:end])
+        push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
+    end
+    m = match(NUMBER_OF_ITERATIONS_USED, body)
+    if !isnothing(m)
+        push!(arr, :mixing_mode => m[2])
+    end
+    return T(; arr...)
+end # function tryparse_internal
+function tryparse_internal(
+    ::Type{T},
+    str::AbstractString,
+    raise::Bool,
+) where {T<:SubroutineError}
     # According to my observation, a QE output can have at most one type of
     # `SubroutineError`. Warn me if there can be multiple types of errors.
     m = match(ERROR_BLOCK, str)
@@ -432,10 +514,13 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     m = match(ERROR_IN_ROUTINE, e)
     return T(m[1], m[2], msg)
 end # function tryparse_internal
-function Base.tryparse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
+
+const _INTERNAL_TYPES = Union{Preamble,SubroutineError}
+
+function Base.tryparse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, false)
 end # function Base.tryparse
-function Base.parse(::Type{T}, str::AbstractString) where {T<:SubroutineError}
+function Base.parse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, true)
 end # function Base.parse
 
