@@ -226,7 +226,19 @@ function parse_scf_calculation(str::AbstractString)
     return groupby(df, :n)
 end # function parse_scf_calculation
 
-function parse_diagonalization(str::AbstractString)
+function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString)
+    # Loop relax steps
+    for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
+        # Loop scf iterations
+        for (j, iter) in enumerate(eachmatch(ITERATION_BLOCK, scf[1]))
+            push!(df, f(iter[1]))
+        end
+    end
+    return df
+end # function _iterationwise
+
+# This is a helper function and should not be exported.
+function _parse_diagonalization(str::AbstractString)
     solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
     m = match(C_BANDS, str)
     if !isnothing(m)
@@ -238,6 +250,14 @@ function parse_diagonalization(str::AbstractString)
         ethr, avg_iter = map(x -> parse(Float64, x), m.captures[2:end])
     end  # Keep them `nothing` if `m` is `nothing`
     return solver, ethr, avg_iter
+end # function _parse_diagonalization
+function parse_diagonalization(str::AbstractString)
+    df = DataFrame(
+        diag = DiagonalizationStyle[],  # Diagonalization style
+        ethr = Float64[],  # Energy threshold
+        avg = Float64[],  # Average # of iterations
+    )
+    return _iterationwise!(_parse_diagonalization, df, str)
 end # function parse_diagonalization
 
 function parse_unconverged_electrons_energy(str::AbstractString)
@@ -409,7 +429,6 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     end
     return T(; arr...)
 end # function tryparse_internal
-# This is an internal function and should not be exported.
 function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:SubroutineError}
     # According to my observation, a QE output can have at most one type of
     # `SubroutineError`. Warn me if there can be multiple types of errors.
