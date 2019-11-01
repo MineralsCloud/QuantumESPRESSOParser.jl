@@ -346,7 +346,10 @@ function parse_energy_decomposition(str::AbstractString)
         data = if any(isnothing, (m, m[:decomp]))
             ntuple(_ -> nothing, 4)
         else
-            map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]))
+            map(
+                x -> parse(Float64, x[1]),
+                eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]),
+            )
         end
         push!(df, [i data...])
     end
