@@ -108,27 +108,27 @@ function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
     return df
 end # function parse_fft_base_info
 
-# Return `nothing`, `(nothing, nothing)`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_ibz(str::AbstractString)::Maybe{NamedTuple}
+# Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
+function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
         @info("The k-points info is not found!") && return
     end
     nk = parse(Int, m[:nk])
     result = []
-    kinds = (:cart, :cryst)
-    for k in kinds
+    kinds = (:cart => "tpiba", :cryst => "crystal")
+    for (k, v) in kinds
         if !isnothing(m[k])
             x = Matrix{Float64}(undef, nk, 4)
             for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
                 x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
             end
+            push!(result, KPointsCard(v, x))
         else
-            x = nothing
+            push!(result, nothing)
         end
-        push!(result, x)
     end
-    return NamedTuple{kinds}(result)
+    return Tuple(result)
 end # function parse_ibz
 
 function parse_stress(str::AbstractString)
