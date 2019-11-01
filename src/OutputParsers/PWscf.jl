@@ -262,13 +262,21 @@ function parse_diagonalization(str::AbstractString)
     return _iterationwise!(_parse_diagonalization, df, str)
 end # function parse_diagonalization
 
-function parse_unconverged_energy(str::AbstractString)
+function _parse_unconverged_energy(str::AbstractString)
     ɛ, hf, δ = nothing, nothing, nothing  # Initialization
     m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
     if !isnothing(m)
         ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
     end  # Keep them `nothing` if `m` is `nothing`
     return ɛ, hf, δ
+end # function _parse_unconverged_energy
+function parse_unconverged_energy(str::AbstractString)
+    df = DataFrame(
+        ɛ = Maybe{Float64}[],  # Total energy
+        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
+        δ = Maybe{Float64}[],  # Estimated scf accuracy
+    )
+    return _iterationwise!(_parse_unconverged_energy, df, str)
 end # function parse_unconverged_energy
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
