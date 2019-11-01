@@ -29,6 +29,7 @@ export DiagonalizationStyle,
        parse_fft_base_info,
        parse_ibz,
        parse_stress,
+       parse_iteration_time,
        parse_unconverged_energy,
        parse_bands,
        parse_converged_energy,
@@ -238,6 +239,15 @@ function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString
     end
     return df
 end # function _iterationwise
+
+# This is a helper function and should not be exported.
+function _parse_iteration_time(str::AbstractString)
+    return parse(Float64, match(TOTAL_CPU_TIME, str)[1])
+end # function _parse_iteration_time
+function parse_iteration_time(str::AbstractString)
+    df = DataFrame(time = Float64[])
+    return _iterationwise!(_parse_iteration_time, df, str)
+end # function parse_iteration_time
 
 # This is a helper function and should not be exported.
 function _parse_diagonalization(str::AbstractString)
