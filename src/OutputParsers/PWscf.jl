@@ -33,6 +33,10 @@ export DiagonalizationStyle,
        parse_unconverged_energy,
        parse_bands,
        parse_converged_energy,
+       parse_all_electron_energy,
+       parse_energy_decomposition,
+       parse_paw_contribution,
+       parse_smearing_energy,
        parse_version,
        parse_parallel_info,
        parse_fft_dimensions,
@@ -300,36 +304,88 @@ function parse_bands(str::AbstractString)
 end # function parse_bands
 
 function parse_converged_energy(str::AbstractString)
-    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
-    m = match(CONVERGED_ELECTRONS_ENERGY, str)
-    if !isnothing(m)
-        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures[1:3])
-    else
-        return
-    end  # Keep them `nothing` if `m` is `nothing`
-    regex = Regex(FIXED_POINT_REAL)
-    ae = if !isnothing(m[:ae])  # 1 energy
-        parse(Float64, match(regex, m[:ae])[1])
-    else
-        nothing
+    df = DataFrame(
+        step = Int[],
+        ɛ = Maybe{Float64}[],  # Total energy
+        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
+        δ = Maybe{Float64}[],  # Estimated scf accuracy
+    )
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        data = if !isnothing(m)
+            map(x -> parse(Float64, x), m.captures[1:3])
+        else
+            ntuple(_ -> nothing, 3)
+        end  # Keep them `nothing` if `m` is `nothing`
+        push!(df, [i data...])
     end
-    decomp = if !isnothing(m[:decomp])  # 4 energies
-        map(x -> parse(Float64, x[1]), eachmatch(regex, m[:decomp]))
-    else
-        nothing
-    end
-    onecenter = if !isnothing(m[:one])  # 7 energies
-        map(x -> parse(Float64, x[1]), eachmatch(regex, m[:one]))
-    else
-        nothing
-    end
-    smearing = if !isnothing(m[:smearing])  # 1 energy
-        parse(Float64, match(regex, m[:smearing])[1])
-    else
-        nothing
-    end
-    return ɛ, hf, δ, ae, decomp, onecenter, smearing
+    return df
 end # function parse_converged_energy
+
+function parse_all_electron_energy(str::AbstractString)
+    df = DataFrame(step = Int[], ae = Maybe{Float64}[])
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        ae = if any(isnothing, (m, m[:ae]))
+            nothing
+        else
+            parse(Float64, match(Regex(FIXED_POINT_REAL), m[:ae])[1])
+        end
+        push!(df, [i ae])
+    end
+    return df
+end # function parse_all_electron_energy
+
+function parse_energy_decomposition(str::AbstractString)
+    df = DataFrame(
+        step = Int[],
+        onelectron = Maybe{Float64}[],
+        hartree = Maybe{Float64}[],
+        xc = Maybe{Float64}[],
+        ewald = Maybe{Float64}[],
+    )
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        data = if any(isnothing, (m, m[:decomp]))
+            ntuple(_ -> nothing, 4)
+        else
+            map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]))
+        end
+        push!(df, [i data...])
+    end
+    return df
+end # function parse_energy_decomposition
+
+function parse_paw_contribution(str::AbstractString)
+    df = DataFrame(
+        step = Int[],
+        hartree_ae = Maybe{Float64}[],
+        hartree_ps = Maybe{Float64}[],
+        xc_ae = Maybe{Float64}[],
+        xc_ps = Maybe{Float64}[],
+        eh = Maybe{Float64}[],
+        exc = Maybe{Float64}[],
+    )
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        data = if any(isnothing, (m, m[:one]))
+            ntuple(_ -> nothing, 6)
+        else
+            map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:one]))
+        end
+        push!(df, [i data...])
+    end
+    return df
+end # function parse_paw_contribution
+
+function parse_smearing_energy(str::AbstractString)
+    df = DataFrame(step = Int[], smearing = Maybe{Float64}[])
+    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
+        smearing = if any(isnothing, (m, m[:smearing]))
+            nothing
+        else
+            parse(Float64, match(Regex(FIXED_POINT_REAL), m[:smearing])[1])
+        end
+        push!(df, [i smearing])
+    end
+    return df
+end # function parse_smearing_energy
 
 function parse_version(str::AbstractString)::Maybe{String}
     m = match(PWSCF_VERSION, str)
