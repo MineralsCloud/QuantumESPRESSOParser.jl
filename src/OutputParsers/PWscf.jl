@@ -221,14 +221,14 @@ function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString
     for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
         # Loop scf iterations
         for (j, iter) in enumerate(eachmatch(ITERATION_BLOCK, scf[1]))
-            push!(df, f(iter[1]))
+            push!(df, [i j f(iter[1])...])
         end
     end
     return df
 end # function _iterationwise
 
 function parse_iteration_time(str::AbstractString)
-    df = DataFrame(time = Float64[])
+    df = DataFrame(step = Int[], iteration = Int[], time = Float64[])
     return _iterationwise!(_parse_iteration_time, df, str)
 end # function parse_iteration_time
 # This is a helper function and should not be exported.
@@ -238,6 +238,8 @@ end # function _parse_iteration_time
 
 function parse_diagonalization(str::AbstractString)
     df = DataFrame(
+        step = Int[],
+        iteration = Int[],
         diag = DiagonalizationStyle[],  # Diagonalization style
         ethr = Float64[],  # Energy threshold
         avg = Float64[],  # Average # of iterations
@@ -261,6 +263,8 @@ end # function _parse_diagonalization
 
 function parse_unconverged_energy(str::AbstractString)
     df = DataFrame(
+        step = Int[],
+        iteration = Int[],
         ɛ = Maybe{Float64}[],  # Total energy
         hf = Maybe{Float64}[],  # Harris-Foulkes estimate
         δ = Maybe{Float64}[],  # Estimated scf accuracy
