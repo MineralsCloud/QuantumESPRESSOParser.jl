@@ -19,6 +19,8 @@ using QuantumESPRESSOBase.Namelists.PWscf
 using QuantumESPRESSOBase.Namelists.CP
 using QuantumESPRESSOBase.Namelists.PHonon
 
+using QuantumESPRESSOParsers
+
 # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
 const NAMELIST_ITEM = r"""
                       [ \t]* (?<key> \S+? )(?: (?<kind> [\(%]) (?<index> \w+) \)? )? [ \t]*  # match and store key
@@ -59,27 +61,27 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
     if isnothing(m)
         @info("Namelist not found in string!")
         return
-    else
-        for item in eachmatch(NAMELIST_ITEM, m[:body])
-            k = Symbol(item[:key])
-            v = FortranData(string(item[:value]))
-            # Parse a `FortranData` from `value` as type of the field of the namelist `T`
-            if isnothing(item[:index])  # Cases like `ntyp = 2`
-                result[k] = parse(fieldtype(T, k), v)
-            else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
-                if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
-                    i = parse(Int, item[:index])
-                    v = parse(Float64, v)  # TODO: This is tricky.
-                    result[k] = if haskey(result, k)
-                        # If `celldm` occurs before, push the new value, else create a vector of pairs.
-                        fillbyindex!(result[k], i, v)
-                    else
-                        fillbyindex!([], i, v)
-                    end
-                else  # item[:kind] == '%'
-                    i = string(item[:index])
-                    # TODO: This is not finished!
+    end
+    for item in eachmatch(NAMELIST_ITEM, m[:body])
+        k = Symbol(item[:key])
+        v = FortranData(string(item[:value]))
+        # Parse a `FortranData` from `value` as type of the field of the namelist `T`
+        if isnothing(item[:index])  # Cases like `ntyp = 2`
+            result[k] = parse(fieldtype(T, k), v)
+        else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
+            if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
+                i = parse(Int, item[:index])
+                S = QuantumESPRESSOParsers.nonnothingtype(eltype(fieldtype(T, k)))
+                v = parse(S, v)
+                result[k] = if haskey(result, k)
+                    # If `celldm` occurs before, push the new value, else create a vector of pairs.
+                    fillbyindex!(result[k], i, v)
+                else
+                    fillbyindex!([], i, v)
                 end
+            else  # item[:kind] == '%'
+                i = string(item[:index])
+                # TODO: This is not finished!
             end
         end
     end
@@ -87,7 +89,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
         @info("Namelist found, but it is empty! Default values will be used!")
         T()
     else
-        T(T(), result)  # TODO: This does not dynamically change
+        T(; result...)
     end
 end # function Base.parse
 
