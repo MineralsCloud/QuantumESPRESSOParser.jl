@@ -93,15 +93,10 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
 end # function Base.parse
 
 function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
-    if isempty(x)
-        x = Vector{Union{Nothing,T}}(nothing, index)
-    else
-        index > length(x) && append!(
-            x,
-            Vector{Union{Nothing,T}}(nothing, index - length(x)),
-        )
+    if index > length(x)  # Works even if `x` is empty. If empty, `length(x)` will be `0`.
+        append!(x, Vector{Union{Nothing,T}}(nothing, index - length(x)))
     end
-    x[index] = value
+    x[index] = value  # Now `index` cannot be greater than `length(x)` => a normal assignment
     return x
 end # function fillbyindex!
 
