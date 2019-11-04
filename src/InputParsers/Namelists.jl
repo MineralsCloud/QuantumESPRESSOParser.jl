@@ -89,7 +89,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
         @info("Namelist found, but it is empty! Default values will be used!")
         T()
     else
-        T(; result...)  # TODO: This does not dynamically change
+        T(; result...)
     end
 end # function Base.parse
 
