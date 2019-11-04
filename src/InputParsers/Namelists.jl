@@ -85,12 +85,11 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
             end
         end
     end
-    return if isempty(result)
+    if isempty(result)
         @info("Namelist found, but it is empty! Default values will be used!")
-        T()
-    else
-        T(; result...)
     end
+    # Works even if `result` is empty. If empty, it just returns the default `Namelist`.
+    return T(; result...)
 end # function Base.parse
 
 function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
