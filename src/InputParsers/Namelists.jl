@@ -71,39 +71,26 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
         else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
             if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
                 i = parse(Int, item[:index])
+                i < 0 || throw(InvalidUserInput("Negative index found in $(item[:index])!"))
                 S = QuantumESPRESSOParsers.nonnothingtype(eltype(fieldtype(T, k)))
                 v = parse(S, v)
-                result[k] = if haskey(result, k)
-                    # If `celldm` occurs before, push the new value, else create a vector of pairs.
-                    fillbyindex!(result[k], i, v)
-                else
-                    fillbyindex!([], i, v)
+                arr = get(result, k, [])
+                if i > length(arr)  # Works even if `x` is empty. If empty, `length(x)` will be `0`.
+                    append!(arr, Vector{Union{Nothing,T}}(nothing, i - length(arr)))
                 end
+                arr[i] = v  # Now `index` cannot be greater than `length(x)` => a normal assignment
+                result[k] = arr
             else  # item[:kind] == '%'
                 i = string(item[:index])
                 # TODO: This is not finished!
             end
         end
     end
-    return if isempty(result)
+    if isempty(result)
         @info("Namelist found, but it is empty! Default values will be used!")
-        T()
-    else
-        T(; result...)
     end
+    # Works even if `result` is empty. If empty, it just returns the default `Namelist`.
+    return T(; result...)
 end # function Base.parse
-
-function fillbyindex!(x::AbstractVector, index::Int, value::T) where {T}
-    if isempty(x)
-        x = Vector{Union{Nothing,T}}(nothing, index)
-    else
-        index > length(x) && append!(
-            x,
-            Vector{Union{Nothing,T}}(nothing, index - length(x)),
-        )
-    end
-    x[index] = value
-    return x
-end # function fillbyindex!
 
 end

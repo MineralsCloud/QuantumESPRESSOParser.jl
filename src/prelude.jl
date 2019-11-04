@@ -1,3 +1,7 @@
+struct InvalidUserInput
+    msg::String
+end
+
 struct SubroutineError
     name::String
     cerr::String
