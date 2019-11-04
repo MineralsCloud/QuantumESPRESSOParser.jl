@@ -86,9 +86,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
             end
         end
     end
-    if isempty(result)
-        @info("Namelist found, but it is empty! Default values will be used!")
-    end
+    isempty(result) || @info("An empty Namelist found! Default values will be used!")
     # Works even if `result` is empty. If empty, it just returns the default `Namelist`.
     return T(; result...)
 end # function Base.parse
