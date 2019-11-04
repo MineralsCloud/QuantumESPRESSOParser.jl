@@ -19,7 +19,7 @@ using MLStyle: @match
 using Parameters: @with_kw
 using QuantumESPRESSOBase.Cards.PWscf
 
-using QuantumESPRESSOParsers: SubroutineError
+using QuantumESPRESSOParsers
 
 export DiagonalizationStyle,
        Preamble,
@@ -53,8 +53,6 @@ include("regexes.jl")
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
-# Referenced from https://discourse.julialang.org/t/how-to-get-the-non-nothing-type-from-union-t-nothing/30523
-nonnothingtype(::Type{T}) where {T} = Core.Compiler.typesubtract(T, Nothing)  # Should not be exported
 
 abstract type DiagonalizationStyle end
 struct DavidsonDiagonalization <: DiagonalizationStyle end
@@ -480,7 +478,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     )
         m = match(regex, body)
         if !isnothing(m)
-            S = nonnothingtype(fieldtype(Preamble, field))
+            S = QuantumESPRESSOParsers.nonnothingtype(fieldtype(Preamble, field))
             push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
         end
     end
