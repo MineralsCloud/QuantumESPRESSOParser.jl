@@ -100,7 +100,8 @@ function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
     )
     m = match(FFT_BASE_INFO, str)
     if isnothing(m)
-        @info("The FFT base info is not found!") && return
+        @info("The FFT base info is not found!")
+        return
     end
     body = m[:body]
     for line in split(body, r"[\r\n]+")  # Don’t want empty lines
@@ -117,7 +118,8 @@ end # function parse_fft_base_info
 function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if isnothing(m)
-        @info("The k-points info is not found!") && return
+        @info("The k-points info is not found!")
+        return
     end
     nk = parse(Int, m[:nk])
     result = []
