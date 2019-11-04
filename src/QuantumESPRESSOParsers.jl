@@ -1,6 +1,6 @@
 module QuantumESPRESSOParsers
 
-export SubroutineError, ParseFailure
+export InvalidUserInput, SubroutineError, ParseFailure
 
 include("prelude.jl")
 include("InputParsers/InputParsers.jl")
