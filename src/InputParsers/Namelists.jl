@@ -13,11 +13,7 @@ module Namelists
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
-
 using QuantumESPRESSOBase.Namelists
-using QuantumESPRESSOBase.Namelists.PWscf
-using QuantumESPRESSOBase.Namelists.CP
-using QuantumESPRESSOBase.Namelists.PHonon
 
 using QuantumESPRESSOParsers
 
@@ -28,27 +24,23 @@ const NAMELIST_ITEM = r"""
                       [ \t]* (?<value> \S+?) [ \t]*  # match and store value
                       [\n,]                          # return or comma separates "key = value" pairs
                       """mx
-const NAMELIST_HEADS = Dict{Any,String}(
-    PWscf.ControlNamelist => "CONTROL",
-    PWscf.SystemNamelist => "SYSTEM",
-    PWscf.ElectronsNamelist => "ELECTRONS",
-    PWscf.CellNamelist => "CELL",
-    PWscf.IonsNamelist => "IONS",
-    CP.ControlNamelist => "CONTROL",
-    CP.SystemNamelist => "SYSTEM",
-    CP.ElectronsNamelist => "ELECTRONS",
-    CP.CellNamelist => "CELL",
-    CP.IonsNamelist => "IONS",
-    WannierNamelist => "WANNIER",
-    PHNamelist => "INPUTPH",
-    Q2RNamelist => "INPUT",
-    MatdynNamelist => "INPUT",
-    DynmatNamelist => "INPUT",
+const NAMELIST_HEADS = Dict{Symbol,String}(
+    :ControlNamelist => "CONTROL",
+    :SystemNamelist => "SYSTEM",
+    :ElectronsNamelist => "ELECTRONS",
+    :CellNamelist => "CELL",
+    :IonsNamelist => "IONS",
+    :WannierNamelist => "WANNIER",
+    :PHNamelist => "INPUTPH",
+    :Q2RNamelist => "INPUT",
+    :MatdynNamelist => "INPUT",
+    :DynmatNamelist => "INPUT",
 )
 
-function Base.parse(T::Type{<:Namelist}, str::AbstractString)
+# This is an internal function and should not be exported.
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Namelist}
     result = Dict{Symbol,Any}()
-    head = NAMELIST_HEADS[T]
+    head = NAMELIST_HEADS[nameof(T)]
     # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
     NAMELIST_BLOCK = Regex("""
                            ^ [ \t]* &$head [ \t]* \$\n
@@ -59,8 +51,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
                            """, "imx")
     m = match(NAMELIST_BLOCK, str)
     if isnothing(m)
-        @info("Namelist not found in string!")
-        return
+        raise ? throw(Meta.ParseError("Namelist not found in string!")) : return
     end
     for item in eachmatch(NAMELIST_ITEM, m[:body])
         k = Symbol(item[:key])
@@ -71,7 +62,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
         else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
             if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
                 i = parse(Int, item[:index])
-                i < 0 || throw(InvalidUserInput("Negative index found in $(item[:index])!"))
+                i < 0 && throw(InvalidUserInput("Negative index found in $(item[:index])!"))
                 S = QuantumESPRESSOParsers.nonnothingtype(eltype(fieldtype(T, k)))
                 v = parse(S, v)
                 arr = get(result, k, [])
@@ -86,9 +77,14 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
             end
         end
     end
-    isempty(result) || @info("An empty Namelist found! Default values will be used!")
+    isempty(result) && @info("An empty Namelist found! Default values will be used!")
     # Works even if `result` is empty. If empty, it just returns the default `Namelist`.
     return T(; result...)
-end # function Base.parse
+end # function tryparse_internal
+
+Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist} =
+    tryparse_internal(T, str, false)
+Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist} =
+    tryparse_internal(T, str, true)
 
 end
