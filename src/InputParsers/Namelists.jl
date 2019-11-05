@@ -41,13 +41,13 @@ const NAMELIST_HEADS = Dict{Symbol,String}(
 function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Namelist}
     result = Dict{Symbol,Any}()
     head = NAMELIST_HEADS[nameof(T)]
-    # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+    # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L305-L312
     NAMELIST_BLOCK = Regex("""
-                           ^ [ \t]* &$head [ \t]* \$\n
+                           ^ [ \\t]* &$head [ \\t]* \$  # Match `Namelist`'s name
                            (?<body>
-                               [\\S\\s]*?
-                           )
-                           ^ [ \t]* / [ \t]* \$
+                            [\\S\\s]*?  # Match any line non-greedily
+                           )            # Save the group of text between `Namelist`s
+                           ^ [ \\t]* \\/ [ \\t]* \$  # Match line with "/" as the only non-whitespace char
                            """, "imx")
     m = match(NAMELIST_BLOCK, str)
     if isnothing(m)
