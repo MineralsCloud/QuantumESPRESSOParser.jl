@@ -13,7 +13,6 @@ module Namelists
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
-
 using QuantumESPRESSOBase.Namelists
 
 using QuantumESPRESSOParsers
