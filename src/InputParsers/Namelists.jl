@@ -37,7 +37,8 @@ const NAMELIST_HEADS = Dict{Symbol,String}(
     :DynmatNamelist => "INPUT",
 )
 
-function Base.parse(T::Type{<:Namelist}, str::AbstractString)
+# This is an internal function and should not be exported.
+function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Namelist}
     result = Dict{Symbol,Any}()
     head = NAMELIST_HEADS[nameof(T)]
     # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
@@ -50,8 +51,7 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
                            """, "imx")
     m = match(NAMELIST_BLOCK, str)
     if isnothing(m)
-        @info("Namelist not found in string!")
-        return
+        raise ? throw(Meta.ParseError("Namelist not found in string!")) : return
     end
     for item in eachmatch(NAMELIST_ITEM, m[:body])
         k = Symbol(item[:key])
@@ -80,6 +80,13 @@ function Base.parse(T::Type{<:Namelist}, str::AbstractString)
     isempty(result) && @info("An empty Namelist found! Default values will be used!")
     # Works even if `result` is empty. If empty, it just returns the default `Namelist`.
     return T(; result...)
+end # function tryparse_internal
+
+function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist}
+    return tryparse_internal(T, str, false)
+end # function Base.tryparse
+function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
+    return tryparse_internal(T, str, true)
 end # function Base.parse
 
 end
