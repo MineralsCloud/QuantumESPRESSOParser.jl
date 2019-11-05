@@ -17,12 +17,12 @@ using QuantumESPRESSOBase.Namelists
 
 using QuantumESPRESSOParsers
 
-# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+# From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L315-L321
 const NAMELIST_ITEM = r"""
-                      [ \t]* (?<key> \S+? )(?: (?<kind> [\(%]) (?<index> \w+) \)? )? [ \t]*  # match and store key
-                      =                              # equals sign separates key and value
-                      [ \t]* (?<value> \S+?) [ \t]*  # match and store value
-                      [\n,]                          # return or comma separates "key = value" pairs
+                      [ \t]* (?<key>\w+?) (?: (?<kind>[\(%]) (?<index>\w+) \)? )? [ \t]*  # Match and store key
+                      =                              # Equals sign separates key and value
+                      [ \t]* (?<value>\S+?) [ \t]*  # Match and store value
+                      [\n,]                          # Return or comma separates "key = value" pairs
                       """mx
 const NAMELIST_HEADS = Dict{Symbol,String}(
     :ControlNamelist => "CONTROL",
