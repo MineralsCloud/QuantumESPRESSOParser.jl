@@ -82,11 +82,9 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     return T(; result...)
 end # function tryparse_internal
 
-function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist}
-    return tryparse_internal(T, str, false)
-end # function Base.tryparse
-function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
-    return tryparse_internal(T, str, true)
-end # function Base.parse
+Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist} =
+    tryparse_internal(T, str, false)
+Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist} =
+    tryparse_internal(T, str, true)
 
 end
