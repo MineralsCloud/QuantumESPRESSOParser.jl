@@ -15,11 +15,13 @@ using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 using MLStyle: @match
 
+using QuantumESPRESSOBase: asfieldname
 using QuantumESPRESSOBase.Namelists.PWscf: ControlNamelist,
                                            SystemNamelist,
                                            ElectronsNamelist,
                                            IonsNamelist,
                                            CellNamelist
+using QuantumESPRESSOBase.Cards: Card
 using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        AtomicSpeciesCard,
                                        AtomicPosition,
@@ -183,10 +185,12 @@ const CELL_PARAMETERS_ITEM = r"""
 )
 """mx
 
-function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
+function tryparse_internal(::Type{<:AtomicSpeciesCard}, str::AbstractString, raise::Bool)
     m = match(ATOMIC_SPECIES_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    @assert !isnothing(m) "Cannot find card `ATOMIC_SPECIES`! Check your input!"
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find card `ATOMIC_SPECIES`!")) : return
+    end
     content = m.captures[1]
     data = AtomicSpecies[]
     for matched in eachmatch(ATOMIC_SPECIES_ITEM, content)
@@ -197,11 +201,13 @@ function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
         push!(data, AtomicSpecies(atom, mass, pseudopotential))
     end
     return AtomicSpeciesCard(data)
-end # function Base.parse
-function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
+end # function tryparse_internal
+function tryparse_internal(T::Type{<:AtomicPositionsCard}, str::AbstractString, raise::Bool)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    @assert !isnothing(m) "Cannot find card `ATOMIC_POSITIONS`! Check your input!"
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find card `ATOMIC_POSITIONS`!")) : return
+    end
     option = string(m.captures[1])
     if isnothing(option)
         @warn "Not specifying units is DEPRECATED and will no longer be allowed in the future!"
@@ -224,8 +230,8 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
     return AtomicPositionsCard(option, data)
-end # function Base.parse
-function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
+end # function tryparse_internal
+function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bool)
     m = match(K_POINTS_GAMMA_BLOCK, str)
     !isnothing(m) && return KPointsCard("gamma", [GammaPoint()])
 
@@ -254,12 +260,14 @@ function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
         return KPointsCard(option, data)
     end
 
-    @info "Cannot find card `K_POINTS`!"
-end # function Base.parse
-function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
+    raise && throw(Meta.ParseError("Cannot find card `K_POINTS`!"))
+end # function tryparse_internal
+function tryparse_internal(::Type{<:CellParametersCard}, str::AbstractString, raise::Bool)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    isnothing(m) && return nothing
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find card `CELL_PARAMETERS`!")) : return
+    end
     option = string(m.captures[1])
     if isempty(option)
         @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
@@ -276,23 +284,25 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
         )
     end
     return CellParametersCard(option, data)
-end # function Base.parse
+end # function tryparse_internal
+
+Base.tryparse(::Type{T}, str::AbstractString) where {T<:Card} =
+    tryparse_internal(T, str, false)
+Base.parse(::Type{T}, str::AbstractString) where {T<:Card} =
+    tryparse_internal(T, str, true)
 function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
-    function _parse_namelist(T)
-        result = parse(T, str)
-        isnothing(result) ? T() : result
+    dict = Dict{Symbol,Any}()
+    for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
+        push!(dict, asfieldname(T) => tryparse(T, str))  # Optional cards, can be `nothing`
     end
-    return PWscfInput(
-        control = _parse_namelist(ControlNamelist),
-        system = _parse_namelist(SystemNamelist),
-        electrons = _parse_namelist(ElectronsNamelist),
-        ions = _parse_namelist(IonsNamelist),
-        cell = _parse_namelist(CellNamelist),
-        atomic_species = parse(AtomicSpeciesCard, str),
-        atomic_positions = parse(AtomicPositionsCard, str),
-        k_points = parse(KPointsCard, str),
-        cell_parameters = parse(CellParametersCard, str),
-    )
+    for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)
+        push!(dict, asfieldname(T) => parse(T, str))  # Must-have cards, or else error
+    end
+    for T in (ControlNamelist, SystemNamelist, ElectronsNamelist, IonsNamelist, CellNamelist)
+        nml = tryparse(T, str)
+        push!(dict, asfieldname(T) => isnothing(nml) ? T() : nml)
+    end
+    return PWscfInput(; dict...)
 end # function Base.parse
 
 end
