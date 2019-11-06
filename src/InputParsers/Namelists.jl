@@ -17,12 +17,12 @@ using QuantumESPRESSOBase.Namelists
 
 using QuantumESPRESSOParsers
 
-# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+# From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L315-L321
 const NAMELIST_ITEM = r"""
-                      [ \t]* (?<key> \S+? )(?: (?<kind> [\(%]) (?<index> \w+) \)? )? [ \t]*  # match and store key
-                      =                              # equals sign separates key and value
-                      [ \t]* (?<value> \S+?) [ \t]*  # match and store value
-                      [\n,]                          # return or comma separates "key = value" pairs
+                      [ \t]* (?<key>\w+?) (?: (?<kind>[\(%]) (?<index>\w+) \)? )? [ \t]*  # Match and store key
+                      =                              # Equals sign separates key and value
+                      [ \t]* (?<value>\S+?) [ \t]*  # Match and store value
+                      [\n,]                          # Return or comma separates "key = value" pairs
                       """mx
 const NAMELIST_HEADS = Dict{Symbol,String}(
     :ControlNamelist => "CONTROL",
@@ -41,13 +41,13 @@ const NAMELIST_HEADS = Dict{Symbol,String}(
 function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Namelist}
     result = Dict{Symbol,Any}()
     head = NAMELIST_HEADS[nameof(T)]
-    # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+    # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L305-L312
     NAMELIST_BLOCK = Regex("""
-                           ^ [ \t]* &$head [ \t]* \$\n
+                           ^ [ \\t]* &$head [ \\t]* \$  # Match `Namelist`'s name
                            (?<body>
-                               [\\S\\s]*?
-                           )
-                           ^ [ \t]* / [ \t]* \$
+                            [\\S\\s]*?  # Match any line non-greedily
+                           )            # Save the group of text between `Namelist`s
+                           ^ [ \\t]* \\/ [ \\t]* \$  # Match line with "/" as the only non-whitespace char
                            """, "imx")
     m = match(NAMELIST_BLOCK, str)
     if isnothing(m)
