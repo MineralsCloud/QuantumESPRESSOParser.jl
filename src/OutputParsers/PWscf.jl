@@ -15,7 +15,7 @@ using Compat: isnothing
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Fortran90Namelists.FortranToJulia
-using MLStyle: @match
+using Rematch: @match
 using Parameters: @with_kw
 using QuantumESPRESSOBase.Cards.PWscf
 

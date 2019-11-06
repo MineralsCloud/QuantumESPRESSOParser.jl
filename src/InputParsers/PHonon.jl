@@ -1,6 +1,6 @@
 module PHonon
 
-using MLStyle: @match
+using Rematch: @match
 
 using QuantumESPRESSOBase.Namelists: Namelist, to_dict
 using Compat: isnothing

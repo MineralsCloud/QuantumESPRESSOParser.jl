@@ -13,7 +13,7 @@ module PWscf
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
-using MLStyle: @match
+using Rematch: @match
 
 using QuantumESPRESSOBase: asfieldname
 using QuantumESPRESSOBase.Namelists.PWscf: ControlNamelist,
