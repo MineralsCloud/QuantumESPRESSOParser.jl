@@ -2,15 +2,9 @@ module PHonon
 
 using Rematch: @match
 
-using QuantumESPRESSOBase.Namelists: Namelist, to_dict
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
-using QuantumESPRESSOBase.Namelists.PHonon
-using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Cards.PHonon: SpecialQPoint, QPointsSpecsCard
-using QuantumESPRESSOBase.Inputs.PHonon
-
-using QuantumESPRESSOParsers.InputParsers.Namelists
 
 const Q_POINTS_SPECIAL_BLOCK_REGEX = r"""
 ^ [ \t]* qPointsSpecs [ \t]*$\n
@@ -49,28 +43,6 @@ function Base.parse(::Type{<:QPointsSpecsCard}, str::AbstractString)
         return QPointsSpecsCard(data)
     end
     @info "Cannot find card `Q_POINTS`!"
-end # function Base.parse
-
-function Base.parse(::Type{PHononInput}, str::AbstractString)
-    inputph = parse(PHNamelist, str)
-    q_points = parse(QPointsSpecsCard, str)
-    return PHononInput(inputph, q_points)
-end # function Base.parse
-
-function Base.parse(::Type{Q2RInput}, str::AbstractString)
-    input = parse(Q2RNamelist, str)
-    return Q2RInput(input)
-end # function Base.parse
-
-function Base.parse(::Type{MatdynInput}, str::AbstractString)
-    input = parse(MatdynNamelist, str)
-    q_points = parse(QPointsSpecsCard, str)
-    return MatdynInput(input, q_points)
-end # function Base.parse
-
-function Base.parse(::Type{DynmatInput}, str::AbstractString)
-    input = parse(DynmatNamelist, str)
-    return DynmatInput(input)
 end # function Base.parse
 
 end

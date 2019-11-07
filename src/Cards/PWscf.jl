@@ -1,26 +1,8 @@
-"""
-# module PWscf
-
-
-
-# Examples
-
-```jldoctest
-julia>
-```
-"""
 module PWscf
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 using Rematch: @match
-
-using QuantumESPRESSOBase: asfieldname
-using QuantumESPRESSOBase.Namelists.PWscf: ControlNamelist,
-                                           SystemNamelist,
-                                           ElectronsNamelist,
-                                           IonsNamelist,
-                                           CellNamelist
 using QuantumESPRESSOBase.Cards: Card
 using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        AtomicSpeciesCard,
@@ -31,7 +13,6 @@ using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        MonkhorstPackGrid,
                                        SpecialKPoint,
                                        CellParametersCard
-using QuantumESPRESSOBase.Inputs.PWscf: PWscfInput
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK = r"""
@@ -290,19 +271,5 @@ Base.tryparse(::Type{T}, str::AbstractString) where {T<:Card} =
     tryparse_internal(T, str, false)
 Base.parse(::Type{T}, str::AbstractString) where {T<:Card} =
     tryparse_internal(T, str, true)
-function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
-    dict = Dict{Symbol,Any}()
-    for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
-        push!(dict, asfieldname(T) => tryparse(T, str))  # Optional cards, can be `nothing`
-    end
-    for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)
-        push!(dict, asfieldname(T) => parse(T, str))  # Must-have cards, or else error
-    end
-    for T in (ControlNamelist, SystemNamelist, ElectronsNamelist, IonsNamelist, CellNamelist)
-        nml = tryparse(T, str)
-        push!(dict, asfieldname(T) => isnothing(nml) ? T() : nml)
-    end
-    return PWscfInput(; dict...)
-end # function Base.parse
 
 end

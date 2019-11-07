@@ -1,14 +1,13 @@
 using Test
 
 using Compat: isnothing
-
 using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
 using QuantumESPRESSOBase.Namelists.CP
 using QuantumESPRESSOBase.Namelists.PHonon
 
-using QuantumESPRESSOParsers.InputParsers.Namelists
+using QuantumESPRESSOParsers.Namelists
 
 @testset "Parse empty string" begin
     @test isnothing(parse(PWscf.ControlNamelist, " "))
