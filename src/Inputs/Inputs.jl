@@ -1,5 +1,5 @@
 """
-# module InputParsers
+# module Inputs
 
 
 
@@ -9,7 +9,7 @@
 julia>
 ```
 """
-module InputParsers
+module Inputs
 
 include("Namelists.jl")
 include("PWscf.jl")

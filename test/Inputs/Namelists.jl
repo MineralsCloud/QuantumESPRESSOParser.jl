@@ -8,7 +8,7 @@ using QuantumESPRESSOBase.Namelists.PWscf
 using QuantumESPRESSOBase.Namelists.CP
 using QuantumESPRESSOBase.Namelists.PHonon
 
-using QuantumESPRESSOParsers.InputParsers.Namelists
+using QuantumESPRESSOParsers.Inputs.Namelists
 
 @testset "Parse empty string" begin
     @test isnothing(parse(PWscf.ControlNamelist, " "))

@@ -10,7 +10,7 @@ using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Cards.PHonon: SpecialQPoint, QPointsSpecsCard
 using QuantumESPRESSOBase.Inputs.PHonon
 
-using QuantumESPRESSOParsers.InputParsers.Namelists
+using QuantumESPRESSOParsers.Inputs.Namelists
 
 const Q_POINTS_SPECIAL_BLOCK_REGEX = r"""
 ^ [ \t]* qPointsSpecs [ \t]*$\n
