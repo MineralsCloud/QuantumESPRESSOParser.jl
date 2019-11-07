@@ -1,6 +1,6 @@
 module QuantumESPRESSOParsers
 
-export InvalidUserInput, SubroutineError, ParseFailure
+export InvalidUserInput, SubroutineError
 
 struct InvalidUserInput
     msg::String
@@ -9,10 +9,6 @@ end
 struct SubroutineError
     name::String
     cerr::String
-    msg::String
-end
-
-struct ParseFailure <: Exception
     msg::String
 end
 
