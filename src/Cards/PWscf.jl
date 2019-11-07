@@ -3,7 +3,7 @@ module PWscf
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 using Rematch: @match
-
+using QuantumESPRESSOBase.Cards: Card
 using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        AtomicSpeciesCard,
                                        AtomicPosition,
