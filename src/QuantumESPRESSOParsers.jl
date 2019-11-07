@@ -16,6 +16,6 @@ end
 nonnothingtype(::Type{T}) where {T} = Core.Compiler.typesubtract(T, Nothing)  # Should not be exported
 
 include("Inputs/Inputs.jl")
-include("OutputParsers/OutputParsers.jl")
+include("Outputs/Outputs.jl")
 
 end # module

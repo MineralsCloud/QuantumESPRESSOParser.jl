@@ -1,5 +1,5 @@
 """
-# module OutputParsers
+# module Outputs
 
 
 
@@ -9,7 +9,7 @@
 julia>
 ```
 """
-module OutputParsers
+module Outputs
 
 include("PWscf.jl")
 
