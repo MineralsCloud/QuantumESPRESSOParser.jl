@@ -16,6 +16,7 @@ end
 nonnothingtype(::Type{T}) where {T} = Core.Compiler.typesubtract(T, Nothing)  # Should not be exported
 
 include("Namelists.jl")
+include("Cards/Cards.jl")
 include("Inputs/Inputs.jl")
 include("Outputs/Outputs.jl")
 
