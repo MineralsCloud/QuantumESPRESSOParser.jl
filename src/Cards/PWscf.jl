@@ -60,7 +60,7 @@ const ATOMIC_POSITIONS_BLOCK = r"""
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
-[{(]? \s* (?P<option>[a-z]*) \s* [)}]? \h* \v
+[{(]? \s* (?P<option>[a-z]*) \s* [)}]? \h* (?:[\#!].*)? \v  # Match option, do not match comment
 (?P<data>
 (?:
     \s*              # White space in front of the element spec is ok
@@ -196,7 +196,7 @@ function tryparse_internal(T::Type{<:AtomicPositionsCard}, str::AbstractString, 
         option = "alat"
     end
     content = m.captures[2]
-    data = AtomicPosition{String,Vector{Float64},Vector{Int}}[]
+    data = AtomicPosition[]
     for matched in eachmatch(ATOMIC_POSITIONS_ITEM, content)
         # The `matched` cannot be a `nothing` since we have tested by the block regular expression
         captured = matched.captures
@@ -214,12 +214,12 @@ function tryparse_internal(T::Type{<:AtomicPositionsCard}, str::AbstractString, 
 end # function tryparse_internal
 function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bool)
     m = match(K_POINTS_GAMMA_BLOCK, str)
-    !isnothing(m) && return KPointsCard("gamma", [GammaPoint()])
+    !isnothing(m) && return KPointsCard("gamma", GammaPoint())
 
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
     if !isnothing(m)
         data = map(x -> parse(Int, FortranData(x)), m.captures)
-        return KPointsCard("automatic", [MonkhorstPackGrid(data[1:3], data[4:6])])
+        return KPointsCard("automatic", MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 
     m = match(K_POINTS_SPECIAL_BLOCK, str)
@@ -241,7 +241,7 @@ function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bo
         return KPointsCard(option, data)
     end
 
-    raise && throw(Meta.ParseError("Cannot find card `K_POINTS`!"))
+    raise ? throw(Meta.ParseError("Cannot find card `K_POINTS`!")) : return
 end # function tryparse_internal
 function tryparse_internal(::Type{<:CellParametersCard}, str::AbstractString, raise::Bool)
     m = match(CELL_PARAMETERS_BLOCK, str)
@@ -249,13 +249,13 @@ function tryparse_internal(::Type{<:CellParametersCard}, str::AbstractString, ra
     if isnothing(m)
         raise ? throw(Meta.ParseError("Cannot find card `CELL_PARAMETERS`!")) : return
     end
-    option = string(m.captures[1])
+    option = string(m[:option])
     if isempty(option)
         @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
         @info "'bohr' is assumed."
         option = "bohr"
     end
-    content = m.captures[2]
+    content = m[:data]
     data = Matrix{Float64}(undef, 3, 3)
     for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
         captured = matched.captures
