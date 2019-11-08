@@ -27,6 +27,7 @@ export DiagonalizationStyle,
        CGDiagonalization,
        PPCGDiagonalization,
        parse_fft_base_info,
+       parse_symmetries,
        parse_ibz,
        parse_stress,
        parse_iteration_time,
@@ -113,6 +114,12 @@ function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
     end
     return df
 end # function parse_fft_base_info
+
+function parse_symmetries(str::AbstractString)
+    m = match(SYM_OPS, str)
+    isnothing(m) && return
+    num_sym_ops = isempty(m[:n]) ? 0 : parse(Int, m[:n])
+end # function parse_symmetries
 
 # Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
 function parse_ibz(str::AbstractString)::Maybe{Tuple}

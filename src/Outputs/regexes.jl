@@ -47,6 +47,7 @@ const FFT_BASE_INFO = r"""\s*(?<head>Parallelization info|G-vector sticks info)
 \s*--------------------
 \s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
 (?<body>(?:\s*Min.*)?(?:\s*Max.*)?\s*Sum.*)"""m
+const SYM_OPS = r"\h*(No symmetry found|(?<n>\d+)\s*Sym\. Ops\..*found)"
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L341-L381.
 const K_POINTS_BLOCK = r"""
 number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
