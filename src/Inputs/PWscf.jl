@@ -21,9 +21,9 @@ using QuantumESPRESSOBase.Cards.PWscf: AtomicSpeciesCard,
                                        AtomicPositionsCard,
                                        KPointsCard,
                                        CellParametersCard
-using QuantumESPRESSOBase.Inputs.PWscf: PWscfInput
+using QuantumESPRESSOBase.Inputs.PWscf: PWInput
 
-function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
+function Base.parse(::Type{<:PWInput}, str::AbstractString)
     dict = Dict{Symbol,Any}()
     for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
         push!(dict, asfieldname(T) => tryparse(T, str))  # Optional cards, can be `nothing`
@@ -35,7 +35,7 @@ function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
         nml = tryparse(T, str)
         push!(dict, asfieldname(T) => isnothing(nml) ? T() : nml)
     end
-    return PWscfInput(; dict...)
+    return PWInput(; dict...)
 end # function Base.parse
 
 end
