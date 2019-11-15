@@ -10,26 +10,26 @@ using QuantumESPRESSOBase.Inputs.PHonon
 using QuantumESPRESSOParsers.Namelists
 using QuantumESPRESSOParsers.Cards
 
-function Base.parse(::Type{PhInput}, str::AbstractString)
+function Base.parse(::Type{T}, str::AbstractString) where {T<:PhInput}
     inputph = parse(PhNamelist, str)
     q_points = parse(QPointsSpecsCard, str)
-    return PhInput(inputph, q_points)
+    return T(inputph, q_points)
 end # function Base.parse
 
-function Base.parse(::Type{Q2rInput}, str::AbstractString)
+function Base.parse(::Type{T}, str::AbstractString) where {T<:Q2rInput}
     input = parse(Q2rNamelist, str)
-    return Q2RInput(input)
+    return T(input)
 end # function Base.parse
 
-function Base.parse(::Type{MatdynInput}, str::AbstractString)
+function Base.parse(::Type{T}, str::AbstractString) where {T<:MatdynInput}
     input = parse(MatdynNamelist, str)
     q_points = parse(QPointsSpecsCard, str)
-    return MatdynInput(input, q_points)
+    return T(input, q_points)
 end # function Base.parse
 
-function Base.parse(::Type{DynmatInput}, str::AbstractString)
+function Base.parse(::Type{T}, str::AbstractString) where {T<:DynmatInput}
     input = parse(DynmatNamelist, str)
-    return DynmatInput(input)
+    return T(input)
 end # function Base.parse
 
 end
