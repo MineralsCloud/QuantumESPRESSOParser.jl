@@ -41,7 +41,6 @@ export DiagonalizationStyle,
        parse_version,
        parse_parallel_info,
        parse_fft_dimensions,
-       parse_cell_parameters,
        parse_atomic_positions,
        parse_iteration_head,
        parse_clock,
@@ -163,26 +162,6 @@ function parse_stress(str::AbstractString)
     end
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
-
-function parse_cell_parameters(str::AbstractString)::Vector{<:CellParametersCard}
-    cell_parameters = CellParametersCard[]
-    for m in eachmatch(CELL_PARAMETERS_BLOCK, str)
-        alat = parse(Float64, m.captures[1])
-        content = m.captures[3]
-
-        data = Matrix{Float64}(undef, 3, 3)
-        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
-            captured = matched.captures
-            data[i, :] = map(
-                x -> parse(Float64, FortranData(x)),
-                [captured[1], captured[4], captured[7]],
-            )
-        end
-        push!(cell_parameters, CellParametersCard("bohr", alat * data))
-    end
-    return cell_parameters
-end # function parse_cell_parameters
-
 
 function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCard}
     atomic_positions = AtomicPositionsCard[]
