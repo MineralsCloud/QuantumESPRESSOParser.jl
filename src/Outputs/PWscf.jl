@@ -50,7 +50,9 @@ export DiagonalizationStyle,
        tryparsefirst,
        parsefirst,
        tryparseall,
-       parseall
+       parseall,
+       tryparselast,
+       parselast
 
 include("regexes.jl")
 
@@ -556,5 +558,8 @@ function parseall(::Type{T}, str::AbstractString) where {T}
         end
     end
 end # function parseall
+
+tryparselast(::Type{T}, str::AbstractString) where {T} = tryparseall(T, str)[end]
+parselast(::Type{T}, str::AbstractString) where {T} = parseall(T, str)[end]
 
 end
