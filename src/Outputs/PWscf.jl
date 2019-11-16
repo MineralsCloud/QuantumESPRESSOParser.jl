@@ -48,7 +48,9 @@ export DiagonalizationStyle,
        isrelaxed,
        isjobdone,
        tryparsefirst,
-       parsefirst
+       parsefirst,
+       tryparseall,
+       parseall
 
 include("regexes.jl")
 
@@ -533,7 +535,26 @@ end # function Base.parse
 # This is an internal function and should not be exported.
 regexof(::Type{<:CellParametersCard})::Regex = CELL_PARAMETERS_BLOCK
 
-tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse(T, str[findfirst(regexof(T), str)])
-parsefirst(::Type{T}, str::AbstractString) where {T} = parse(T, str[findfirst(regexof(T), str)])
+tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse(T, str)
+parsefirst(::Type{T}, str::AbstractString) where {T} = parse(T, str)
+
+function tryparseall(::Type{T}, str::AbstractString) where {T}
+    return map(eachmatch(regexof(T), str)) do x
+        try
+            parse(T, x.match)
+        catch
+            nothing
+        end
+    end
+end # function parseall
+function parseall(::Type{T}, str::AbstractString) where {T}
+    return map(eachmatch(regexof(T), str)) do x
+        try
+            parse(T, x.match)
+        catch
+            Meta.ParseError("Pass failed!")
+        end
+    end
+end # function parseall
 
 end
