@@ -190,17 +190,14 @@ function tryparse_internal(
     if isnothing(m)
         raise ? throw(Meta.ParseError("Cannot find `CELL_PARAMETERS`!")) : return
     end
-    alat = parse(Float64, m[1])
-    content = m[3]
+    alat = parse(Float64, m[:alat])
+    body = m[:data]
 
     data = Matrix{Float64}(undef, 3, 3)
-    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
-        data[i, :] = map(
-            x -> parse(Float64, FortranData(x)),
-            [m[1], m[4], m[7]],
-        )
+    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
+        data[i, :] = map(x -> parse(Float64, x), matched.captures)
     end
-    return CellParametersCard("bohr", alat * data)
+    return T("bohr", alat * data)
 end # function tryparse_internal
 
 function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCard}

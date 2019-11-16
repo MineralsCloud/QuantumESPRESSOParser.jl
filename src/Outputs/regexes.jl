@@ -57,38 +57,23 @@ number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
 const K_POINTS_ITEM = Regex("k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL")
+# The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L47-L60.
 const CELL_PARAMETERS_BLOCK = r"""
-^ [ \t]*
-CELL_PARAMETERS [ \t]*
-\(?\w+\s*=\s*[\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?\)? \s* [\n]
-(
-(
-\s*
-(
-[\-|\+]? ( [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?\s*
-){3}[\n]
-){3}
+CELL_PARAMETERS \h+
+\( \w+ = \s* (?<alat>[-+]?[0-9]*\.[0-9]{8}) \) \h*  # Match `alat`: `F12.8`
+(?<data>
+    (?: \s*
+        (?:
+            [-+]?[0-9]*\.[0-9]{9} \s*  # Match element: `3F14.9`
+        ){3}  # I need exactly 3 elements per vector
+    ){3}  # I need exactly 3 vectors
 )
 """mx
 const CELL_PARAMETERS_ITEM = r"""
-^                        # Linestart
-[ \t]*                   # Optional white space
-(?P<x>                   # Get x
-    [\-|\+]? ( [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<y>                   # Get y
-    [\-|\+]? ([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<z>                   # Get z
-    [\-|\+]? ([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
+\s*
+([-+]?[0-9]*\.[0-9]{9}) \s*  # x
+([-+]?[0-9]*\.[0-9]{9}) \s*  # y
+([-+]?[0-9]*\.[0-9]{9}) \s*  # z
 """mx
 const ATOMIC_POSITIONS_BLOCK = r"""
 ^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
