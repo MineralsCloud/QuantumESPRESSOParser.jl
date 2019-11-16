@@ -51,7 +51,9 @@ export DiagonalizationStyle,
        tryparseall,
        parseall,
        tryparselast,
-       parselast
+       parselast,
+       tryparsenext,
+       parsenext
 
 include("regexes.jl")
 
@@ -565,5 +567,15 @@ end # function parseall
 
 tryparselast(::Type{T}, str::AbstractString) where {T} = tryparseall(T, str)[end]
 parselast(::Type{T}, str::AbstractString) where {T} = parseall(T, str)[end]
+
+function _parsenext_internal(::Type{T}, str::AbstractString, start::Integer, raise::Bool) where {T}
+    x = findnext(regexof(T), str, start)
+    if isnothing(x)
+        raise ? throw(Meta.ParseError("Nothing found for next!")) : return
+    end
+    return parse(T, str[x])
+end # function parsenext
+tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, false)
+parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, true)
 
 end
