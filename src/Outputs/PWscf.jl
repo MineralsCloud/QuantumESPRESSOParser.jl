@@ -47,7 +47,9 @@ export DiagonalizationStyle,
        parse_clock,
        whatinput,
        isrelaxed,
-       isjobdone
+       isjobdone,
+       tryparsefirst,
+       parsefirst
 
 include("regexes.jl")
 
@@ -181,24 +183,6 @@ function parse_cell_parameters(str::AbstractString)::Vector{<:CellParametersCard
     return cell_parameters
 end # function parse_cell_parameters
 
-function tryparse_internal(
-    ::Type{T},
-    str::AbstractString,
-    raise::Bool,
-) where {T<:CellParametersCard}
-    m = match(CELL_PARAMETERS_BLOCK, str)
-    if isnothing(m)
-        raise ? throw(Meta.ParseError("Cannot find `CELL_PARAMETERS`!")) : return
-    end
-    alat = parse(Float64, m[:alat])
-    body = m[:data]
-
-    data = Matrix{Float64}(undef, 3, 3)
-    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
-        data[i, :] = map(x -> parse(Float64, x), matched.captures)
-    end
-    return T("bohr", alat * data)
-end # function tryparse_internal
 
 function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCard}
     atomic_positions = AtomicPositionsCard[]
@@ -539,8 +523,26 @@ function tryparse_internal(
     m = match(ERROR_IN_ROUTINE, e)
     return T(m[1], m[2], msg)
 end # function tryparse_internal
+function tryparse_internal(
+    ::Type{T},
+    str::AbstractString,
+    raise::Bool,
+) where {T<:CellParametersCard}
+    m = match(CELL_PARAMETERS_BLOCK, str)
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find `CELL_PARAMETERS`!")) : return
+    end
+    alat = parse(Float64, m[:alat])
+    body = m[:data]
 
-const _INTERNAL_TYPES = Union{Preamble,SubroutineError}
+    data = Matrix{Float64}(undef, 3, 3)
+    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
+        data[i, :] = map(x -> parse(Float64, x), matched.captures)
+    end
+    return T("bohr", alat * data)
+end # function tryparse_internal
+
+const _INTERNAL_TYPES = Union{Preamble,SubroutineError,CellParametersCard}
 
 function Base.tryparse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, false)
@@ -548,5 +550,11 @@ end # function Base.tryparse
 function Base.parse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, true)
 end # function Base.parse
+
+# This is an internal function and should not be exported.
+regexof(::Type{<:CellParametersCard})::Regex = CELL_PARAMETERS_BLOCK
+
+tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse(T, str[findfirst(regexof(T), str)])
+parsefirst(::Type{T}, str::AbstractString) where {T} = parse(T, str[findfirst(regexof(T), str)])
 
 end
