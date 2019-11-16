@@ -41,13 +41,19 @@ export DiagonalizationStyle,
        parse_version,
        parse_parallel_info,
        parse_fft_dimensions,
-       parse_cell_parameters,
-       parse_atomic_positions,
        parse_iteration_head,
        parse_clock,
        whatinput,
        isrelaxed,
-       isjobdone
+       isjobdone,
+       tryparsefirst,
+       parsefirst,
+       tryparseall,
+       parseall,
+       tryparselast,
+       parselast,
+       tryparsenext,
+       parsenext
 
 include("regexes.jl")
 
@@ -161,47 +167,6 @@ function parse_stress(str::AbstractString)
     end
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
-
-function parse_cell_parameters(str::AbstractString)::Vector{<:CellParametersCard}
-    cell_parameters = CellParametersCard[]
-    for m in eachmatch(CELL_PARAMETERS_BLOCK, str)
-        alat = parse(Float64, m.captures[1])
-        content = m.captures[3]
-
-        data = Matrix{Float64}(undef, 3, 3)
-        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
-            captured = matched.captures
-            data[i, :] = map(
-                x -> parse(Float64, FortranData(x)),
-                [captured[1], captured[4], captured[7]],
-            )
-        end
-        push!(cell_parameters, CellParametersCard("bohr", alat * data))
-    end
-    return cell_parameters
-end # function parse_cell_parameters
-
-function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCard}
-    atomic_positions = AtomicPositionsCard[]
-    for m in eachmatch(ATOMIC_POSITIONS_BLOCK, str)
-        unit = string(m.captures[1])
-        content = m.captures[2]
-        data = AtomicPosition[]
-
-        for matched in eachmatch(ATOMIC_POSITIONS_ITEM, content)
-            captured = matched.captures
-            if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
-            atom, pos = string(captured[1]),
-                map(
-                    x -> parse(Float64, FortranData(x)),
-                    [captured[3], captured[6], captured[9]],
-                )
-            push!(data, AtomicPosition(atom, pos, if_pos))
-        end
-        push!(atomic_positions, AtomicPositionsCard(unit, data))
-    end
-    return atomic_positions
-end # parse_atomic_positions
 
 function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString)
     # Loop relax steps
@@ -520,8 +485,52 @@ function tryparse_internal(
     m = match(ERROR_IN_ROUTINE, e)
     return T(m[1], m[2], msg)
 end # function tryparse_internal
+function tryparse_internal(
+    ::Type{T},
+    str::AbstractString,
+    raise::Bool,
+) where {T<:CellParametersCard}
+    m = match(CELL_PARAMETERS_BLOCK, str)
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find `CELL_PARAMETERS`!")) : return
+    end
+    alat = parse(Float64, m[:alat])
+    body = m[:data]
 
-const _INTERNAL_TYPES = Union{Preamble,SubroutineError}
+    data = Matrix{Float64}(undef, 3, 3)
+    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
+        data[i, :] = map(x -> parse(Float64, x), matched.captures)
+    end
+    return T("bohr", alat * data)
+end # function tryparse_internal
+function tryparse_internal(
+    ::Type{T},
+    str::AbstractString,
+    raise::Bool,
+) where {T<:AtomicPositionsCard}
+    atomic_positions = AtomicPositionsCard[]
+    m = match(ATOMIC_POSITIONS_BLOCK, str)
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find `ATOMIC_POSITIONS`!")) : return
+    end
+    option = string(m[1])
+    body = m[2]
+    data = AtomicPosition[]
+
+    for matched in eachmatch(ATOMIC_POSITIONS_ITEM, body)
+        captured = matched.captures
+        if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
+        atom, pos = string(captured[1]),
+            map(
+                x -> parse(Float64, FortranData(x)),
+                [captured[3], captured[6], captured[9]],
+            )
+        push!(data, AtomicPosition(atom, pos, if_pos))
+    end
+    return AtomicPositionsCard(option, data)
+end # function tryparse_internal
+
+const _INTERNAL_TYPES = Union{Preamble,SubroutineError,CellParametersCard,AtomicPositionsCard}
 
 function Base.tryparse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, false)
@@ -529,5 +538,44 @@ end # function Base.tryparse
 function Base.parse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, true)
 end # function Base.parse
+
+# This is an internal function and should not be exported.
+regexof(::Type{<:CellParametersCard})::Regex = CELL_PARAMETERS_BLOCK
+regexof(::Type{<:AtomicPositionsCard})::Regex = ATOMIC_POSITIONS_BLOCK
+
+tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse(T, str)
+parsefirst(::Type{T}, str::AbstractString) where {T} = parse(T, str)
+
+function tryparseall(::Type{T}, str::AbstractString) where {T}
+    return map(eachmatch(regexof(T), str)) do x
+        try
+            parse(T, x.match)
+        catch
+            nothing
+        end
+    end
+end # function parseall
+function parseall(::Type{T}, str::AbstractString) where {T}
+    return map(eachmatch(regexof(T), str)) do x
+        try
+            parse(T, x.match)
+        catch
+            Meta.ParseError("Pass failed!")
+        end
+    end
+end # function parseall
+
+tryparselast(::Type{T}, str::AbstractString) where {T} = tryparseall(T, str)[end]
+parselast(::Type{T}, str::AbstractString) where {T} = parseall(T, str)[end]
+
+function _parsenext_internal(::Type{T}, str::AbstractString, start::Integer, raise::Bool) where {T}
+    x = findnext(regexof(T), str, start)
+    if isnothing(x)
+        raise ? throw(Meta.ParseError("Nothing found for next!")) : return
+    end
+    return parse(T, str[x])
+end # function parsenext
+tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, false)
+parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, true)
 
 end
