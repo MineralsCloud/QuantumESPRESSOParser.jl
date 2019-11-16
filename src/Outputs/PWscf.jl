@@ -40,6 +40,7 @@ export DiagonalizationStyle,
        parse_parallel_info,
        parse_fft_dimensions,
        parse_iteration_head,
+       parse_electrons_energies,
        parse_clock,
        whatinput,
        isrelaxed,
@@ -261,8 +262,30 @@ function _parse_electrons_energies(str::AbstractString, ::Val{:converged})
     end
     return df
 end # function _parse_electrons_energies
+function _parse_electrons_energies(str::AbstractString, ::Val{:combined})
+    converged = parse_electrons_energies(str, :converged)
+    nonconverged = parse_electrons_energies(str, :nonconverged)
+    # TODO: Very ugly hack
+    m = 1  # Initial step number
+    for (i, n) in enumerate(nonconverged.step)
+        if n != m
+            @assert(all(isnothing, nonconverged[i - 1, 3:5]))
+            # nonconverged[i - 1, 3:5] = converged[n, 2:4]  # Converged energies do not have `iteration` column
+            nonconverged[i - 1, 3] = converged[n, 2]
+            nonconverged[i - 1, 4] = converged[n, 3]
+            nonconverged[i - 1, 5] = converged[n, 4]
+        end
+        m = n  # Save the last step number
+    end
+    if m == 1
+        nonconverged[end, 3] = converged[end, 2]
+        nonconverged[end, 4] = converged[end, 3]
+        nonconverged[end, 5] = converged[end, 4]
+    end
+    return nonconverged
+end # function _parse_electrons_energies
 function parse_electrons_energies(str::AbstractString, option::Symbol)
-    @assert(option ∈ (:all, :converged, :nonconverged))
+    @assert(option ∈ (:combined, :converged, :nonconverged))
     return _parse_electrons_energies(str, Val(option))
 end # function parse_electrons_energies
 
