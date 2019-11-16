@@ -181,6 +181,28 @@ function parse_cell_parameters(str::AbstractString)::Vector{<:CellParametersCard
     return cell_parameters
 end # function parse_cell_parameters
 
+function tryparse_internal(
+    ::Type{T},
+    str::AbstractString,
+    raise::Bool,
+) where {T<:CellParametersCard}
+    m = match(CELL_PARAMETERS_BLOCK, str)
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find `CELL_PARAMETERS`!")) : return
+    end
+    alat = parse(Float64, m[1])
+    content = m[3]
+
+    data = Matrix{Float64}(undef, 3, 3)
+    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
+        data[i, :] = map(
+            x -> parse(Float64, FortranData(x)),
+            [m[1], m[4], m[7]],
+        )
+    end
+    return CellParametersCard("bohr", alat * data)
+end # function tryparse_internal
+
 function parse_atomic_positions(str::AbstractString)::Vector{<:AtomicPositionsCard}
     atomic_positions = AtomicPositionsCard[]
     for m in eachmatch(ATOMIC_POSITIONS_BLOCK, str)
