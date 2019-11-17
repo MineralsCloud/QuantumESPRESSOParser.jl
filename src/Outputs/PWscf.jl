@@ -545,12 +545,8 @@ function tryparse_internal(
 
     for matched in eachmatch(ATOMIC_POSITIONS_ITEM, body)
         captured = matched.captures
-        if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
-        atom, pos = string(captured[1]),
-            map(
-                x -> parse(Float64, FortranData(x)),
-                [captured[3], captured[6], captured[9]],
-            )
+        if_pos = map(x -> isnothing(x) ? 1 : parse(Int, x), captured[5:7])
+        atom, pos = string(captured[1]), map(x -> parse(Float64, x), captured[2:4])
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
     return AtomicPositionsCard(option, data)
