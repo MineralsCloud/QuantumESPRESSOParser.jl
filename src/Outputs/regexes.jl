@@ -68,13 +68,13 @@ CELL_PARAMETERS \h+
         ){3}  # I need exactly 3 elements per vector
     ){3}  # I need exactly 3 vectors
 )
-"""mx
+"""x
 const CELL_PARAMETERS_ITEM = r"""
 \s*
 ([-+]?[0-9]*\.[0-9]{9}) \s*  # x
 ([-+]?[0-9]*\.[0-9]{9}) \s*  # y
 ([-+]?[0-9]*\.[0-9]{9}) \s*  # z
-"""mx
+"""x
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L64-L109.
 const ATOMIC_POSITIONS_BLOCK = r"""
 ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
@@ -92,11 +92,6 @@ ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
     )+
 )
 """x
-const FINAL_COORDINATES_BLOCK = r"""
-Begin final coordinates
-(\X+?)
-End final coordinates
-"""
 const ATOMIC_POSITIONS_ITEM = r"""
 \s*
 ([A-Za-z]+[A-Za-z0-9]{0,2}) \s+  # Atom spec
@@ -107,6 +102,11 @@ const ATOMIC_POSITIONS_ITEM = r"""
 ([-+]?[0-9]+)? \s*            # if_pos(2)
 ([-+]?[0-9]+)? \s*            # if_pos(3)
 """x
+const FINAL_COORDINATES_BLOCK = r"""
+Begin final coordinates
+(\X+?)
+End final coordinates
+"""
 const STRESS_BLOCK = r"""
 ^[ \t]*
 total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
