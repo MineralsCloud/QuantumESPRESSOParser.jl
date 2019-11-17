@@ -519,14 +519,15 @@ function tryparse_internal(
     if isnothing(m)
         raise ? throw(Meta.ParseError("Cannot find `CELL_PARAMETERS`!")) : return
     end
-    alat = parse(Float64, m[:alat])
-    body = m[:data]
-
-    data = Matrix{Float64}(undef, 3, 3)
+    body, data = m[:data], Matrix{Float64}(undef, 3, 3)  # Initialization
     for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
         data[i, :] = map(x -> parse(Float64, x), matched.captures)
     end
-    return T("bohr", alat * data)
+    if m[:option] == "alat"
+        alat = parse(Float64, m[:alat])
+        return T("bohr", alat * data)
+    end
+    return T(m[:option], data)
 end # function tryparse_internal
 function tryparse_internal(
     ::Type{T},

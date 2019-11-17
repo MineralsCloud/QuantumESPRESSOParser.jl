@@ -60,7 +60,7 @@ const K_POINTS_ITEM = Regex("k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POIN
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L47-L60.
 const CELL_PARAMETERS_BLOCK = r"""
 CELL_PARAMETERS \h+
-\( \w+ = \s* (?<alat>[-+]?[0-9]*\.[0-9]{8}) \) \h*  # Match `alat`: `F12.8`
+\( (?<option>\w+) =? \s* (?<alat>[-+]?[0-9]*\.[0-9]{8})? \) \h*  # Match `alat`: `F12.8`
 (?<data>
     (?: \s*
         (?:
