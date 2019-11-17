@@ -52,7 +52,9 @@ export DiagonalizationStyle,
        tryparselast,
        parselast,
        tryparsenext,
-       parsenext
+       parsenext,
+       tryparsefinal,
+       parsefinal
 
 include("regexes.jl")
 
@@ -600,5 +602,20 @@ function _parsenext_internal(::Type{T}, str::AbstractString, start::Integer, rai
 end # function parsenext
 tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, false)
 parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, true)
+
+function tryparsefinal(::Type{T}, str::AbstractString) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
+    m = match(FINAL_COORDINATES_BLOCK, str)
+    isnothing(m) && return
+    m = match(regexof(T), m.match)
+    isnothing(m) && return
+    return tryparse(T, m.match)
+end # function parsefinal
+function parsefinal(::Type{T}, str::AbstractString) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
+    m = match(FINAL_COORDINATES_BLOCK, str)
+    isnothing(m) && throw(Meta.ParseError("No final coordinates found!"))
+    m = match(regexof(T), m.match)
+    isnothing(m) && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
+    return parse(T, m.match)
+end # function parsefinal
 
 end

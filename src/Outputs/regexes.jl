@@ -116,6 +116,11 @@ const ATOMIC_POSITIONS_BLOCK = r"""
     )+                                          # A positions block should be one or more lines
 )
 """mx
+const FINAL_COORDINATES_BLOCK = r"""
+Begin final coordinates
+(\X+?)
+End final coordinates
+"""
 const ATOMIC_POSITIONS_ITEM = r"""
 ^                                       # Linestart
 [ \t]*                                  # Optional white space
@@ -242,7 +247,6 @@ const H_PSI_TIME_BLOCK = r"Called by (?<head>h_psi):(?<body>\X+?)^\s*$"m
 const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"m
 const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"m
 const TERMINATED_DATE = r"This run was terminated on:(.+)"  # TODO: Date
-const FINAL_COORDINATES_BLOCK = r"\s*(?:Begin final coordinates(\X+?)\s*End final coordinates)"m
 const JOB_DONE = r"JOB DONE\."
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/UtilXlib/error_handler.f90#L48-L68.
 const ERROR_BLOCK = r"%{78}(?<body>\X+?)\s*%{78}"
