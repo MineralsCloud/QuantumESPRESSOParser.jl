@@ -60,7 +60,7 @@ const K_POINTS_ITEM = Regex("k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POIN
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L47-L60.
 const CELL_PARAMETERS_BLOCK = r"""
 CELL_PARAMETERS \h+
-\( \w+ = \s* (?<alat>[-+]?[0-9]*\.[0-9]{8}) \) \h*  # Match `alat`: `F12.8`
+\( (?<option>\w+) =? \s* (?<alat>[-+]?[0-9]*\.[0-9]{8})? \) \h*  # Match `alat`: `F12.8`
 (?<data>
     (?: \s*
         (?:
@@ -68,79 +68,45 @@ CELL_PARAMETERS \h+
         ){3}  # I need exactly 3 elements per vector
     ){3}  # I need exactly 3 vectors
 )
-"""mx
+"""x
 const CELL_PARAMETERS_ITEM = r"""
 \s*
 ([-+]?[0-9]*\.[0-9]{9}) \s*  # x
 ([-+]?[0-9]*\.[0-9]{9}) \s*  # y
 ([-+]?[0-9]*\.[0-9]{9}) \s*  # z
-"""mx
+"""x
+# The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L64-L109.
 const ATOMIC_POSITIONS_BLOCK = r"""
-^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
-[{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\n    # The units are after the string in optional brackets
-(?P<block>                                      # This is the block of positions
-    (
-        (
-            \s*                                 # White space in front of the element spec is ok
-            (
-                [A-Za-z]+[A-Za-z0-9]{0,2}       # Element spec
-                (
-                    \s+                         # White space in front of the number
-                    [-|+]?                      # Plus or minus in front of the number (optional)
-                    (
-                        (
-                            [0-9]*                 # optional decimal in the beginning .0001 is ok, for example
-                            [\.]                # There has to be a dot followed by
-                            [0-9]+                 # at least one decimal
-                        )
-                        |                       # OR
-                        (
-                            [0-9]+                 # at least one decimal, followed by
-                            [\.]?               # an optional dot ( both 1 and 1. are fine)
-                            [0-9]*                 # And optional number of decimals (1.00001)
-                        )                        # followed by optional decimals
-                    )
-                    ([E|e|d|D][+|-]?[0-9]+)?       # optional exponents E+03, e-05
-                ){3}                            # I expect three float values
-                ((\s+[0-1]){3}\s*)?             # Followed by optional ifpos
-                \s*                             # Followed by optional white space
-                |
-                \#.*                            # If a line is commented out, that is also ok
-                |
-                \!.*                            # Comments also with excl. mark in fortran
-            )
-            |                                   # OR
-            \s*                                 # A line only containing white space
-         )
-        [\n]                                    # line break at the end
-    )+                                          # A positions block should be one or more lines
+ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
+\( (?<option>\w+) \)                   # Option of the card
+(?<data>
+    (?:
+        \s*
+        [A-Za-z]+[A-Za-z0-9]{0,2} \s+  # Atom spec
+        (?:
+            [-+]?[0-9]*\.[0-9]{9} \s*  # Match element: `3F14.9`
+        ){3}                           # I need exactly 3 floats per vector.
+        (?:
+            [-+]?[0-9]+ \s*
+        ){0,3}                     # I need exactly 3 integers in `if_pos`, if there is any.
+    )+
 )
-"""mx
+"""x
 const ATOMIC_POSITIONS_ITEM = r"""
-^                                       # Linestart
-[ \t]*                                  # Optional white space
-(?P<name>[A-Za-z]+[A-Za-z0-9]{0,2})\s+   # get the symbol, max 3 chars, starting with a char
-(?P<x>                                  # Get x
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<y>                                  # Get y
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<z>                                  # Get z
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]*
-(?P<fx>[01]?)                           # Get fx
-[ \t]*
-(?P<fy>[01]?)                           # Get fx
-[ \t]*
-(?P<fz>[01]?)                           # Get fx
-"""mx
+\s*
+([A-Za-z]+[A-Za-z0-9]{0,2}) \s+  # Atom spec
+([-+]?[0-9]*\.[0-9]{9}) \s*  # x
+([-+]?[0-9]*\.[0-9]{9}) \s*  # y
+([-+]?[0-9]*\.[0-9]{9}) \s*  # z
+([-+]?[0-9]+)? \s*            # if_pos(1)
+([-+]?[0-9]+)? \s*            # if_pos(2)
+([-+]?[0-9]+)? \s*            # if_pos(3)
+"""x
+const FINAL_COORDINATES_BLOCK = r"""
+Begin final coordinates
+(\X+?)
+End final coordinates
+"""
 const STRESS_BLOCK = r"""
 ^[ \t]*
 total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
@@ -242,7 +208,6 @@ const H_PSI_TIME_BLOCK = r"Called by (?<head>h_psi):(?<body>\X+?)^\s*$"m
 const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"m
 const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"m
 const TERMINATED_DATE = r"This run was terminated on:(.+)"  # TODO: Date
-const FINAL_COORDINATES_BLOCK = r"\s*(?:Begin final coordinates(\X+?)\s*End final coordinates)"m
 const JOB_DONE = r"JOB DONE\."
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/UtilXlib/error_handler.f90#L48-L68.
 const ERROR_BLOCK = r"%{78}(?<body>\X+?)\s*%{78}"
