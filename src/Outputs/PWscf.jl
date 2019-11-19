@@ -552,7 +552,7 @@ function tryparse_internal(
     return AtomicPositionsCard(option, data)
 end # function tryparse_internal
 
-const _INTERNAL_TYPES = Union{Preamble,SubroutineError,CellParametersCard,AtomicPositionsCard}
+const _INTERNAL_TYPES = Union{Preamble,SubroutineError}
 
 function Base.tryparse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
     return tryparse_internal(T, str, false)
@@ -565,13 +565,13 @@ end # function Base.parse
 regexof(::Type{<:CellParametersCard})::Regex = CELL_PARAMETERS_BLOCK
 regexof(::Type{<:AtomicPositionsCard})::Regex = ATOMIC_POSITIONS_BLOCK
 
-tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse(T, str)
-parsefirst(::Type{T}, str::AbstractString) where {T} = parse(T, str)
+tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse_internal(T, str, false)
+parsefirst(::Type{T}, str::AbstractString) where {T} = tryparse_internal(T, str, true)
 
 function tryparseall(::Type{T}, str::AbstractString) where {T}
     return map(eachmatch(regexof(T), str)) do x
         try
-            parse(T, x.match)
+            tryparse_internal(T, x.match, true)
         catch
             nothing
         end
@@ -580,7 +580,7 @@ end # function parseall
 function parseall(::Type{T}, str::AbstractString) where {T}
     return map(eachmatch(regexof(T), str)) do x
         try
-            parse(T, x.match)
+            tryparse_internal(T, x.match, true)
         catch
             Meta.ParseError("Pass failed!")
         end
@@ -595,7 +595,7 @@ function _parsenext_internal(::Type{T}, str::AbstractString, start::Integer, rai
     if isnothing(x)
         raise ? throw(Meta.ParseError("Nothing found for next!")) : return
     end
-    return parse(T, str[x])
+    return tryparse_internal(T, str[x], true)
 end # function parsenext
 tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, false)
 parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, true)
@@ -605,14 +605,14 @@ function tryparsefinal(::Type{T}, str::AbstractString) where {T<:Union{CellParam
     isnothing(m) && return
     m = match(regexof(T), m.match)
     isnothing(m) && return
-    return tryparse(T, m.match)
+    return tryparse_internal(T, m.match, false)
 end # function parsefinal
 function parsefinal(::Type{T}, str::AbstractString) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && throw(Meta.ParseError("No final coordinates found!"))
     m = match(regexof(T), m.match)
     isnothing(m) && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
-    return parse(T, m.match)
+    return tryparse_internal(T, m.match, true)
 end # function parsefinal
 
 end
