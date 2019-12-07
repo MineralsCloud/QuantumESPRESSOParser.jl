@@ -19,13 +19,13 @@ const Q_POINTS_SPECIAL_BLOCK_REGEX = r"""
 const Q_POINTS_SPECIAL_ITEM_REGEX = r"""
 ^ [ \t]* 
 ([\-|\+]?(?:\d*[\.]\d+ | \d+[\.]?\d*)
-    (?:[E|e|d|D][+|-]?\d+)?)\s+
+    (?:[E|e|d|D][+|-]?\d+)?)\h*
 ([\-|\+]?(?:\d*[\.]\d+ | \d+[\.]?\d*)
-    (?:[E|e|d|D][+|-]?\d+)?)\s+
+    (?:[E|e|d|D][+|-]?\d+)?)\h*
 ([\-|\+]?(?:\d*[\.]\d+ | \d+[\.]?\d*)
-    (?:[E|e|d|D][+|-]?\d+)?)\s+
+    (?:[E|e|d|D][+|-]?\d+)?)\h*
 ([\-|\+]?(?:\d*[\.]\d+ | \d+[\.]?\d*)
-    (?:[E|e|d|D][+|-]?\d+)?)\s*
+    (?:[E|e|d|D][+|-]?\d+)?)\h*
 """imx
 
 function Base.parse(::Type{<:QPointsSpecsCard}, str::AbstractString)
