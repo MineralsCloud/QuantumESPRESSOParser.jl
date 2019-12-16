@@ -3,7 +3,9 @@ using Test
 using Compat: isnothing
 using DataFrames
 using QuantumESPRESSOBase
-using QuantumESPRESSOParsers.OutputParsers.PWscf
+
+using QuantumESPRESSOParsers
+using QuantumESPRESSOParsers.Outputs.PWscf
 
 @testset "Parse scf Al output" begin
     url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/example01/reference/al.scf.ppcg.out"
@@ -11,35 +13,41 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 3.0,
-        "number of Kohn-Sham states" => 6,
-        "lattice parameter (alat)" => 7.5,
-        "number of iterations used" => 8,
-        "convergence threshold" => 1.0e-6,
-        "unit-cell volume" => 105.4688,
-        "Exchange-correlation" => "SLA PZ NOGX NOGC ( 1  1  0  0 0 0)",
-        "kinetic-energy cutoff" => 15.0,
-        "bravais-lattice index" => 2,
-        "number of atoms/cell" => 1,
-        "number of atomic types" => 1,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 60.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 1,
+        alat = 7.5,
+        omega = 105.4688,
+        nat = 1,
+        ntyp = 1,
+        nelec = 3.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 6,
+        ecutwfc = 15.0,
+        ecutrho = 60.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-6,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA PZ NOGX NOGC ( 1  1  0  0 0 0)",
+        nstep = nothing,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Min" 30 30 10
-             "sticks" "Max" 31 31 11
-             "sticks" "Sum" 121 121 43
-             "gvecs" "Min" 216 216 45
-             "gvecs" "Max" 218 218 46
-             "gvecs" "Sum" 869 869 181
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Min" 30 30 10
+         "gvecs" "Min" 216 216 45
+         "sticks" "Max" 31 31 11
+         "gvecs" "Max" 218 218 46
+         "sticks" "Sum" 121 121 43
+         "gvecs" "Sum" 869 869 181
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (
@@ -283,37 +291,34 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 0.03 0.03 1
-             "" "electrons" 0.89 1.06 1
-             "" "forces" 0.0 0.0 1
-             "" "stress" 0.01 0.01 1
-             "init_run" "wfcinit" 0.02 0.02 1
-             "init_run" "potinit" 0.0 0.0 1
-             "init_run" "hinit0" 0.0 0.0 1
-             "electrons" "c_bands" 0.84 0.99 6
-             "electrons" "sum_band" 0.04 0.06 6
-             "electrons" "v_of_rho" 0.0 0.0 6
-             "electrons" "mix_rho" 0.0 0.0 6
-             "c_bands" "init_us_2" 0.01 0.01 900
-             "c_bands" "ppcg_k" 0.74 0.88 360
-             "c_bands" "wfcrot" 0.1 0.12 300
-             "h_psi" "h_psi:pot" 0.44 0.52 1930
-             "h_psi" "h_psi:calbec" 0.03 0.02 1930
-             "h_psi" "vloc_psi" 0.39 0.48 1930
-             "h_psi" "add_vuspsi" 0.01 0.01 1930
-             "General routines" "calbec" 0.02 0.02 2230
-             "General routines" "fft" 0.0 0.0 24
-             "General routines" "ffts" 0.0 0.0 6
-             "General routines" "fftw" 0.37 0.45 22818
-             "Parallel routines" "fft_scatt_xy" 0.04 0.08 22848
-             "Parallel routines" "fft_scatt_yz" 0.12 0.15 22848
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 0.03 0.03 1
+         "" "electrons" 0.89 1.06 1
+         "" "forces" 0.0 0.0 1
+         "" "stress" 0.01 0.01 1
+         "init_run" "wfcinit" 0.02 0.02 1
+         "init_run" "potinit" 0.0 0.0 1
+         "init_run" "hinit0" 0.0 0.0 1
+         "electrons" "c_bands" 0.84 0.99 6
+         "electrons" "sum_band" 0.04 0.06 6
+         "electrons" "v_of_rho" 0.0 0.0 6
+         "electrons" "mix_rho" 0.0 0.0 6
+         "c_bands" "init_us_2" 0.01 0.01 900
+         "c_bands" "ppcg_k" 0.74 0.88 360
+         "c_bands" "wfcrot" 0.1 0.12 300
+         "h_psi" "h_psi:pot" 0.44 0.52 1930
+         "h_psi" "h_psi:calbec" 0.03 0.02 1930
+         "h_psi" "vloc_psi" 0.39 0.48 1930
+         "h_psi" "add_vuspsi" 0.01 0.01 1930
+         "General routines" "calbec" 0.02 0.02 2230
+         "General routines" "fft" 0.0 0.0 24
+         "General routines" "ffts" 0.0 0.0 6
+         "General routines" "fftw" 0.37 0.45 22818
+         "Parallel routines" "fft_scatt_xy" 0.04 0.08 22848
+         "Parallel routines" "fft_scatt_yz" 0.12 0.15 22848
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -321,8 +326,6 @@ using QuantumESPRESSOParsers.OutputParsers.PWscf
     @test isrelaxed(str) == false
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse scf Si output" begin
@@ -331,35 +334,41 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 8.0,
-        "number of Kohn-Sham states" => 4,
-        "lattice parameter (alat)" => 10.2,
-        "number of iterations used" => 8,
-        "convergence threshold" => 1.0e-8,
-        "unit-cell volume" => 265.302,
-        "Exchange-correlation" => "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-        "kinetic-energy cutoff" => 18.0,
-        "bravais-lattice index" => 2,
-        "number of atoms/cell" => 2,
-        "number of atomic types" => 1,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 72.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 2,
+        alat = 10.2,
+        omega = 265.302,
+        nat = 2,
+        ntyp = 1,
+        nelec = 8.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 4,
+        ecutwfc = 18.0,
+        ecutrho = 72.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-8,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+        nstep = nothing,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Min" 63 63 21
-             "sticks" "Max" 64 64 22
-             "sticks" "Sum" 253 253 85
-             "gvecs" "Min" 682 682 132
-             "gvecs" "Max" 686 686 135
-             "gvecs" "Sum" 2733 2733 531
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Min" 63 63 21
+         "gvecs" "Min" 682 682 132
+         "sticks" "Max" 64 64 22
+         "gvecs" "Max" 686 686 135
+         "sticks" "Sum" 253 253 85
+         "gvecs" "Sum" 2733 2733 531
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (
@@ -381,14 +390,14 @@ end
     @test parse_stress(str) == (
         [-10.24],
         [[
-            -6.961e-5 0.0 0.0
-            0.0 -6.961e-5 0.0
-            0.0 -0.0 -6.961e-5
+          -6.961e-5 0.0 0.0
+          0.0 -6.961e-5 0.0
+          0.0 -0.0 -6.961e-5
         ]],
         [[
-            -10.24 0.0 0.0
-            0.0 -10.24 0.0
-            0.0 -0.0 -10.24
+          -10.24 0.0 0.0
+          0.0 -10.24 0.0
+          0.0 -0.0 -10.24
         ]],
     )
 
@@ -454,36 +463,33 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 0.01 0.02 1
-             "" "electrons" 0.11 0.12 1
-             "" "forces" 0.0 0.0 1
-             "" "stress" 0.01 0.01 1
-             "init_run" "wfcinit" 0.01 0.01 1
-             "init_run" "potinit" 0.0 0.0 1
-             "electrons" "c_bands" 0.09 0.09 7
-             "electrons" "sum_band" 0.02 0.02 7
-             "electrons" "v_of_rho" 0.0 0.0 7
-             "electrons" "mix_rho" 0.0 0.0 7
-             "c_bands" "init_us_2" 0.0 0.0 170
-             "c_bands" "ccgdiagg" 0.08 0.07 70
-             "c_bands" "wfcrot" 0.01 0.02 60
-             "h_psi" "h_psi:pot" 0.06 0.06 828
-             "h_psi" "h_psi:calbec" 0.0 0.01 828
-             "h_psi" "vloc_psi" 0.05 0.05 828
-             "h_psi" "add_vuspsi" 0.0 0.0 828
-             "h_psi" "h_1psi" 0.05 0.05 768
-             "General routines" "calbec" 0.01 0.01 1646
-             "General routines" "fft" 0.0 0.0 34
-             "General routines" "fftw" 0.05 0.05 2376
-             "General routines" "davcio" 0.0 0.0 10
-             "Parallel routines" "fft_scatter" 0.02 0.02 2410
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 0.01 0.02 1
+         "" "electrons" 0.11 0.12 1
+         "" "forces" 0.0 0.0 1
+         "" "stress" 0.01 0.01 1
+         "init_run" "wfcinit" 0.01 0.01 1
+         "init_run" "potinit" 0.0 0.0 1
+         "electrons" "c_bands" 0.09 0.09 7
+         "electrons" "sum_band" 0.02 0.02 7
+         "electrons" "v_of_rho" 0.0 0.0 7
+         "electrons" "mix_rho" 0.0 0.0 7
+         "c_bands" "init_us_2" 0.0 0.0 170
+         "c_bands" "ccgdiagg" 0.08 0.07 70
+         "c_bands" "wfcrot" 0.01 0.02 60
+         "h_psi" "h_psi:pot" 0.06 0.06 828
+         "h_psi" "h_psi:calbec" 0.0 0.01 828
+         "h_psi" "vloc_psi" 0.05 0.05 828
+         "h_psi" "add_vuspsi" 0.0 0.0 828
+         "h_psi" "h_1psi" 0.05 0.05 768
+         "General routines" "calbec" 0.01 0.01 1646
+         "General routines" "fft" 0.0 0.0 34
+         "General routines" "fftw" 0.05 0.05 2376
+         "General routines" "davcio" 0.0 0.0 10
+         "Parallel routines" "fft_scatter" 0.02 0.02 2410
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -491,8 +497,6 @@ end
     @test isrelaxed(str) == false
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse scf NaCl output" begin
@@ -501,35 +505,41 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 512.0,
-        "number of Kohn-Sham states" => 256,
-        "lattice parameter (alat)" => 21.5062,
-        "number of iterations used" => 8,
-        "convergence threshold" => 1.0e-9,
-        "unit-cell volume" => 9947.007,
-        "Exchange-correlation" => "SLA  PW   PBX  PBC ( 1  4  3  4 0 0)",
-        "kinetic-energy cutoff" => 70.0,
-        "bravais-lattice index" => 0,
-        "number of atoms/cell" => 64,
-        "number of atomic types" => 2,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 280.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 64,
+        alat = 21.5062,
+        omega = 9947.007,
+        nat = 64,
+        ntyp = 2,
+        nelec = 512.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 256,
+        ecutwfc = 70.0,
+        ecutrho = 280.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-9,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA  PW   PBX  PBC ( 1  4  3  4 0 0)",
+        nstep = nothing,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Min" 644 644 165
-             "sticks" "Max" 645 645 167
-             "sticks" "Sum" 10309 10309 2661
-             "gvecs" "Min" 49140 49140 6426
-             "gvecs" "Max" 49142 49142 6427
-             "gvecs" "Sum" 786247 786247 102831
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Min" 644 644 165
+         "gvecs" "Min" 49140 49140 6426
+         "sticks" "Max" 645 645 167
+         "gvecs" "Max" 49142 49142 6427
+         "sticks" "Sum" 10309 10309 2661
+         "gvecs" "Sum" 786247 786247 102831
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (cart = [0.25 0.25 0.25 2.0], cryst = nothing)
@@ -537,14 +547,14 @@ end
     @test parse_stress(str) == (
         [0.63],
         [[
-            4.28e-6 0.0 0.0
-            0.0 4.27e-6 0.0
-            0.0 0.0 4.27e-6
+          4.28e-6 0.0 0.0
+          0.0 4.27e-6 0.0
+          0.0 0.0 4.27e-6
         ]],
         [[
-            0.63 0.0 0.0
-            0.0 0.63 0.0
-            0.0 0.0 0.63
+          0.63 0.0 0.0
+          0.0 0.63 0.0
+          0.0 0.0 0.63
         ]],
     )
 
@@ -592,38 +602,35 @@ end
         [-48.1202 -48.1201 -48.1201 -48.12 -48.1187 -48.1185 -48.1185 -48.1184 -48.1183 -48.1181 -48.1181 -48.1181 -48.1181 -48.1181 -48.1181 -48.118 -48.118 -48.118 -48.118 -48.1179 -48.1179 -48.1179 -48.1178 -48.1178 -48.1176 -48.1175 -48.1175 -48.1174 -48.1161 -48.116 -48.116 -48.1159 -20.0531 -20.0529 -20.0529 -20.0515 -20.0488 -20.0486 -20.0484 -20.0483 -20.0483 -20.0482 -20.0481 -20.048 -20.0478 -20.047 -20.0466 -20.0465 -20.0461 -20.0459 -20.0455 -20.0455 -20.0454 -20.0452 -20.0451 -20.0449 -20.0448 -20.0447 -20.0447 -20.0444 -20.0403 -20.0402 -20.0402 -20.0401 -20.0401 -20.04 -20.0395 -20.0394 -20.0393 -20.039 -20.039 -20.0388 -20.0381 -20.0379 -20.0378 -20.0367 -20.0365 -20.0365 -20.0364 -20.0363 -20.0361 -20.0361 -20.036 -20.0359 -20.0357 -20.0357 -20.0356 -20.0355 -20.0353 -20.035 -20.0346 -20.0345 -20.0344 -20.0341 -20.034 -20.0339 -20.0337 -20.0337 -20.0334 -20.0334 -20.0331 -20.0331 -20.033 -20.0327 -20.0326 -20.0326 -20.0326 -20.0325 -20.0325 -20.0324 -20.0322 -20.032 -20.0319 -20.0319 -20.0316 -20.0314 -20.0314 -20.0312 -20.0311 -20.031 -20.0308 -20.0305 -20.0304 -20.0302 -20.0301 -20.0296 -20.0294 -20.0293 -11.714 -11.6188 -11.6179 -11.6172 -11.5458 -11.545 -11.5442 -11.4969 -11.4925 -11.4917 -11.4909 -11.456 -11.4543 -11.4542 -11.4542 -11.4542 -11.4529 -11.4431 -11.443 -11.4428 -11.4169 -11.416 -11.4154 -11.4102 -11.4101 -11.4099 -11.4008 -11.3996 -11.3996 -11.3996 -11.3996 -11.3976 -0.8874 -0.8874 -0.8874 -0.783 -0.6658 -0.6658 -0.6658 -0.6358 -0.6349 -0.6341 -0.6261 -0.6257 -0.6254 -0.6253 -0.6249 -0.6246 -0.5201 -0.5201 -0.5195 -0.5195 -0.519 -0.5189 -0.483 -0.4824 -0.4818 -0.4217 -0.4216 -0.4215 -0.1146 -0.1146 -0.1143 -0.1143 -0.114 -0.114 -0.0591 -0.0588 -0.0585 -0.0383 -0.0381 -0.0378 0.1489 0.1489 0.1489 0.1899 0.1901 0.1905 0.1905 0.1909 0.1911 0.2862 0.2864 0.2869 0.2869 0.2874 0.2876 0.3165 0.3165 0.3165 0.3739 0.3739 0.3739 0.4176 0.4176 0.4176 0.449 0.4494 0.4499 0.469 0.4696 0.47 0.4839 0.4843 0.4847 0.4898 0.502 0.5028 0.503 0.503 0.5031 0.5041 0.5436 0.5436 0.5436 0.6285 0.6285 0.6504 0.6509 0.6513 0.6599 0.6608 0.6616 0.6888 0.6892 0.6896 0.8041 0.8041],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 4.14 4.3 1
-             "" "electrons" 98.15 99.0 1
-             "" "forces" 1.6 1.65 1
-             "" "stress" 11.58 11.58 1
-             "init_run" "wfcinit" 3.2 3.26 1
-             "init_run" "potinit" 0.31 0.32 1
-             "electrons" "c_bands" 84.89 85.71 10
-             "electrons" "sum_band" 9.46 9.49 10
-             "electrons" "v_of_rho" 1.01 1.02 11
-             "electrons" "newd" 1.14 1.19 11
-             "electrons" "PAW_pot" 1.73 1.73 11
-             "electrons" "mix_rho" 0.2 0.2 10
-             "c_bands" "init_us_2" 0.4 0.41 21
-             "c_bands" "cegterg" 83.49 84.29 10
-             "sum_band" "sum_band:bec" 0.01 0.01 10
-             "sum_band" "addusdens" 1.5 1.51 10
-             "*egterg" "h_psi" 41.33 41.44 38
-             "*egterg" "s_psi" 5.69 5.69 38
-             "*egterg" "g_psi" 0.24 0.24 27
-             "*egterg" "cdiaghg" 15.26 15.27 37
-             "h_psi" "add_vuspsi" 5.67 5.68 38
-             "General routines" "calbec" 9.12 9.13 53
-             "General routines" "fft" 0.73 0.77 167
-             "General routines" "fftw" 30.1 30.19 17922
-             "Parallel routines" "fft_scatter" 10.96 10.94 18089
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 4.14 4.3 1
+         "" "electrons" 98.15 99.0 1
+         "" "forces" 1.6 1.65 1
+         "" "stress" 11.58 11.58 1
+         "init_run" "wfcinit" 3.2 3.26 1
+         "init_run" "potinit" 0.31 0.32 1
+         "electrons" "c_bands" 84.89 85.71 10
+         "electrons" "sum_band" 9.46 9.49 10
+         "electrons" "v_of_rho" 1.01 1.02 11
+         "electrons" "newd" 1.14 1.19 11
+         "electrons" "PAW_pot" 1.73 1.73 11
+         "electrons" "mix_rho" 0.2 0.2 10
+         "c_bands" "init_us_2" 0.4 0.41 21
+         "c_bands" "cegterg" 83.49 84.29 10
+         "sum_band" "sum_band:bec" 0.01 0.01 10
+         "sum_band" "addusdens" 1.5 1.51 10
+         "*egterg" "h_psi" 41.33 41.44 38
+         "*egterg" "s_psi" 5.69 5.69 38
+         "*egterg" "g_psi" 0.24 0.24 27
+         "*egterg" "cdiaghg" 15.26 15.27 37
+         "h_psi" "add_vuspsi" 5.67 5.68 38
+         "General routines" "calbec" 9.12 9.13 53
+         "General routines" "fft" 0.73 0.77 167
+         "General routines" "fftw" 30.1 30.19 17922
+         "Parallel routines" "fft_scatter" 10.96 10.94 18089
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "NaCl-001.in"
@@ -631,8 +638,6 @@ end
     @test isrelaxed(str) == false
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse scf SiO2 output" begin
@@ -641,31 +646,39 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 48.0,
-        "number of Kohn-Sham states" => 30,
-        "lattice parameter (alat)" => 9.2863,
-        "number of iterations used" => 8,
-        "convergence threshold" => 1.0e-9,
-        "unit-cell volume" => 762.9417,
-        "Exchange-correlation" => "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
-        "kinetic-energy cutoff" => 20.0,
-        "bravais-lattice index" => 4,
-        "number of atoms/cell" => 9,
-        "number of atomic types" => 3,
-        "mixing beta" => 0.3,
-        "charge density cutoff" => 150.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 9,
+        alat = 9.2863,
+        omega = 762.9417,
+        nat = 9,
+        ntyp = 3,
+        nelec = 48.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 30,
+        ecutwfc = 20.0,
+        ecutrho = 150.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-9,
+        mixing_beta = 0.3,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
+        nstep = nothing,
     )
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Sum" 889 475 151
-             "gvecs" "Sum" 23595 9203 1559
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Sum" 889 475 151
+         "gvecs" "Sum" 23595 9203 1559
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
+
     @test parse_ibz(str) == (
         cart = [
             0.0 0.0 0.0 0.25
@@ -745,44 +758,41 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 1.89 2.01 1
-             "" "electrons" 14.18 14.52 1
-             "init_run" "wfcinit" 0.69 0.69 1
-             "init_run" "potinit" 0.12 0.16 1
-             "electrons" "c_bands" 11.08 11.18 11
-             "electrons" "sum_band" 2.15 2.22 11
-             "electrons" "v_of_rho" 0.5 0.52 11
-             "electrons" "v_h" 0.03 0.03 11
-             "electrons" "v_xc" 0.47 0.5 11
-             "electrons" "newd" 0.45 0.56 11
-             "electrons" "mix_rho" 0.05 0.08 11
-             "c_bands" "init_us_2" 0.12 0.13 138
-             "c_bands" "cegterg" 10.79 10.88 66
-             "sum_band" "sum_band:bec" 0.0 0.0 66
-             "sum_band" "addusdens" 0.58 0.65 11
-             "*egterg" "h_psi" 6.87 6.89 270
-             "*egterg" "s_psi" 0.91 0.91 270
-             "*egterg" "g_psi" 0.07 0.07 198
-             "*egterg" "cdiaghg" 0.85 0.86 258
-             "*egterg" "cegterg:over" 1.14 1.14 198
-             "*egterg" "cegterg:upda" 0.63 0.63 198
-             "*egterg" "cegterg:last" 0.35 0.35 66
-             "h_psi" "h_psi:vloc" 4.93 4.95 270
-             "h_psi" "h_psi:vnl" 1.92 1.92 270
-             "h_psi" "add_vuspsi" 0.91 0.91 270
-             "General routines" "calbec" 1.36 1.36 336
-             "General routines" "fft" 0.26 0.29 175
-             "General routines" "ffts" 0.01 0.01 22
-             "General routines" "fftw" 4.87 4.89 13186
-             "General routines" "interpolate" 0.05 0.05 22
-             "Parallel routines" "fft_scatter" 0.33 0.34 13383
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 1.89 2.01 1
+         "" "electrons" 14.18 14.52 1
+         "init_run" "wfcinit" 0.69 0.69 1
+         "init_run" "potinit" 0.12 0.16 1
+         "electrons" "c_bands" 11.08 11.18 11
+         "electrons" "sum_band" 2.15 2.22 11
+         "electrons" "v_of_rho" 0.5 0.52 11
+         "electrons" "v_h" 0.03 0.03 11
+         "electrons" "v_xc" 0.47 0.5 11
+         "electrons" "newd" 0.45 0.56 11
+         "electrons" "mix_rho" 0.05 0.08 11
+         "c_bands" "init_us_2" 0.12 0.13 138
+         "c_bands" "cegterg" 10.79 10.88 66
+         "sum_band" "sum_band:bec" 0.0 0.0 66
+         "sum_band" "addusdens" 0.58 0.65 11
+         "*egterg" "h_psi" 6.87 6.89 270
+         "*egterg" "s_psi" 0.91 0.91 270
+         "*egterg" "g_psi" 0.07 0.07 198
+         "*egterg" "cdiaghg" 0.85 0.86 258
+         "*egterg" "cegterg:over" 1.14 1.14 198
+         "*egterg" "cegterg:upda" 0.63 0.63 198
+         "*egterg" "cegterg:last" 0.35 0.35 66
+         "h_psi" "h_psi:vloc" 4.93 4.95 270
+         "h_psi" "h_psi:vnl" 1.92 1.92 270
+         "h_psi" "add_vuspsi" 0.91 0.91 270
+         "General routines" "calbec" 1.36 1.36 336
+         "General routines" "fft" 0.26 0.29 175
+         "General routines" "ffts" 0.01 0.01 22
+         "General routines" "fftw" 4.87 4.89 13186
+         "General routines" "interpolate" 0.05 0.05 22
+         "Parallel routines" "fft_scatter" 0.33 0.34 13383
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -790,8 +800,6 @@ end
     @test isrelaxed(str) == false
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse vc-relax As output" begin
@@ -800,36 +808,41 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 10.0,
-        "number of Kohn-Sham states" => 9,
-        "lattice parameter (alat)" => 7.0103,
-        "number of iterations used" => 8,
-        "nstep" => 55,
-        "convergence threshold" => 1.0e-7,
-        "unit-cell volume" => 245.3705,
-        "Exchange-correlation" => "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-        "kinetic-energy cutoff" => 25.0,
-        "bravais-lattice index" => 0,
-        "number of atoms/cell" => 2,
-        "number of atomic types" => 1,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 100.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 2,
+        alat = 7.0103,
+        omega = 245.3705,
+        nat = 2,
+        ntyp = 1,
+        nelec = 10.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 9,
+        ecutwfc = 25.0,
+        ecutrho = 100.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-7,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+        nstep = 55,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Min" 174 174 60
-             "sticks" "Max" 175 175 61
-             "sticks" "Sum" 349 349 121
-             "gvecs" "Min" 2079 2079 416
-             "gvecs" "Max" 2080 2080 417
-             "gvecs" "Sum" 4159 4159 833
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Min" 174 174 60
+         "gvecs" "Min" 2079 2079 416
+         "sticks" "Max" 175 175 61
+         "gvecs" "Max" 2080 2080 417
+         "sticks" "Sum" 349 349 121
+         "gvecs" "Sum" 4159 4159 833
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (
@@ -1632,38 +1645,35 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 0.12 0.15 1
-             "" "electrons" 5.8 5.9 19
-             "" "update_pot" 1.09 1.11 18
-             "" "forces" 0.45 0.45 19
-             "" "stress" 0.94 0.94 19
-             "init_run" "wfcinit" 0.02 0.02 1
-             "init_run" "potinit" 0.02 0.02 1
-             "electrons" "c_bands" 4.94 5.0 96
-             "electrons" "sum_band" 0.73 0.76 96
-             "electrons" "v_of_rho" 0.07 0.08 109
-             "electrons" "mix_rho" 0.02 0.02 96
-             "c_bands" "init_us_2" 0.07 0.12 2310
-             "c_bands" "cegterg" 4.84 4.91 960
-             "*egterg" "h_psi" 3.79 3.77 3133
-             "*egterg" "g_psi" 0.01 0.02 2163
-             "*egterg" "cdiaghg" 0.39 0.42 2883
-             "h_psi" "h_psi:pot" 3.77 3.76 3133
-             "h_psi" "h_psi:calbec" 0.12 0.1 3133
-             "h_psi" "vloc_psi" 3.54 3.57 3133
-             "h_psi" "add_vuspsi" 0.1 0.08 3133
-             "General routines" "calbec" 0.14 0.13 4083
-             "General routines" "fft" 0.05 0.07 542
-             "General routines" "fftw" 3.82 3.88 55066
-             "General routines" "davcio" 0.0 0.0 10
-             "Parallel routines" "fft_scatter" 0.55 0.57 55608
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 0.12 0.15 1
+         "" "electrons" 5.8 5.9 19
+         "" "update_pot" 1.09 1.11 18
+         "" "forces" 0.45 0.45 19
+         "" "stress" 0.94 0.94 19
+         "init_run" "wfcinit" 0.02 0.02 1
+         "init_run" "potinit" 0.02 0.02 1
+         "electrons" "c_bands" 4.94 5.0 96
+         "electrons" "sum_band" 0.73 0.76 96
+         "electrons" "v_of_rho" 0.07 0.08 109
+         "electrons" "mix_rho" 0.02 0.02 96
+         "c_bands" "init_us_2" 0.07 0.12 2310
+         "c_bands" "cegterg" 4.84 4.91 960
+         "*egterg" "h_psi" 3.79 3.77 3133
+         "*egterg" "g_psi" 0.01 0.02 2163
+         "*egterg" "cdiaghg" 0.39 0.42 2883
+         "h_psi" "h_psi:pot" 3.77 3.76 3133
+         "h_psi" "h_psi:calbec" 0.12 0.1 3133
+         "h_psi" "vloc_psi" 3.54 3.57 3133
+         "h_psi" "add_vuspsi" 0.1 0.08 3133
+         "General routines" "calbec" 0.14 0.13 4083
+         "General routines" "fft" 0.05 0.07 542
+         "General routines" "fftw" 3.82 3.88 55066
+         "General routines" "davcio" 0.0 0.0 10
+         "Parallel routines" "fft_scatter" 0.55 0.57 55608
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -1671,8 +1681,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse vc-relax graphene output" begin
@@ -1681,36 +1689,41 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 8.0,
-        "number of Kohn-Sham states" => 8,
-        "lattice parameter (alat)" => 5.0,
-        "number of iterations used" => 8,
-        "nstep" => 50,
-        "convergence threshold" => 1.0e-8,
-        "unit-cell volume" => 675.0316,
-        "Exchange-correlation" => "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-        "kinetic-energy cutoff" => 36.0,
-        "bravais-lattice index" => 0,
-        "number of atoms/cell" => 2,
-        "number of atomic types" => 1,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 144.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 2,
+        alat = 5.0,
+        omega = 675.0316,
+        nat = 2,
+        ntyp = 1,
+        nelec = 8.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 8,
+        ecutwfc = 36.0,
+        ecutrho = 144.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-8,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+        nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Min" 63 63 22
-             "sticks" "Max" 64 64 23
-             "sticks" "Sum" 255 255 91
-             "gvecs" "Min" 4920 4920 1053
-             "gvecs" "Max" 4924 4924 1065
-             "gvecs" "Sum" 19689 19689 4231
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Min" 63 63 22
+         "gvecs" "Min" 4920 4920 1053
+         "sticks" "Max" 64 64 23
+         "gvecs" "Max" 4924 4924 1065
+         "sticks" "Sum" 255 255 91
+         "gvecs" "Sum" 19689 19689 4231
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (
@@ -1796,42 +1809,42 @@ end
     @test parse_stress(str) == (
         [-102.58, -88.9, -56.37, 18.73, -0.55, -0.49, 1.27, 0.49, 0.01, 1.64],
         [
-            [-0.00087326 -0.00016767 0.0; -0.00016767 -0.00121864 0.0; 0.0 0.0 0.0],
-            [-0.00081252 -0.00021559 0.0; -0.00021559 -0.00100054 0.0; 0.0 0.0 0.0],
-            [-0.00051278 -0.00017739 0.0; -0.00017739 -0.00063676 0.0; 0.0 0.0 0.0],
-            [0.00018175 -3.601e-5 0.0; -3.601e-5 0.00020018 0.0; 0.0 0.0 0.0],
-            [1.24e-6 -8.081e-5 0.0; -8.081e-5 -1.236e-5 0.0; 0.0 0.0 0.0],
-            [-7.36e-6 -4.911e-5 0.0; -4.911e-5 -2.71e-6 0.0; 0.0 0.0 0.0],
-            [1.192e-5 -2.031e-5 0.0; -2.031e-5 1.407e-5 0.0; 0.0 0.0 0.0],
-            [4.21e-6 -1.97e-6 0.0; -1.97e-6 5.87e-6 0.0; 0.0 0.0 0.0],
-            [-2.9e-7 1.0e-7 0.0; 1.0e-7 4.5e-7 0.0; 0.0 0.0 0.0],
-            [1.602e-5 8.4e-7 0.0; 8.4e-7 1.751e-5 0.0; 0.0 0.0 0.0],
+         [-0.00087326 -0.00016767 0.0; -0.00016767 -0.00121864 0.0; 0.0 0.0 0.0],
+         [-0.00081252 -0.00021559 0.0; -0.00021559 -0.00100054 0.0; 0.0 0.0 0.0],
+         [-0.00051278 -0.00017739 0.0; -0.00017739 -0.00063676 0.0; 0.0 0.0 0.0],
+         [0.00018175 -3.601e-5 0.0; -3.601e-5 0.00020018 0.0; 0.0 0.0 0.0],
+         [1.24e-6 -8.081e-5 0.0; -8.081e-5 -1.236e-5 0.0; 0.0 0.0 0.0],
+         [-7.36e-6 -4.911e-5 0.0; -4.911e-5 -2.71e-6 0.0; 0.0 0.0 0.0],
+         [1.192e-5 -2.031e-5 0.0; -2.031e-5 1.407e-5 0.0; 0.0 0.0 0.0],
+         [4.21e-6 -1.97e-6 0.0; -1.97e-6 5.87e-6 0.0; 0.0 0.0 0.0],
+         [-2.9e-7 1.0e-7 0.0; 1.0e-7 4.5e-7 0.0; 0.0 0.0 0.0],
+         [1.602e-5 8.4e-7 0.0; 8.4e-7 1.751e-5 0.0; 0.0 0.0 0.0],
         ],
         [
-            [-128.46 -24.67 0.0; -24.67 -179.27 0.0; 0.0 0.0 0.0],
-            [-119.53 -31.71 0.0; -31.71 -147.18 0.0; 0.0 0.0 0.0],
-            [-75.43 -26.09 0.0; -26.09 -93.67 0.0; 0.0 0.0 0.0],
-            [26.74 -5.3 0.0; -5.3 29.45 0.0; 0.0 0.0 0.0],
-            [0.18 -11.89 0.0; -11.89 -1.82 0.0; 0.0 0.0 0.0],
-            [-1.08 -7.22 0.0; -7.22 -0.4 0.0; 0.0 0.0 0.0],
-            [1.75 -2.99 0.0; -2.99 2.07 0.0; 0.0 0.0 0.0],
-            [0.62 -0.29 0.0; -0.29 0.86 0.0; 0.0 0.0 0.0],
-            [-0.04 0.01 0.0; 0.01 0.07 0.0; 0.0 0.0 0.0],
-            [2.36 0.12 0.0; 0.12 2.58 0.0; 0.0 0.0 0.0],
+         [-128.46 -24.67 0.0; -24.67 -179.27 0.0; 0.0 0.0 0.0],
+         [-119.53 -31.71 0.0; -31.71 -147.18 0.0; 0.0 0.0 0.0],
+         [-75.43 -26.09 0.0; -26.09 -93.67 0.0; 0.0 0.0 0.0],
+         [26.74 -5.3 0.0; -5.3 29.45 0.0; 0.0 0.0 0.0],
+         [0.18 -11.89 0.0; -11.89 -1.82 0.0; 0.0 0.0 0.0],
+         [-1.08 -7.22 0.0; -7.22 -0.4 0.0; 0.0 0.0 0.0],
+         [1.75 -2.99 0.0; -2.99 2.07 0.0; 0.0 0.0 0.0],
+         [0.62 -0.29 0.0; -0.29 0.86 0.0; 0.0 0.0 0.0],
+         [-0.04 0.01 0.0; 0.01 0.07 0.0; 0.0 0.0 0.0],
+         [2.36 0.12 0.0; 0.12 2.58 0.0; 0.0 0.0 0.0],
         ],
     )
 
     @test parse_cell_parameters(str) == []
 
     # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.038428924, 0.020283963, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.032025555, 1.501346494, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.052503797, 0.028271169, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.03617185, 1.458627758, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.047848423, 0.02095099, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.014559869, 1.37569809, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.039029671, 0.02192862, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.007333179, 1.392506815, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.041681224, 0.018998183, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.007340697, 1.389283028, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.041394146, 0.020079401, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.003730145, 1.388883645, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040390405, 0.020188548, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000341993, 1.389654118, 0.0], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040179553, 0.020179171, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000179347, 1.390083827, 0.0], [1, 1, 1])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.038428924, 0.020283963, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.032025555, 1.501346494, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.052503797, 0.028271169, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.03617185, 1.458627758, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.047848423, 0.02095099, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.014559869, 1.37569809, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.039029671, 0.02192862, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.007333179, 1.392506815, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.041681224, 0.018998183, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.007340697, 1.389283028, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.041394146, 0.020079401, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.003730145, 1.388883645, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040390405, 0.020188548, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000341993, 1.389654118, 0.0], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040179553, 0.020179171, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000179347, 1.390083827, 0.0], [1, 1, 1])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040179553, 0.020179171, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000179347, 1.390083827, 0.0], [1, 1, 1])])
     # ]
 
@@ -3482,42 +3495,39 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 1.39 1.68 2
-             "" "electrons" 337.65 402.35 10
-             "" "update_pot" 1.39 1.48 8
-             "" "forces" 1.48 2.29 10
-             "" "stress" 3.9 6.39 10
-             "init_run" "wfcinit" 1.11 1.35 2
-             "init_run" "potinit" 0.08 0.11 2
-             "electrons" "c_bands" 301.98 357.53 136
-             "electrons" "sum_band" 34.17 42.89 136
-             "electrons" "v_of_rho" 0.43 0.72 145
-             "electrons" "newd" 0.79 0.91 145
-             "electrons" "mix_rho" 0.22 0.25 136
-             "c_bands" "init_us_2" 3.21 5.8 21756
-             "c_bands" "cegterg" 296.73 350.66 10064
-             "sum_band" "sum_band:bec" 0.13 0.44 10064
-             "sum_band" "addusdens" 0.87 0.99 136
-             "*egterg" "h_psi" 243.45 300.37 72271
-             "*egterg" "s_psi" 5.51 4.3 72271
-             "*egterg" "g_psi" 1.03 1.17 62059
-             "*egterg" "cdiaghg" 12.01 12.56 71457
-             "h_psi" "h_psi:pot" 242.38 299.04 72271
-             "h_psi" "h_psi:calbec" 7.21 7.52 72271
-             "h_psi" "vloc_psi" 229.07 285.54 72271
-             "h_psi" "add_vuspsi" 5.92 5.66 72271
-             "General routines" "calbec" 9.91 10.24 86035
-             "General routines" "fft" 0.68 0.78 931
-             "General routines" "fftw" 242.89 296.07 716666
-             "General routines" "davcio" 0.0 0.01 148
-             "Parallel routines" "fft_scatter" 69.24 72.55 717597
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 1.39 1.68 2
+         "" "electrons" 337.65 402.35 10
+         "" "update_pot" 1.39 1.48 8
+         "" "forces" 1.48 2.29 10
+         "" "stress" 3.9 6.39 10
+         "init_run" "wfcinit" 1.11 1.35 2
+         "init_run" "potinit" 0.08 0.11 2
+         "electrons" "c_bands" 301.98 357.53 136
+         "electrons" "sum_band" 34.17 42.89 136
+         "electrons" "v_of_rho" 0.43 0.72 145
+         "electrons" "newd" 0.79 0.91 145
+         "electrons" "mix_rho" 0.22 0.25 136
+         "c_bands" "init_us_2" 3.21 5.8 21756
+         "c_bands" "cegterg" 296.73 350.66 10064
+         "sum_band" "sum_band:bec" 0.13 0.44 10064
+         "sum_band" "addusdens" 0.87 0.99 136
+         "*egterg" "h_psi" 243.45 300.37 72271
+         "*egterg" "s_psi" 5.51 4.3 72271
+         "*egterg" "g_psi" 1.03 1.17 62059
+         "*egterg" "cdiaghg" 12.01 12.56 71457
+         "h_psi" "h_psi:pot" 242.38 299.04 72271
+         "h_psi" "h_psi:calbec" 7.21 7.52 72271
+         "h_psi" "vloc_psi" 229.07 285.54 72271
+         "h_psi" "add_vuspsi" 5.92 5.66 72271
+         "General routines" "calbec" 9.91 10.24 86035
+         "General routines" "fft" 0.68 0.78 931
+         "General routines" "fftw" 242.89 296.07 716666
+         "General routines" "davcio" 0.0 0.01 148
+         "Parallel routines" "fft_scatter" 69.24 72.55 717597
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -3525,8 +3535,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax CO output" begin
@@ -3535,32 +3543,37 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 10.0,
-        "number of Kohn-Sham states" => 5,
-        "lattice parameter (alat)" => 12.0,
-        "number of iterations used" => 8,
-        "nstep" => 50,
-        "convergence threshold" => 1.0e-6,
-        "unit-cell volume" => 1728.0,
-        "Exchange-correlation" => "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-        "kinetic-energy cutoff" => 24.0,
-        "bravais-lattice index" => 1,
-        "number of atoms/cell" => 2,
-        "number of atomic types" => 2,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 144.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 2,
+        alat = 12.0,
+        omega = 1728.0,
+        nat = 2,
+        ntyp = 2,
+        nelec = 10.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 5,
+        ecutwfc = 24.0,
+        ecutrho = 144.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-6,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+        nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Sum" 1649 1101 277
-             "gvecs" "Sum" 50541 27609 3407
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Sum" 1649 1101 277
+         "gvecs" "Sum" 50541 27609 3407
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (cart = [0.0 0.0 0.0 2.0], cryst = nothing)
@@ -3574,18 +3587,18 @@ end
     ]]
 
     # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.161309101, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.05503841, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.111613831, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.178918345, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.166035881, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.140753228, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.115110591, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.127180324, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.144570629, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.142564627, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.161309101, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.05503841, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.111613831, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.178918345, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.166035881, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.140753228, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.115110591, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.127180324, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.144570629, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.142564627, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139519983, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr",QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr",QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])])
     # ]
 
@@ -3702,39 +3715,36 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 0.86 0.88 1
-             "" "electrons" 7.88 7.95 13
-             "" "update_pot" 0.9 0.93 12
-             "" "forces" 1.03 1.02 13
-             "init_run" "wfcinit" 0.0 0.01 1
-             "init_run" "potinit" 0.04 0.05 1
-             "electrons" "c_bands" 1.2 1.21 58
-             "electrons" "sum_band" 3.48 3.5 58
-             "electrons" "v_of_rho" 0.89 0.89 68
-             "electrons" "newd" 2.08 2.1 68
-             "electrons" "mix_rho" 0.36 0.37 58
-             "c_bands" "init_us_2" 0.09 0.1 117
-             "c_bands" "regterg" 1.1 1.09 58
-             "sum_band" "sum_band:bec" 0.0 0.0 58
-             "sum_band" "addusdens" 2.8 2.81 58
-             "*egterg" "h_psi" 0.92 0.88 213
-             "*egterg" "s_psi" 0.02 0.02 213
-             "*egterg" "g_psi" 0.05 0.04 154
-             "*egterg" "rdiaghg" 0.02 0.02 197
-             "h_psi" "add_vuspsi" 0.02 0.02 213
-             "General routines" "calbec" 0.05 0.05 323
-             "General routines" "fft" 0.88 0.94 610
-             "General routines" "ffts" 0.17 0.13 126
-             "General routines" "fftw" 0.76 0.73 1276
-             "General routines" "interpolate" 0.49 0.48 126
-             "General routines" "davcio" 0.0 0.0 13
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 0.86 0.88 1
+         "" "electrons" 7.88 7.95 13
+         "" "update_pot" 0.9 0.93 12
+         "" "forces" 1.03 1.02 13
+         "init_run" "wfcinit" 0.0 0.01 1
+         "init_run" "potinit" 0.04 0.05 1
+         "electrons" "c_bands" 1.2 1.21 58
+         "electrons" "sum_band" 3.48 3.5 58
+         "electrons" "v_of_rho" 0.89 0.89 68
+         "electrons" "newd" 2.08 2.1 68
+         "electrons" "mix_rho" 0.36 0.37 58
+         "c_bands" "init_us_2" 0.09 0.1 117
+         "c_bands" "regterg" 1.1 1.09 58
+         "sum_band" "sum_band:bec" 0.0 0.0 58
+         "sum_band" "addusdens" 2.8 2.81 58
+         "*egterg" "h_psi" 0.92 0.88 213
+         "*egterg" "s_psi" 0.02 0.02 213
+         "*egterg" "g_psi" 0.05 0.04 154
+         "*egterg" "rdiaghg" 0.02 0.02 197
+         "h_psi" "add_vuspsi" 0.02 0.02 213
+         "General routines" "calbec" 0.05 0.05 323
+         "General routines" "fft" 0.88 0.94 610
+         "General routines" "ffts" 0.17 0.13 126
+         "General routines" "fftw" 0.76 0.73 1276
+         "General routines" "interpolate" 0.49 0.48 126
+         "General routines" "davcio" 0.0 0.0 13
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "/home/giannozz/trunk/espresso/PW/tests/relax-damped.in"
@@ -3742,8 +3752,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax H2O output" begin
@@ -3752,32 +3760,37 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 8.0,
-        "number of Kohn-Sham states" => 8,
-        "lattice parameter (alat)" => 12.0,
-        "number of iterations used" => 8,
-        "nstep" => 50,
-        "convergence threshold" => 1.0e-7,
-        "unit-cell volume" => 1728.0,
-        "Exchange-correlation" => "SLA PW PBX PBC ( 1  4  3  4 0 0)",
-        "kinetic-energy cutoff" => 30.0,
-        "bravais-lattice index" => 1,
-        "number of atoms/cell" => 3,
-        "number of atomic types" => 2,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 120.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 3,
+        alat = 12.0,
+        omega = 1728.0,
+        nat = 3,
+        ntyp = 2,
+        nelec = 8.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 8,
+        ecutwfc = 30.0,
+        ecutrho = 120.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-7,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA PW PBX PBC ( 1  4  3  4 0 0)",
+        nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Sum" 1369 1369 349
-             "gvecs" "Sum" 38401 38401 4801
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Sum" 1369 1369 349
+         "gvecs" "Sum" 38401 38401 4801
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (cart = [0.0 0.0 0.0 2.0], cryst = nothing)
@@ -3787,12 +3800,12 @@ end
     @test isempty(parse_cell_parameters(str))
 
     # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.071762144, 1.071762144, 1.079345568], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.071762144, 1.071762144, 1.079345568], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.056119834, 1.056119834, 1.077852061], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.056119834, 1.056119834, 1.077852061], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.043633568, 1.043633568, 1.087578917], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.043633568, 1.043633568, 1.087578917], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.033898772, 1.033898772, 1.105355925], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.033898772, 1.033898772, 1.105355925], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.028292878, 1.028292878, 1.124227412], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.028292878, 1.028292878, 1.124227412], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.071762144, 1.071762144, 1.079345568], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.071762144, 1.071762144, 1.079345568], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.056119834, 1.056119834, 1.077852061], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.056119834, 1.056119834, 1.077852061], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.043633568, 1.043633568, 1.087578917], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.043633568, 1.043633568, 1.087578917], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.033898772, 1.033898772, 1.105355925], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.033898772, 1.033898772, 1.105355925], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.028292878, 1.028292878, 1.124227412], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.028292878, 1.028292878, 1.124227412], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1])])
     # ]
 
@@ -3879,40 +3892,37 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 1.15 1.15 1
-             "" "electrons" 23.97 23.98 7
-             "" "update_pot" 3.66 3.66 6
-             "" "forces" 2.71 2.71 7
-             "init_run" "wfcinit" 0.02 0.01 1
-             "init_run" "potinit" 0.57 0.57 1
-             "electrons" "c_bands" 1.56 1.57 38
-             "electrons" "sum_band" 1.11 1.11 38
-             "electrons" "v_of_rho" 13.25 13.26 44
-             "electrons" "newd" 0.63 0.62 44
-             "electrons" "PAW_pot" 12.29 12.29 50
-             "electrons" "mix_rho" 0.13 0.13 38
-             "c_bands" "init_us_2" 0.05 0.07 83
-             "c_bands" "regterg" 1.52 1.52 38
-             "sum_band" "sum_band:bec" 0.0 0.0 44
-             "sum_band" "addusdens" 0.7 0.72 38
-             "*egterg" "h_psi" 1.32 1.35 155
-             "*egterg" "s_psi" 0.01 0.01 155
-             "*egterg" "g_psi" 0.01 0.01 116
-             "*egterg" "rdiaghg" 0.02 0.03 147
-             "h_psi" "h_psi:pot" 1.31 1.34 155
-             "h_psi" "h_psi:calbec" 0.03 0.02 155
-             "h_psi" "vloc_psi" 1.26 1.3 155
-             "h_psi" "add_vuspsi" 0.02 0.01 155
-             "General routines" "calbec" 0.06 0.04 227
-             "General routines" "fft" 0.9 0.88 658
-             "General routines" "fftw" 1.33 1.37 1072
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 1.15 1.15 1
+         "" "electrons" 23.97 23.98 7
+         "" "update_pot" 3.66 3.66 6
+         "" "forces" 2.71 2.71 7
+         "init_run" "wfcinit" 0.02 0.01 1
+         "init_run" "potinit" 0.57 0.57 1
+         "electrons" "c_bands" 1.56 1.57 38
+         "electrons" "sum_band" 1.11 1.11 38
+         "electrons" "v_of_rho" 13.25 13.26 44
+         "electrons" "newd" 0.63 0.62 44
+         "electrons" "PAW_pot" 12.29 12.29 50
+         "electrons" "mix_rho" 0.13 0.13 38
+         "c_bands" "init_us_2" 0.05 0.07 83
+         "c_bands" "regterg" 1.52 1.52 38
+         "sum_band" "sum_band:bec" 0.0 0.0 44
+         "sum_band" "addusdens" 0.7 0.72 38
+         "*egterg" "h_psi" 1.32 1.35 155
+         "*egterg" "s_psi" 0.01 0.01 155
+         "*egterg" "g_psi" 0.01 0.01 116
+         "*egterg" "rdiaghg" 0.02 0.03 147
+         "h_psi" "h_psi:pot" 1.31 1.34 155
+         "h_psi" "h_psi:calbec" 0.03 0.02 155
+         "h_psi" "vloc_psi" 1.26 1.3 155
+         "h_psi" "add_vuspsi" 0.02 0.01 155
+         "General routines" "calbec" 0.06 0.04 227
+         "General routines" "fft" 0.9 0.88 658
+         "General routines" "fftw" 1.33 1.37 1072
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -3920,8 +3930,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax NH4 output" begin
@@ -3930,32 +3938,37 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 8.0,
-        "number of Kohn-Sham states" => 8,
-        "lattice parameter (alat)" => 12.0,
-        "number of iterations used" => 8,
-        "nstep" => 50,
-        "convergence threshold" => 1.0e-7,
-        "unit-cell volume" => 1728.0,
-        "Exchange-correlation" => "SLA PW PBX PBC ( 1  4  3  4 0 0)",
-        "kinetic-energy cutoff" => 30.0,
-        "bravais-lattice index" => 1,
-        "number of atoms/cell" => 5,
-        "number of atomic types" => 2,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 120.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 5,
+        alat = 12.0,
+        omega = 1728.0,
+        nat = 5,
+        ntyp = 2,
+        nelec = 8.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 8,
+        ecutwfc = 30.0,
+        ecutrho = 120.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-7,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA PW PBX PBC ( 1  4  3  4 0 0)",
+        nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Sum" 1369 1369 349
-             "gvecs" "Sum" 38401 38401 4801
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Sum" 1369 1369 349
+         "gvecs" "Sum" 38401 38401 4801
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (cart = [0.0 0.0 0.0 2.0], cryst = nothing)
@@ -3965,10 +3978,10 @@ end
     @test isempty(parse_cell_parameters(str))
 
     # @test parse_atomic_positions(str) == QuantumESPRESSOBase.Cards.AtomicPositionsCard[
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1])]), 
-    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1])]), 
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.154573639, 1.154573639, 1.154573639], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.137353203, 1.137353203, 1.137353203], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129023295, 1.129023295, 1.129023295], [1, 1, 1])]),
+    #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1])]),
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1])])
     # ]
 
@@ -4045,40 +4058,37 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 1.22 1.31 1
-             "" "electrons" 20.66 20.75 5
-             "" "update_pot" 2.52 2.52 4
-             "" "forces" 2.04 2.04 5
-             "init_run" "wfcinit" 0.01 0.02 1
-             "init_run" "potinit" 0.65 0.73 1
-             "electrons" "c_bands" 1.39 1.48 32
-             "electrons" "sum_band" 0.97 0.98 32
-             "electrons" "v_of_rho" 11.13 11.2 36
-             "electrons" "newd" 0.53 0.54 36
-             "electrons" "PAW_pot" 10.2 10.2 40
-             "electrons" "mix_rho" 0.14 0.14 32
-             "c_bands" "init_us_2" 0.08 0.06 69
-             "c_bands" "regterg" 1.34 1.43 32
-             "sum_band" "sum_band:bec" 0.0 0.0 36
-             "sum_band" "addusdens" 0.62 0.62 32
-             "*egterg" "h_psi" 1.18 1.2 116
-             "*egterg" "s_psi" 0.02 0.02 116
-             "*egterg" "g_psi" 0.02 0.01 83
-             "*egterg" "rdiaghg" 0.02 0.1 110
-             "h_psi" "h_psi:pot" 1.17 1.2 116
-             "h_psi" "h_psi:calbec" 0.02 0.02 116
-             "h_psi" "vloc_psi" 1.13 1.15 116
-             "h_psi" "add_vuspsi" 0.02 0.02 116
-             "General routines" "calbec" 0.03 0.04 172
-             "General routines" "fft" 0.7 0.74 530
-             "General routines" "fftw" 1.19 1.21 916
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 1.22 1.31 1
+         "" "electrons" 20.66 20.75 5
+         "" "update_pot" 2.52 2.52 4
+         "" "forces" 2.04 2.04 5
+         "init_run" "wfcinit" 0.01 0.02 1
+         "init_run" "potinit" 0.65 0.73 1
+         "electrons" "c_bands" 1.39 1.48 32
+         "electrons" "sum_band" 0.97 0.98 32
+         "electrons" "v_of_rho" 11.13 11.2 36
+         "electrons" "newd" 0.53 0.54 36
+         "electrons" "PAW_pot" 10.2 10.2 40
+         "electrons" "mix_rho" 0.14 0.14 32
+         "c_bands" "init_us_2" 0.08 0.06 69
+         "c_bands" "regterg" 1.34 1.43 32
+         "sum_band" "sum_band:bec" 0.0 0.0 36
+         "sum_band" "addusdens" 0.62 0.62 32
+         "*egterg" "h_psi" 1.18 1.2 116
+         "*egterg" "s_psi" 0.02 0.02 116
+         "*egterg" "g_psi" 0.02 0.01 83
+         "*egterg" "rdiaghg" 0.02 0.1 110
+         "h_psi" "h_psi:pot" 1.17 1.2 116
+         "h_psi" "h_psi:calbec" 0.02 0.02 116
+         "h_psi" "vloc_psi" 1.13 1.15 116
+         "h_psi" "add_vuspsi" 0.02 0.02 116
+         "General routines" "calbec" 0.03 0.04 172
+         "General routines" "fft" 0.7 0.74 530
+         "General routines" "fftw" 1.19 1.21 916
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -4086,8 +4096,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax MoS output" begin
@@ -4096,36 +4104,41 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 25.9,
-        "number of Kohn-Sham states" => 17,
-        "lattice parameter (alat)" => 5.9716,
-        "number of iterations used" => 8,
-        "nstep" => 300,
-        "convergence threshold" => 1.0e-9,
-        "unit-cell volume" => 2213.0132,
-        "Exchange-correlation" => "LDA ( 1  1  0  0 0 0)",
-        "kinetic-energy cutoff" => 50.0,
-        "bravais-lattice index" => 4,
-        "number of atoms/cell" => 3,
-        "number of atomic types" => 2,
-        "mixing beta" => 0.7,
-        "charge density cutoff" => 410.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 3,
+        alat = 5.9716,
+        omega = 2213.0132,
+        nat = 3,
+        ntyp = 2,
+        nelec = 25.9,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 17,
+        ecutwfc = 50.0,
+        ecutrho = 410.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-9,
+        mixing_beta = 0.7,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "LDA ( 1  1  0  0 0 0)",
+        nstep = 300,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Min" 253 124 37
-             "sticks" "Max" 255 125 38
-             "sticks" "Sum" 1015 499 151
-             "gvecs" "Min" 77613 26474 4339
-             "gvecs" "Max" 77637 26515 4364
-             "gvecs" "Sum" 310487 105989 17427
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Min" 253 124 37
+         "gvecs" "Min" 77613 26474 4339
+         "sticks" "Max" 255 125 38
+         "gvecs" "Max" 77637 26515 4364
+         "sticks" "Sum" 1015 499 151
+         "gvecs" "Sum" 310487 105989 17427
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (
@@ -4308,49 +4321,46 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 2.9 3.0 1
-             "" "electrons" 87.76 89.4 1
-             "" "forces" 0.83 0.88 1
-             "init_run" "wfcinit" 2.07 2.1 1
-             "init_run" "wfcinit:atom" 0.03 0.03 30
-             "init_run" "wfcinit:wfcr" 1.92 1.95 30
-             "init_run" "potinit" 0.16 0.16 1
-             "electrons" "c_bands" 64.67 65.15 13
-             "electrons" "sum_band" 19.29 20.02 13
-             "electrons" "v_of_rho" 0.38 0.4 14
-             "electrons" "v_h" 0.16 0.17 14
-             "electrons" "v_xc" 0.12 0.13 15
-             "electrons" "newd" 2.93 3.4 14
-             "electrons" "mix_rho" 0.47 0.47 13
-             "c_bands" "init_us_2" 1.25 1.26 840
-             "c_bands" "cegterg" 62.42 62.87 390
-             "sum_band" "sum_band:bec" 0.01 0.01 390
-             "sum_band" "addusdens" 4.79 5.42 13
-             "*egterg" "h_psi" 56.04 56.46 1548
-             "*egterg" "s_psi" 1.08 1.09 1548
-             "*egterg" "g_psi" 0.22 0.22 1128
-             "*egterg" "cdiaghg" 0.81 0.82 1518
-             "*egterg" "cegterg:over" 1.95 1.97 1128
-             "*egterg" "cegterg:upda" 1.45 1.46 1128
-             "*egterg" "cegterg:last" 0.66 0.67 420
-             "h_psi" "h_psi:pot" 55.69 56.1 1548
-             "h_psi" "h_psi:calbec" 1.52 1.53 1548
-             "h_psi" "vloc_psi" 53.1 53.5 1548
-             "h_psi" "add_vuspsi" 1.06 1.07 1548
-             "General routines" "calbec" 2.11 2.13 2058
-             "General routines" "fft" 1.34 1.35 126
-             "General routines" "ffts" 0.04 0.04 27
-             "General routines" "fftw" 48.23 48.51 44506
-             "General routines" "interpolate" 0.35 0.35 27
-             "Parallel routines" "fft_scatt_xy" 3.85 3.88 44659
-             "Parallel routines" "fft_scatt_yz" 9.8 9.87 44659
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 2.9 3.0 1
+         "" "electrons" 87.76 89.4 1
+         "" "forces" 0.83 0.88 1
+         "init_run" "wfcinit" 2.07 2.1 1
+         "init_run" "wfcinit:atom" 0.03 0.03 30
+         "init_run" "wfcinit:wfcr" 1.92 1.95 30
+         "init_run" "potinit" 0.16 0.16 1
+         "electrons" "c_bands" 64.67 65.15 13
+         "electrons" "sum_band" 19.29 20.02 13
+         "electrons" "v_of_rho" 0.38 0.4 14
+         "electrons" "v_h" 0.16 0.17 14
+         "electrons" "v_xc" 0.12 0.13 15
+         "electrons" "newd" 2.93 3.4 14
+         "electrons" "mix_rho" 0.47 0.47 13
+         "c_bands" "init_us_2" 1.25 1.26 840
+         "c_bands" "cegterg" 62.42 62.87 390
+         "sum_band" "sum_band:bec" 0.01 0.01 390
+         "sum_band" "addusdens" 4.79 5.42 13
+         "*egterg" "h_psi" 56.04 56.46 1548
+         "*egterg" "s_psi" 1.08 1.09 1548
+         "*egterg" "g_psi" 0.22 0.22 1128
+         "*egterg" "cdiaghg" 0.81 0.82 1518
+         "*egterg" "cegterg:over" 1.95 1.97 1128
+         "*egterg" "cegterg:upda" 1.45 1.46 1128
+         "*egterg" "cegterg:last" 0.66 0.67 420
+         "h_psi" "h_psi:pot" 55.69 56.1 1548
+         "h_psi" "h_psi:calbec" 1.52 1.53 1548
+         "h_psi" "vloc_psi" 53.1 53.5 1548
+         "h_psi" "add_vuspsi" 1.06 1.07 1548
+         "General routines" "calbec" 2.11 2.13 2058
+         "General routines" "fft" 1.34 1.35 126
+         "General routines" "ffts" 0.04 0.04 27
+         "General routines" "fftw" 48.23 48.51 44506
+         "General routines" "interpolate" 0.35 0.35 27
+         "Parallel routines" "fft_scatt_xy" 3.85 3.88 44659
+         "Parallel routines" "fft_scatt_yz" 9.8 9.87 44659
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -4358,8 +4368,6 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end
 
 @testset "Parse relax Al output" begin
@@ -4368,36 +4376,41 @@ end
         read(io, String)
     end
 
-    @test parse_summary(str) == Dict(
-        "number of electrons" => 12.0,
-        "number of Kohn-Sham states" => 10,
-        "lattice parameter (alat)" => 10.8223,
-        "number of iterations used" => 8,
-        "nstep" => 50,
-        "convergence threshold" => 1.0e-6,
-        "unit-cell volume" => 2655.9321,
-        "Exchange-correlation" => "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
-        "kinetic-energy cutoff" => 20.0,
-        "bravais-lattice index" => 0,
-        "number of atoms/cell" => 4,
-        "number of atomic types" => 1,
-        "mixing beta" => 0.3,
-        "charge density cutoff" => 80.0,
+    @test isnothing(tryparse(SubroutineError, str))
+
+    @test_throws Meta.ParseError parse(SubroutineError, str)
+
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
+        ibrav = 4,
+        alat = 10.8223,
+        omega = 2655.9321,
+        nat = 4,
+        ntyp = 1,
+        nelec = 12.0,
+        nelup = nothing,
+        neldw = nothing,
+        nbnd = 10,
+        ecutwfc = 20.0,
+        ecutrho = 80.0,
+        ecutfock = nothing,
+        conv_thr = 1.0e-6,
+        mixing_beta = 0.3,
+        mixing_ndim = 8,
+        mixing_mode = "plain",
+        xc = "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
+        nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == groupby(
-        DataFrame(
-            [
-             "sticks" "Min" 187 187 54
-             "sticks" "Max" 188 188 56
-             "sticks" "Sum" 749 749 221
-             "gvecs" "Min" 8037 8037 1261
-             "gvecs" "Max" 8044 8044 1262
-             "gvecs" "Sum" 32157 32157 5047
-            ],
-            [:kind, :stats, :dense, :smooth, :PW],
-        ),
-        :kind,
+    @test parse_fft_base_info(str) == DataFrame(
+        [
+         "sticks" "Min" 187 187 54
+         "gvecs" "Min" 8037 8037 1261
+         "sticks" "Max" 188 188 56
+         "gvecs" "Max" 8044 8044 1262
+         "sticks" "Sum" 749 749 221
+         "gvecs" "Sum" 32157 32157 5047
+        ],
+        [:kind, :stats, :dense, :smooth, :PW],
     )
 
     @test parse_ibz(str) == (
@@ -4507,40 +4520,37 @@ end
         ],
     )
 
-    @test parse_clock(str) == groupby(
-        DataFrame(
-            [
-             "" "init_run" 0.47 0.54 1
-             "" "electrons" 6.26 7.18 1
-             "" "forces" 0.12 0.22 1
-             "init_run" "wfcinit" 0.32 0.37 1
-             "init_run" "potinit" 0.05 0.06 1
-             "electrons" "c_bands" 5.48 6.2 8
-             "electrons" "sum_band" 0.62 0.77 8
-             "electrons" "v_of_rho" 0.13 0.18 8
-             "electrons" "newd" 0.03 0.04 8
-             "electrons" "mix_rho" 0.01 0.02 8
-             "c_bands" "init_us_2" 0.07 0.1 324
-             "c_bands" "cegterg" 5.38 6.08 144
-             "sum_band" "sum_band:bec" 0.0 0.01 144
-             "sum_band" "addusdens" 0.04 0.04 8
-             "*egterg" "h_psi" 4.27 5.19 835
-             "*egterg" "s_psi" 0.14 0.08 835
-             "*egterg" "g_psi" 0.03 0.03 673
-             "*egterg" "cdiaghg" 0.22 0.23 799
-             "h_psi" "h_psi:pot" 4.24 5.15 835
-             "h_psi" "h_psi:calbec" 0.16 0.16 835
-             "h_psi" "vloc_psi" 3.93 4.87 835
-             "h_psi" "add_vuspsi" 0.14 0.11 835
-             "General routines" "calbec" 0.22 0.22 1051
-             "General routines" "fft" 0.09 0.1 119
-             "General routines" "fftw" 4.03 4.93 12632
-             "General routines" "davcio" 0.0 0.0 18
-             "Parallel routines" "fft_scatter" 1.32 1.38 12751
-            ],
-            [:subroutine, :item, :CPU, :wall, :calls],
-        ),
-        :subroutine,
+    @test parse_clock(str) == DataFrame(
+        [
+         "" "init_run" 0.47 0.54 1
+         "" "electrons" 6.26 7.18 1
+         "" "forces" 0.12 0.22 1
+         "init_run" "wfcinit" 0.32 0.37 1
+         "init_run" "potinit" 0.05 0.06 1
+         "electrons" "c_bands" 5.48 6.2 8
+         "electrons" "sum_band" 0.62 0.77 8
+         "electrons" "v_of_rho" 0.13 0.18 8
+         "electrons" "newd" 0.03 0.04 8
+         "electrons" "mix_rho" 0.01 0.02 8
+         "c_bands" "init_us_2" 0.07 0.1 324
+         "c_bands" "cegterg" 5.38 6.08 144
+         "sum_band" "sum_band:bec" 0.0 0.01 144
+         "sum_band" "addusdens" 0.04 0.04 8
+         "*egterg" "h_psi" 4.27 5.19 835
+         "*egterg" "s_psi" 0.14 0.08 835
+         "*egterg" "g_psi" 0.03 0.03 673
+         "*egterg" "cdiaghg" 0.22 0.23 799
+         "h_psi" "h_psi:pot" 4.24 5.15 835
+         "h_psi" "h_psi:calbec" 0.16 0.16 835
+         "h_psi" "vloc_psi" 3.93 4.87 835
+         "h_psi" "add_vuspsi" 0.14 0.11 835
+         "General routines" "calbec" 0.22 0.22 1051
+         "General routines" "fft" 0.09 0.1 119
+         "General routines" "fftw" 4.03 4.93 12632
+         "General routines" "davcio" 0.0 0.0 18
+         "Parallel routines" "fft_scatter" 1.32 1.38 12751
+        ],
+        [:subroutine, :item, :CPU, :wall, :calls],
     )
 
     @test whatinput(str) == "standard input"
@@ -4548,6 +4558,4 @@ end
     @test isrelaxed(str) == true
 
     @test isjobdone(str) == true
-
-    @test haserror(str) == false
 end

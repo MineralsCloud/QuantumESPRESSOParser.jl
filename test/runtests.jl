@@ -3,6 +3,6 @@ using Test
 
 @testset "QuantumESPRESSOParsers.jl" begin
     # Write your own tests here.
-    include("InputParsers/Namelists.jl")
-    include("OutputParsers.jl")
+    include("Inputs/Namelists.jl")
+    include("Outputs/PWscf.jl")
 end

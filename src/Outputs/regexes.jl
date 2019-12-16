@@ -13,40 +13,41 @@ const FFT_DIMENSIONS = Regex("Dense  grid:\\s*$INTEGER\\s+G-vectors\\s+FFT dimen
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
-const BRAVAIS_LATTICE_INDEX = Regex("(bravais-lattice index)$EQUAL_SIGN$INTEGER")
+const BRAVAIS_LATTICE_INDEX = Regex("bravais-lattice index$EQUAL_SIGN$INTEGER")
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
-const LATTICE_PARAMETER = Regex("(lattice parameter \\(alat\\))$EQUAL_SIGN$FIXED_POINT_REAL")
+const LATTICE_PARAMETER = Regex("lattice parameter \\(alat\\)$EQUAL_SIGN$FIXED_POINT_REAL")
 # 'unit-cell volume          = ',F12.4,' (a.u.)^3'
-const UNIT_CELL_VOLUME = Regex("(unit-cell volume)$EQUAL_SIGN$FIXED_POINT_REAL")
+const UNIT_CELL_VOLUME = Regex("unit-cell volume$EQUAL_SIGN$FIXED_POINT_REAL")
 # 'number of atoms/cell      = ',I12
-const NUMBER_OF_ATOMS_PER_CELL = Regex("(number of atoms\\/cell)$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_ATOMS_PER_CELL = Regex("number of atoms\\/cell$EQUAL_SIGN$INTEGER")
 # 'number of atomic types    = ',I12
-const NUMBER_OF_ATOMIC_TYPES = Regex("(number of atomic types)$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_ATOMIC_TYPES = Regex("number of atomic types$EQUAL_SIGN$INTEGER")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = Regex("(number of electrons)$EQUAL_SIGN$FIXED_POINT_REAL" *
+const NUMBER_OF_ELECTRONS = Regex("number of electrons$EQUAL_SIGN$FIXED_POINT_REAL" *
                                   "(?:\\(up:\\s*$FIXED_POINT_REAL, down:\\s*$FIXED_POINT_REAL\\))?")
 # 'number of Kohn-Sham states= ',I12
-const NUMBER_OF_KOHN_SHAM_STATES = Regex("(number of Kohn-Sham states)$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_KOHN_SHAM_STATES = Regex("number of Kohn-Sham states$EQUAL_SIGN$INTEGER")
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
-const KINETIC_ENERGY_CUTOFF = Regex("(kinetic-energy cutoff)$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const KINETIC_ENERGY_CUTOFF = Regex("kinetic-energy cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
 # 'charge density cutoff     = ',F12.4,'  Ry'
-const CHARGE_DENSITY_CUTOFF = Regex("(charge density cutoff)$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const CHARGE_DENSITY_CUTOFF = Regex("charge density cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
 # 'cutoff for Fock operator  = ',F12.4,'  Ry'
-const CUTOFF_FOR_FOCK_OPERATOR = Regex("(cutoff for Fock operator)$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const CUTOFF_FOR_FOCK_OPERATOR = Regex("cutoff for Fock operator$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
 # 'convergence threshold     = ',1PE12.1
-const CONVERGENCE_THRESHOLD = Regex("(convergence threshold)$EQUAL_SIGN$GENERAL_REAL")
+const CONVERGENCE_THRESHOLD = Regex("convergence threshold$EQUAL_SIGN$GENERAL_REAL")
 # 'mixing beta               = ',0PF12.4
-const MIXING_BETA = Regex("(mixing beta)$EQUAL_SIGN$FIXED_POINT_REAL")
+const MIXING_BETA = Regex("mixing beta$EQUAL_SIGN$FIXED_POINT_REAL")
 # 'number of iterations used = ',I12,2X,A,' mixing'
-const NUMBER_OF_ITERATIONS_USED = Regex("(number of iterations used)\\s*=\\s*$INTEGER\\s+([-+\\w]+)\\s+mixing")
-const EXCHANGE_CORRELATION = r"(Exchange-correlation)\s*=\s*(.*)"
+const NUMBER_OF_ITERATIONS_USED = Regex("number of iterations used$EQUAL_SIGN$INTEGER\\s+([-+\\w]+)\\s+mixing")
+const EXCHANGE_CORRELATION = r"Exchange-correlation\s*=\s*(.*)"
 # "nstep                     = ",I12
-const NSTEP = Regex("(nstep)$EQUAL_SIGN$INTEGER")
+const NSTEP = Regex("nstep$EQUAL_SIGN$INTEGER")
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/Modules/fft_base.f90#L70-L91.
 const FFT_BASE_INFO = r"""\s*(?<head>Parallelization info|G-vector sticks info)
 \s*--------------------
 \s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
 (?<body>(?:\s*Min.*)?(?:\s*Max.*)?\s*Sum.*)"""m
+const SYM_OPS = r"\h*(No symmetry found|(?<n>\d+)\s*Sym\. Ops\..*found)"
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L341-L381.
 const K_POINTS_BLOCK = r"""
 number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
@@ -55,108 +56,57 @@ number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
 \s*Dense  grid)?"""m
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-const K_POINTS_ITEM = Regex(  # Ignore the k-point's index
-    "k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL"
-)
+const K_POINTS_ITEM = Regex("k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL")
+# The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L47-L60.
 const CELL_PARAMETERS_BLOCK = r"""
-^ [ \t]*
-CELL_PARAMETERS [ \t]*
-\(?\w+\s*=\s*[\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?\)? \s* [\n]
-(
-(
-\s*
-(
-[\-|\+]? ( [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?\s*
-){3}[\n]
-){3}
+CELL_PARAMETERS \h+
+\( (?<option>\w+) =? \s* (?<alat>[-+]?[0-9]*\.[0-9]{8})? \) \h*  # Match `alat`: `F12.8`
+(?<data>
+    (?: \s*
+        (?:
+            [-+]?[0-9]*\.[0-9]{9} \s*  # Match element: `3F14.9`
+        ){3}  # I need exactly 3 elements per vector
+    ){3}  # I need exactly 3 vectors
 )
-"""mx
+"""x
 const CELL_PARAMETERS_ITEM = r"""
-^                        # Linestart
-[ \t]*                   # Optional white space
-(?P<x>                   # Get x
-    [\-|\+]? ( [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<y>                   # Get y
-    [\-|\+]? ([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<z>                   # Get z
-    [\-|\+]? ([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-"""mx
+\s*
+([-+]?[0-9]*\.[0-9]{9}) \s*  # x
+([-+]?[0-9]*\.[0-9]{9}) \s*  # y
+([-+]?[0-9]*\.[0-9]{9}) \s*  # z
+"""x
+# The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L64-L109.
 const ATOMIC_POSITIONS_BLOCK = r"""
-^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
-[{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\n    # The units are after the string in optional brackets
-(?P<block>                                      # This is the block of positions
-    (
-        (
-            \s*                                 # White space in front of the element spec is ok
-            (
-                [A-Za-z]+[A-Za-z0-9]{0,2}       # Element spec
-                (
-                    \s+                         # White space in front of the number
-                    [-|+]?                      # Plus or minus in front of the number (optional)
-                    (
-                        (
-                            [0-9]*                 # optional decimal in the beginning .0001 is ok, for example
-                            [\.]                # There has to be a dot followed by
-                            [0-9]+                 # at least one decimal
-                        )
-                        |                       # OR
-                        (
-                            [0-9]+                 # at least one decimal, followed by
-                            [\.]?               # an optional dot ( both 1 and 1. are fine)
-                            [0-9]*                 # And optional number of decimals (1.00001)
-                        )                        # followed by optional decimals
-                    )
-                    ([E|e|d|D][+|-]?[0-9]+)?       # optional exponents E+03, e-05
-                ){3}                            # I expect three float values
-                ((\s+[0-1]){3}\s*)?             # Followed by optional ifpos
-                \s*                             # Followed by optional white space
-                |
-                \#.*                            # If a line is commented out, that is also ok
-                |
-                \!.*                            # Comments also with excl. mark in fortran
-            )
-            |                                   # OR
-            \s*                                 # A line only containing white space
-         )
-        [\n]                                    # line break at the end
-    )+                                          # A positions block should be one or more lines
+ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
+\( (?<option>\w+) \)                   # Option of the card
+(?<data>
+    (?:
+        \s*
+        [A-Za-z]+[A-Za-z0-9]{0,2} \s+  # Atom spec
+        (?:
+            [-+]?[0-9]*\.[0-9]{9} \s*  # Match element: `3F14.9`
+        ){3}                           # I need exactly 3 floats per vector.
+        (?:
+            [-+]?[0-9]+ \s*
+        ){0,3}                     # I need exactly 3 integers in `if_pos`, if there is any.
+    )+
 )
-"""mx
+"""x
 const ATOMIC_POSITIONS_ITEM = r"""
-^                                       # Linestart
-[ \t]*                                  # Optional white space
-(?P<name>[A-Za-z]+[A-Za-z0-9]{0,2})\s+   # get the symbol, max 3 chars, starting with a char
-(?P<x>                                  # Get x
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<y>                                  # Get y
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]+
-(?P<z>                                  # Get z
-    [\-|\+]?([0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
-    ([E|e|d|D][+|-]?[0-9]+)?
-)
-[ \t]*
-(?P<fx>[01]?)                           # Get fx
-[ \t]*
-(?P<fy>[01]?)                           # Get fx
-[ \t]*
-(?P<fz>[01]?)                           # Get fx
-"""mx
+\s*
+([A-Za-z]+[A-Za-z0-9]{0,2}) \s+  # Atom spec
+([-+]?[0-9]*\.[0-9]{9}) \s*  # x
+([-+]?[0-9]*\.[0-9]{9}) \s*  # y
+([-+]?[0-9]*\.[0-9]{9}) \s*  # z
+([-+]?[0-9]+)? \s*            # if_pos(1)
+([-+]?[0-9]+)? \s*            # if_pos(2)
+([-+]?[0-9]+)? \s*            # if_pos(3)
+"""x
+const FINAL_COORDINATES_BLOCK = r"""
+Begin final coordinates
+(\X+?)
+End final coordinates
+"""
 const STRESS_BLOCK = r"""
 ^[ \t]*
 total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
@@ -245,9 +195,7 @@ init_run\s+:.*
 \s*(?:stress\s+:.*)?     # This does not always exist.
 )
 """mx
-const TIME_ITEM = Regex(
-    "\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)"
-)
+const TIME_ITEM = Regex("\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)")
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"m
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
@@ -260,9 +208,7 @@ const H_PSI_TIME_BLOCK = r"Called by (?<head>h_psi):(?<body>\X+?)^\s*$"m
 const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"m
 const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"m
 const TERMINATED_DATE = r"This run was terminated on:(.+)"  # TODO: Date
-const FINAL_COORDINATES_BLOCK = r"\s*(?:Begin final coordinates(\X+?)\s*End final coordinates)"m
 const JOB_DONE = r"JOB DONE\."
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/UtilXlib/error_handler.f90#L48-L68.
-const ERROR_IDENTIFIER = r"%{78}"
 const ERROR_BLOCK = r"%{78}(?<body>\X+?)\s*%{78}"
 const ERROR_IN_ROUTINE = r"Error in routine\s+(.*)\s+\((.*)\):"

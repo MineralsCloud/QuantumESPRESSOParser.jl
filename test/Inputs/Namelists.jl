@@ -1,22 +1,21 @@
 using Test
 
 using Compat: isnothing
-
 using QuantumESPRESSOBase
 using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
 using QuantumESPRESSOBase.Namelists.CP
 using QuantumESPRESSOBase.Namelists.PHonon
 
-using QuantumESPRESSOParsers.InputParsers.Namelists
+using QuantumESPRESSOParsers.Namelists
 
 @testset "Parse empty string" begin
     @test isnothing(parse(PWscf.ControlNamelist, " "))
     @test isnothing(parse(PWscf.ControlNamelist, "&control/"))
     @test parse(PWscf.ControlNamelist, "&control\n/\n") == PWscf.ControlNamelist()
-    @test_logs((:info, "Namelist not found in string!"), parse(PWscf.ControlNamelist, " "))
+    @test_throws Meta.ParseError parse(PWscf.ControlNamelist, " ")
     @test_logs(
-        (:info, "Namelist found, but it is empty! Default values will be used!"),
+        (:info, "An empty Namelist found! Default values will be used!"),
         parse(PWscf.ControlNamelist, "&control\n/"),
     )
 end # testset

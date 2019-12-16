@@ -1,25 +1,9 @@
-"""
-# module PWscf
-
-
-
-# Examples
-
-```jldoctest
-julia>
-```
-"""
 module PWscf
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
-using MLStyle: @match
-
-using QuantumESPRESSOBase.Namelists.PWscf: ControlNamelist,
-                                           SystemNamelist,
-                                           ElectronsNamelist,
-                                           IonsNamelist,
-                                           CellNamelist
+using Rematch: @match
+using QuantumESPRESSOBase.Cards: Card
 using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        AtomicSpeciesCard,
                                        AtomicPosition,
@@ -29,7 +13,6 @@ using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        MonkhorstPackGrid,
                                        SpecialKPoint,
                                        CellParametersCard
-using QuantumESPRESSOBase.Inputs.PWscf: PWscfInput
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK = r"""
@@ -77,7 +60,7 @@ const ATOMIC_POSITIONS_BLOCK = r"""
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
-[{(]? \s* (?P<option>[a-z]*) \s* [)}]? \h* \v
+[{(]? \s* (?P<option>[a-z]*) \s* [)}]? \h* (?:[\#!].*)? \v  # Match option, do not match comment
 (?P<data>
 (?:
     \s*              # White space in front of the element spec is ok
@@ -183,10 +166,12 @@ const CELL_PARAMETERS_ITEM = r"""
 )
 """mx
 
-function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
+function tryparse_internal(::Type{<:AtomicSpeciesCard}, str::AbstractString, raise::Bool)
     m = match(ATOMIC_SPECIES_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    @assert !isnothing(m) "Cannot find card `ATOMIC_SPECIES`! Check your input!"
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find card `ATOMIC_SPECIES`!")) : return
+    end
     content = m.captures[1]
     data = AtomicSpecies[]
     for matched in eachmatch(ATOMIC_SPECIES_ITEM, content)
@@ -197,11 +182,13 @@ function Base.parse(::Type{<:AtomicSpeciesCard}, str::AbstractString)
         push!(data, AtomicSpecies(atom, mass, pseudopotential))
     end
     return AtomicSpeciesCard(data)
-end # function Base.parse
-function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
+end # function tryparse_internal
+function tryparse_internal(T::Type{<:AtomicPositionsCard}, str::AbstractString, raise::Bool)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    @assert !isnothing(m) "Cannot find card `ATOMIC_POSITIONS`! Check your input!"
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find card `ATOMIC_POSITIONS`!")) : return
+    end
     option = string(m.captures[1])
     if isnothing(option)
         @warn "Not specifying units is DEPRECATED and will no longer be allowed in the future!"
@@ -209,7 +196,7 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
         option = "alat"
     end
     content = m.captures[2]
-    data = AtomicPosition{String,Vector{Float64},Vector{Int}}[]
+    data = AtomicPosition[]
     for matched in eachmatch(ATOMIC_POSITIONS_ITEM, content)
         # The `matched` cannot be a `nothing` since we have tested by the block regular expression
         captured = matched.captures
@@ -224,15 +211,15 @@ function Base.parse(T::Type{<:AtomicPositionsCard}, str::AbstractString)
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
     return AtomicPositionsCard(option, data)
-end # function Base.parse
-function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
+end # function tryparse_internal
+function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bool)
     m = match(K_POINTS_GAMMA_BLOCK, str)
-    !isnothing(m) && return KPointsCard("gamma", [GammaPoint()])
+    !isnothing(m) && return KPointsCard("gamma", GammaPoint())
 
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
     if !isnothing(m)
         data = map(x -> parse(Int, FortranData(x)), m.captures)
-        return KPointsCard("automatic", [MonkhorstPackGrid(data[1:3], data[4:6])])
+        return KPointsCard("automatic", MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 
     m = match(K_POINTS_SPECIAL_BLOCK, str)
@@ -254,19 +241,21 @@ function Base.parse(::Type{<:KPointsCard}, str::AbstractString)
         return KPointsCard(option, data)
     end
 
-    @info "Cannot find card `K_POINTS`!"
-end # function Base.parse
-function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
+    raise ? throw(Meta.ParseError("Cannot find card `K_POINTS`!")) : return
+end # function tryparse_internal
+function tryparse_internal(::Type{<:CellParametersCard}, str::AbstractString, raise::Bool)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    isnothing(m) && return nothing
-    option = string(m.captures[1])
+    if isnothing(m)
+        raise ? throw(Meta.ParseError("Cannot find card `CELL_PARAMETERS`!")) : return
+    end
+    option = string(m[:option])
     if isempty(option)
         @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
         @info "'bohr' is assumed."
         option = "bohr"
     end
-    content = m.captures[2]
+    content = m[:data]
     data = Matrix{Float64}(undef, 3, 3)
     for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
         captured = matched.captures
@@ -276,23 +265,11 @@ function Base.parse(::Type{<:CellParametersCard}, str::AbstractString)
         )
     end
     return CellParametersCard(option, data)
-end # function Base.parse
-function Base.parse(::Type{<:PWscfInput}, str::AbstractString)
-    function _parse_namelist(T)
-        result = parse(T, str)
-        isnothing(result) ? T() : result
-    end
-    return PWscfInput(
-        control = _parse_namelist(ControlNamelist),
-        system = _parse_namelist(SystemNamelist),
-        electrons = _parse_namelist(ElectronsNamelist),
-        ions = _parse_namelist(IonsNamelist),
-        cell = _parse_namelist(CellNamelist),
-        atomic_species = parse(AtomicSpeciesCard, str),
-        atomic_positions = parse(AtomicPositionsCard, str),
-        k_points = parse(KPointsCard, str),
-        cell_parameters = parse(CellParametersCard, str),
-    )
-end # function Base.parse
+end # function tryparse_internal
+
+Base.tryparse(::Type{T}, str::AbstractString) where {T<:Card} =
+    tryparse_internal(T, str, false)
+Base.parse(::Type{T}, str::AbstractString) where {T<:Card} =
+    tryparse_internal(T, str, true)
 
 end
