@@ -1,4 +1,8 @@
-# QuantumESPRESSOParsers.jl
+```@meta
+CurrentModule = QuantumESPRESSOParsers
+```
+
+# QuantumESPRESSOParsers
 
 ```@index
 ```
