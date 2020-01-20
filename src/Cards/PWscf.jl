@@ -2,7 +2,6 @@ module PWscf
 
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
-using Rematch: @match
 using QuantumESPRESSOBase.Cards: Card
 using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
                                        AtomicSpeciesCard,
@@ -233,9 +232,7 @@ function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bo
         data = SpecialKPoint[]
         for matched in eachmatch(K_POINTS_SPECIAL_ITEM, captured)
             # TODO: Match `nks`
-            point = @match map(x -> parse(Float64, FortranData(x)), matched.captures) begin
-                [coordinates..., weight] => SpecialKPoint(coordinates, weight)
-            end
+            point = SpecialKPoint(map(x -> parse(Float64, FortranData(x)), matched.captures)...)
             push!(data, point)
         end
         return KPointsCard(option, data)

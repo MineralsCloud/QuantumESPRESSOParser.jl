@@ -1,7 +1,5 @@
 module PHonon
 
-using Rematch: @match
-
 using Compat: isnothing
 using Fortran90Namelists.FortranToJulia: FortranData
 using QuantumESPRESSOBase.Cards.PHonon: SpecialQPoint, QPointsSpecsCard
@@ -35,9 +33,7 @@ function Base.parse(::Type{<:QPointsSpecsCard}, str::AbstractString)
         data = SpecialQPoint[]
         for matched in eachmatch(Q_POINTS_SPECIAL_ITEM_REGEX, captured)
             # TODO: Match `nqs`
-            point = @match map(x -> parse(Float64, FortranData(x)), matched.captures) begin
-                [coordinates..., weight] => SpecialQPoint(coordinates, weight)
-            end
+            point = SpecialQPoint(map(x -> parse(Float64, FortranData(x)), matched.captures)...)
             push!(data, point)
         end
         return QPointsSpecsCard(data)
