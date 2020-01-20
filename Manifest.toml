@@ -227,12 +227,6 @@ git-tree-sha1 = "7b1d07f411bc8ddb7977ec7f377b97b158514fe0"
 uuid = "189a3867-3050-52da-a836-e630ba90ab69"
 version = "0.2.0"
 
-[[Rematch]]
-deps = ["Compat", "MacroTools"]
-git-tree-sha1 = "cb5298565d0642a4de0bd3feed284a1af326cb8e"
-uuid = "bfecab0d-fd4d-5014-a23f-56c5fae6447a"
-version = "0.3.2"
-
 [[Requires]]
 deps = ["UUIDs"]
 git-tree-sha1 = "999513b7dea8ac17359ed50ae8ea089e4464e35e"
