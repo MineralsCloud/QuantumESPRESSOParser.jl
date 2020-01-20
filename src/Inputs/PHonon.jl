@@ -1,7 +1,5 @@
 module PHonon
 
-using Rematch: @match
-
 using QuantumESPRESSOBase.Namelists: Namelist
 using QuantumESPRESSOBase.Namelists.PHonon
 using QuantumESPRESSOBase.Cards.PHonon: QPointsSpecsCard

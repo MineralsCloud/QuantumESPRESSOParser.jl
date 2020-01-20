@@ -14,8 +14,6 @@ module PWscf
 using Compat: isnothing
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
-using Fortran90Namelists.FortranToJulia
-using Rematch: @match
 using Parameters: @with_kw
 using QuantumESPRESSOBase.Cards.PWscf
 
@@ -219,10 +217,14 @@ function _parse_diagonalization(str::AbstractString)
     solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
     m = match(C_BANDS, str)
     if !isnothing(m)
-        solver = @match m[:diag] begin
-            "Davidson diagonalization with overlap" => DavidsonDiagonalization()
-            "CG style diagonalization" => CGDiagonalization()
-            "PPCG style diagonalization" => PPCGDiagonalization()
+        solver = if m[:diag] == "Davidson diagonalization with overlap"
+            DavidsonDiagonalization()
+        elseif m[:diag] == "CG style diagonalization"
+            CGDiagonalization()
+        elseif m[:diag] == "PPCG style diagonalization"
+            PPCGDiagonalization()
+        else
+            error("unknown diagonalization style!")
         end
         ethr, avg_iter = map(x -> parse(Float64, x), m.captures[2:end])
     end  # Keep them `nothing` if `m` is `nothing`
