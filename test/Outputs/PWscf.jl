@@ -3,6 +3,7 @@ using Test
 using Compat: isnothing
 using DataFrames
 using QuantumESPRESSOBase
+using QuantumESPRESSOBase.Cards.PWscf
 
 using QuantumESPRESSOParsers
 using QuantumESPRESSOParsers.Outputs.PWscf
@@ -38,8 +39,7 @@ using QuantumESPRESSOParsers.Outputs.PWscf
         nstep = nothing,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Min" 30 30 10
          "gvecs" "Min" 216 216 45
          "sticks" "Max" 31 31 11
@@ -50,74 +50,9 @@ using QuantumESPRESSOParsers.Outputs.PWscf
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (
-        cart = [
-            0.0625 0.0625 0.0625 0.0078125
-            0.0625 0.0625 0.1875 0.0234375
-            0.0625 0.0625 0.3125 0.0234375
-            0.0625 0.0625 0.4375 0.0234375
-            0.0625 0.0625 0.5625 0.0234375
-            0.0625 0.0625 0.6875 0.0234375
-            0.0625 0.0625 0.8125 0.0234375
-            0.0625 0.0625 0.9375 0.0234375
-            0.0625 0.1875 0.1875 0.0234375
-            0.0625 0.1875 0.3125 0.046875
-            0.0625 0.1875 0.4375 0.046875
-            0.0625 0.1875 0.5625 0.046875
-            0.0625 0.1875 0.6875 0.046875
-            0.0625 0.1875 0.8125 0.046875
-            0.0625 0.1875 0.9375 0.046875
-            0.0625 0.3125 0.3125 0.0234375
-            0.0625 0.3125 0.4375 0.046875
-            0.0625 0.3125 0.5625 0.046875
-            0.0625 0.3125 0.6875 0.046875
-            0.0625 0.3125 0.8125 0.046875
-            0.0625 0.3125 0.9375 0.046875
-            0.0625 0.4375 0.4375 0.0234375
-            0.0625 0.4375 0.5625 0.046875
-            0.0625 0.4375 0.6875 0.046875
-            0.0625 0.4375 0.8125 0.046875
-            0.0625 0.4375 0.9375 0.046875
-            0.0625 0.5625 0.5625 0.0234375
-            0.0625 0.5625 0.6875 0.046875
-            0.0625 0.5625 0.8125 0.046875
-            0.0625 0.6875 0.6875 0.0234375
-            0.0625 0.6875 0.8125 0.046875
-            0.0625 0.8125 0.8125 0.0234375
-            0.1875 0.1875 0.1875 0.0078125
-            0.1875 0.1875 0.3125 0.0234375
-            0.1875 0.1875 0.4375 0.0234375
-            0.1875 0.1875 0.5625 0.0234375
-            0.1875 0.1875 0.6875 0.0234375
-            0.1875 0.1875 0.8125 0.0234375
-            0.1875 0.3125 0.3125 0.0234375
-            0.1875 0.3125 0.4375 0.046875
-            0.1875 0.3125 0.5625 0.046875
-            0.1875 0.3125 0.6875 0.046875
-            0.1875 0.3125 0.8125 0.046875
-            0.1875 0.4375 0.4375 0.0234375
-            0.1875 0.4375 0.5625 0.046875
-            0.1875 0.4375 0.6875 0.046875
-            0.1875 0.4375 0.8125 0.046875
-            0.1875 0.5625 0.5625 0.0234375
-            0.1875 0.5625 0.6875 0.046875
-            0.1875 0.6875 0.6875 0.0234375
-            0.3125 0.3125 0.3125 0.0078125
-            0.3125 0.3125 0.4375 0.0234375
-            0.3125 0.3125 0.5625 0.0234375
-            0.3125 0.3125 0.6875 0.0234375
-            0.3125 0.4375 0.4375 0.0234375
-            0.3125 0.4375 0.5625 0.046875
-            0.3125 0.4375 0.6875 0.046875
-            0.3125 0.5625 0.5625 0.0234375
-            0.4375 0.4375 0.4375 0.0078125
-            0.4375 0.4375 0.5625 0.0234375
-        ],
-        cryst = nothing,
-    )
+    @test parse_ibz(str) == (KPointsCard("tpiba", SpecialKPoint[SpecialKPoint([0.0625, 0.0625, 0.0625], 0.0078125), SpecialKPoint([0.0625, 0.0625, 0.1875], 0.0234375), SpecialKPoint([0.0625, 0.0625, 0.3125], 0.0234375), SpecialKPoint([0.0625, 0.0625, 0.4375], 0.0234375), SpecialKPoint([0.0625, 0.0625, 0.5625], 0.0234375), SpecialKPoint([0.0625, 0.0625, 0.6875], 0.0234375), SpecialKPoint([0.0625, 0.0625, 0.8125], 0.0234375), SpecialKPoint([0.0625, 0.0625, 0.9375], 0.0234375), SpecialKPoint([0.0625, 0.1875, 0.1875], 0.0234375), SpecialKPoint([0.0625, 0.1875, 0.3125], 0.046875)…SpecialKPoint([0.3125, 0.3125, 0.3125], 0.0078125), SpecialKPoint([0.3125, 0.3125, 0.4375], 0.0234375), SpecialKPoint([0.3125, 0.3125, 0.5625], 0.0234375), SpecialKPoint([0.3125, 0.3125, 0.6875], 0.0234375), SpecialKPoint([0.3125, 0.4375, 0.4375], 0.0234375), SpecialKPoint([0.3125, 0.4375, 0.5625], 0.046875), SpecialKPoint([0.3125, 0.4375, 0.6875], 0.046875), SpecialKPoint([0.3125, 0.5625, 0.5625], 0.0234375), SpecialKPoint([0.4375, 0.4375, 0.4375], 0.0078125), SpecialKPoint([0.4375, 0.4375, 0.5625], 0.0234375)]), nothing)
 
-    @test parse_stress(str) == (
-        [-17.35],
+    @test parse_stress(str) == ([-17.35],
         [[
           -0.00011796 -0.0 -0.0
           -0.0 -0.00011796 0.0
@@ -127,36 +62,31 @@ using QuantumESPRESSOParsers.Outputs.PWscf
           -17.35 -0.0 -0.0
           -0.0 -17.35 0.0
           -0.0 0.0 -17.35
-        ]],
-    )
+        ]],)
 
-    @test isempty(parse_cell_parameters(str))
+    @test isempty(parseall(CellParametersCard, str))
 
-    @test isempty(parse_atomic_positions(str))
+    @test isempty(parseall(AtomicPositionsCard, str))
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
-             1 1 15.0 PPCGDiagonalization() 0.01 8.1 0.7 0.5 -4.1872583 -4.18806959 0.00586766
-             1 2 15.0 PPCGDiagonalization() 0.000196 2.4 0.7 0.6 -4.18723304 -4.18727083 0.00049876
-             1 3 15.0 PPCGDiagonalization() 1.66e-5 4.5 0.7 0.7 -4.18725801 -4.18725803 3.31e-6
-             1 4 15.0 PPCGDiagonalization() 1.1e-7 5.9 0.7 1.0 -4.18725743 -4.18725817 4.08e-6
-             1 5 15.0 PPCGDiagonalization() 1.1e-7 4.0 0.7 1.1 nothing nothing nothing
+    @test parse_iteration_head(str) == groupby(DataFrame([
+             1 1 15.0 0.7
+             1 2 15.0 0.7
+             1 3 15.0 0.7
+             1 4 15.0 0.7
+             1 5 15.0 0.7
             ],
-            [:n, :i, :ecut, :diag, :ethr, :avg, :β, :t, :ε, :hf, :δ],
+            [:step, :iteration, :ecut, :β],
         ),
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -4.18725747,
+    @test parse_electrons_energies(str, :converged) == (-4.18725747,
         -4.18725747,
         2.0e-8,
         nothing,
         [2.93900635, 0.00980673, -1.63461306, -5.50183453],
         nothing,
-        0.00037704,
-    )
+        0.00037704,)
 
     @test parse_version(str) == "6.3"
 
@@ -164,8 +94,7 @@ using QuantumESPRESSOParsers.Outputs.PWscf
 
     @test parse_fft_dimensions(str) == (869, (nr1 = 15, nr2 = 15, nr3 = 15))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0625 0.0625 0.1875
          0.0625 0.3125 0.3125
          0.0625 0.9375 0.5625
@@ -288,11 +217,9 @@ using QuantumESPRESSOParsers.Outputs.PWscf
          20.7072 11.9433 15.6027 19.2545 15.8453 18.5363
          21.6903 19.8656 17.3703 20.458 17.6337 20.0806
          23.3065 22.6358 26.6302 23.5595 26.7367 21.5258
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 0.03 0.03 1
          "" "electrons" 0.89 1.06 1
          "" "forces" 0.0 0.0 1
@@ -338,8 +265,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 2,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 2,
         alat = 10.2,
         omega = 265.302,
         nat = 2,
@@ -359,8 +285,7 @@ end
         nstep = nothing,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Min" 63 63 21
          "gvecs" "Min" 682 682 132
          "sticks" "Max" 64 64 22
@@ -371,8 +296,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (
-        cart = [
+    @test parse_ibz(str) == (cart = [
             0.125 0.125 0.125 0.0625
             0.125 0.125 0.375 0.1875
             0.125 0.125 0.625 0.1875
@@ -384,11 +308,9 @@ end
             0.375 0.375 0.375 0.0625
             0.375 0.375 0.625 0.1875
         ],
-        cryst = nothing,
-    )
+        cryst = nothing,)
 
-    @test parse_stress(str) == (
-        [-10.24],
+    @test parse_stress(str) == ([-10.24],
         [[
           -6.961e-5 0.0 0.0
           0.0 -6.961e-5 0.0
@@ -398,16 +320,13 @@ end
           -10.24 0.0 0.0
           0.0 -10.24 0.0
           0.0 -0.0 -10.24
-        ]],
-    )
+        ]],)
 
     @test isempty(parse_cell_parameters(str))
 
     @test isempty(parse_atomic_positions(str))
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 18.0 CGDiagonalization() 0.01 3.0 0.7 0.1 -15.8409163 -15.86196769 0.06153621
              1 2 18.0 CGDiagonalization() 0.000769 3.0 0.7 0.1 -15.84402044 -15.84433077 0.0021625
              1 3 18.0 CGDiagonalization() 2.7e-5 3.8 0.7 0.1 -15.84450651 -15.84454243 7.508e-5
@@ -420,15 +339,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -15.84452726,
+    @test parse_electrons_energies(str, :converged) == (-15.84452726,
         -15.84452726,
         1.1e-9,
         nothing,
         [4.79352741, 1.07664069, -4.8149367, -16.89975867],
         nothing,
-        nothing,
-    )
+        nothing,)
 
     @test parse_version(str) == "6.0"
 
@@ -436,8 +353,7 @@ end
 
     @test parse_fft_dimensions(str) == (2733, (nr1 = 20, nr2 = 20, nr3 = 20))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.125 0.125 0.875
          0.125 0.875 0.125
          0.125 0.125 0.625
@@ -460,11 +376,9 @@ end
          4.9909 1.5909 3.2106 -0.5842
          -3.9883 3.8905 -2.822 3.934
          1.3106 5.4637 -0.439 4.6556
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 0.01 0.02 1
          "" "electrons" 0.11 0.12 1
          "" "forces" 0.0 0.0 1
@@ -509,8 +423,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 64,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 64,
         alat = 21.5062,
         omega = 9947.007,
         nat = 64,
@@ -530,8 +443,7 @@ end
         nstep = nothing,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Min" 644 644 165
          "gvecs" "Min" 49140 49140 6426
          "sticks" "Max" 645 645 167
@@ -544,8 +456,7 @@ end
 
     @test parse_ibz(str) == (cart = [0.25 0.25 0.25 2.0], cryst = nothing)
 
-    @test parse_stress(str) == (
-        [0.63],
+    @test parse_stress(str) == ([0.63],
         [[
           4.28e-6 0.0 0.0
           0.0 4.27e-6 0.0
@@ -555,16 +466,13 @@ end
           0.63 0.0 0.0
           0.0 0.63 0.0
           0.0 0.0 0.63
-        ]],
-    )
+        ]],)
 
     @test isempty(parse_cell_parameters(str))
 
     @test isempty(parse_atomic_positions(str))
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 70.0 DavidsonDiagonalization() 0.01 1.0 0.7 10.7 -6041.20603805 -6045.69337535 5.2864571
              1 2 70.0 DavidsonDiagonalization() 0.00103 4.0 0.7 22.7 -6043.01689773 -6043.59224951 0.77895678
              1 3 70.0 DavidsonDiagonalization() 0.000152 2.0 0.7 32.3 -6043.23571556 -6043.25444434 0.0214773
@@ -581,15 +489,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -6043.24556394,
+    @test parse_electrons_energies(str, :converged) == (-6043.24556394,
         -6043.24556394,
         9.5e-10,
         -39940.429322,
         [-2623.52269882, 1363.88574749, -789.46164384, -2182.32845246],
         nothing,
-        nothing,
-    )
+        nothing,)
 
     @test parse_version(str) == "5.4.0"
 
@@ -597,13 +503,10 @@ end
 
     @test parse_fft_dimensions(str) == (786247, (nr1 = 120, nr2 = 120, nr3 = 120))
 
-    @test parse_bands(str) == (
-        [0.25 0.25 0.25],
-        [-48.1202 -48.1201 -48.1201 -48.12 -48.1187 -48.1185 -48.1185 -48.1184 -48.1183 -48.1181 -48.1181 -48.1181 -48.1181 -48.1181 -48.1181 -48.118 -48.118 -48.118 -48.118 -48.1179 -48.1179 -48.1179 -48.1178 -48.1178 -48.1176 -48.1175 -48.1175 -48.1174 -48.1161 -48.116 -48.116 -48.1159 -20.0531 -20.0529 -20.0529 -20.0515 -20.0488 -20.0486 -20.0484 -20.0483 -20.0483 -20.0482 -20.0481 -20.048 -20.0478 -20.047 -20.0466 -20.0465 -20.0461 -20.0459 -20.0455 -20.0455 -20.0454 -20.0452 -20.0451 -20.0449 -20.0448 -20.0447 -20.0447 -20.0444 -20.0403 -20.0402 -20.0402 -20.0401 -20.0401 -20.04 -20.0395 -20.0394 -20.0393 -20.039 -20.039 -20.0388 -20.0381 -20.0379 -20.0378 -20.0367 -20.0365 -20.0365 -20.0364 -20.0363 -20.0361 -20.0361 -20.036 -20.0359 -20.0357 -20.0357 -20.0356 -20.0355 -20.0353 -20.035 -20.0346 -20.0345 -20.0344 -20.0341 -20.034 -20.0339 -20.0337 -20.0337 -20.0334 -20.0334 -20.0331 -20.0331 -20.033 -20.0327 -20.0326 -20.0326 -20.0326 -20.0325 -20.0325 -20.0324 -20.0322 -20.032 -20.0319 -20.0319 -20.0316 -20.0314 -20.0314 -20.0312 -20.0311 -20.031 -20.0308 -20.0305 -20.0304 -20.0302 -20.0301 -20.0296 -20.0294 -20.0293 -11.714 -11.6188 -11.6179 -11.6172 -11.5458 -11.545 -11.5442 -11.4969 -11.4925 -11.4917 -11.4909 -11.456 -11.4543 -11.4542 -11.4542 -11.4542 -11.4529 -11.4431 -11.443 -11.4428 -11.4169 -11.416 -11.4154 -11.4102 -11.4101 -11.4099 -11.4008 -11.3996 -11.3996 -11.3996 -11.3996 -11.3976 -0.8874 -0.8874 -0.8874 -0.783 -0.6658 -0.6658 -0.6658 -0.6358 -0.6349 -0.6341 -0.6261 -0.6257 -0.6254 -0.6253 -0.6249 -0.6246 -0.5201 -0.5201 -0.5195 -0.5195 -0.519 -0.5189 -0.483 -0.4824 -0.4818 -0.4217 -0.4216 -0.4215 -0.1146 -0.1146 -0.1143 -0.1143 -0.114 -0.114 -0.0591 -0.0588 -0.0585 -0.0383 -0.0381 -0.0378 0.1489 0.1489 0.1489 0.1899 0.1901 0.1905 0.1905 0.1909 0.1911 0.2862 0.2864 0.2869 0.2869 0.2874 0.2876 0.3165 0.3165 0.3165 0.3739 0.3739 0.3739 0.4176 0.4176 0.4176 0.449 0.4494 0.4499 0.469 0.4696 0.47 0.4839 0.4843 0.4847 0.4898 0.502 0.5028 0.503 0.503 0.5031 0.5041 0.5436 0.5436 0.5436 0.6285 0.6285 0.6504 0.6509 0.6513 0.6599 0.6608 0.6616 0.6888 0.6892 0.6896 0.8041 0.8041],
-    )
+    @test parse_bands(str) == ([0.25 0.25 0.25],
+        [-48.1202 -48.1201 -48.1201 -48.12 -48.1187 -48.1185 -48.1185 -48.1184 -48.1183 -48.1181 -48.1181 -48.1181 -48.1181 -48.1181 -48.1181 -48.118 -48.118 -48.118 -48.118 -48.1179 -48.1179 -48.1179 -48.1178 -48.1178 -48.1176 -48.1175 -48.1175 -48.1174 -48.1161 -48.116 -48.116 -48.1159 -20.0531 -20.0529 -20.0529 -20.0515 -20.0488 -20.0486 -20.0484 -20.0483 -20.0483 -20.0482 -20.0481 -20.048 -20.0478 -20.047 -20.0466 -20.0465 -20.0461 -20.0459 -20.0455 -20.0455 -20.0454 -20.0452 -20.0451 -20.0449 -20.0448 -20.0447 -20.0447 -20.0444 -20.0403 -20.0402 -20.0402 -20.0401 -20.0401 -20.04 -20.0395 -20.0394 -20.0393 -20.039 -20.039 -20.0388 -20.0381 -20.0379 -20.0378 -20.0367 -20.0365 -20.0365 -20.0364 -20.0363 -20.0361 -20.0361 -20.036 -20.0359 -20.0357 -20.0357 -20.0356 -20.0355 -20.0353 -20.035 -20.0346 -20.0345 -20.0344 -20.0341 -20.034 -20.0339 -20.0337 -20.0337 -20.0334 -20.0334 -20.0331 -20.0331 -20.033 -20.0327 -20.0326 -20.0326 -20.0326 -20.0325 -20.0325 -20.0324 -20.0322 -20.032 -20.0319 -20.0319 -20.0316 -20.0314 -20.0314 -20.0312 -20.0311 -20.031 -20.0308 -20.0305 -20.0304 -20.0302 -20.0301 -20.0296 -20.0294 -20.0293 -11.714 -11.6188 -11.6179 -11.6172 -11.5458 -11.545 -11.5442 -11.4969 -11.4925 -11.4917 -11.4909 -11.456 -11.4543 -11.4542 -11.4542 -11.4542 -11.4529 -11.4431 -11.443 -11.4428 -11.4169 -11.416 -11.4154 -11.4102 -11.4101 -11.4099 -11.4008 -11.3996 -11.3996 -11.3996 -11.3996 -11.3976 -0.8874 -0.8874 -0.8874 -0.783 -0.6658 -0.6658 -0.6658 -0.6358 -0.6349 -0.6341 -0.6261 -0.6257 -0.6254 -0.6253 -0.6249 -0.6246 -0.5201 -0.5201 -0.5195 -0.5195 -0.519 -0.5189 -0.483 -0.4824 -0.4818 -0.4217 -0.4216 -0.4215 -0.1146 -0.1146 -0.1143 -0.1143 -0.114 -0.114 -0.0591 -0.0588 -0.0585 -0.0383 -0.0381 -0.0378 0.1489 0.1489 0.1489 0.1899 0.1901 0.1905 0.1905 0.1909 0.1911 0.2862 0.2864 0.2869 0.2869 0.2874 0.2876 0.3165 0.3165 0.3165 0.3739 0.3739 0.3739 0.4176 0.4176 0.4176 0.449 0.4494 0.4499 0.469 0.4696 0.47 0.4839 0.4843 0.4847 0.4898 0.502 0.5028 0.503 0.503 0.5031 0.5041 0.5436 0.5436 0.5436 0.6285 0.6285 0.6504 0.6509 0.6513 0.6599 0.6608 0.6616 0.6888 0.6892 0.6896 0.8041 0.8041],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 4.14 4.3 1
          "" "electrons" 98.15 99.0 1
          "" "forces" 1.6 1.65 1
@@ -650,8 +553,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 9,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 9,
         alat = 9.2863,
         omega = 762.9417,
         nat = 9,
@@ -671,16 +573,14 @@ end
         nstep = nothing,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Sum" 889 475 151
          "gvecs" "Sum" 23595 9203 1559
         ],
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (
-        cart = [
+    @test parse_ibz(str) == (cart = [
             0.0 0.0 0.0 0.25
             0.0 0.0 -0.4545041 0.25
             0.0 -0.5773503 0.0 0.25
@@ -695,8 +595,7 @@ end
             0.0 -0.5 -0.5 0.25
             0.5 -0.5 0.0 0.5
             0.5 -0.5 -0.5 0.5
-        ],
-    )
+        ],)
 
     @test all(isempty, parse_stress(str))
 
@@ -704,9 +603,7 @@ end
 
     @test isempty(parse_atomic_positions(str))
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 20.0 DavidsonDiagonalization() 0.01 3.3 0.3 4.8 -215.47818098 -215.53465529 0.3369274
              1 2 20.0 DavidsonDiagonalization() 0.000702 1.0 0.3 5.8 -215.48170145 -215.48997319 0.1173383
              1 3 20.0 DavidsonDiagonalization() 0.000244 2.7 0.3 6.9 -215.48819658 -215.48809974 0.01949303
@@ -723,15 +620,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -215.49032431,
+    @test parse_electrons_energies(str, :converged) == (-215.49032431,
         -215.49031863,
         5.2e-10,
         nothing,
         [-102.06258058, 76.26219017, -50.59625207, -139.09368184],
         nothing,
-        0.0,
-    )
+        0.0,)
 
     @test parse_version(str) == "5.2.0"
 
@@ -739,8 +634,7 @@ end
 
     @test parse_fft_dimensions(str) == (23595, (nr1 = 40, nr2 = 40, nr3 = 40))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0 0.0 0.5
          0.0 -0.5774 -0.2887
          0.0 0.0 0.0
@@ -755,11 +649,9 @@ end
          -14.9187 -2.9296 0.1125 1.8715 12.4598 -14.9147 -3.113 0.5108 2.3399 12.4599 -14.9799 -2.9537 0.2737 1.7938 12.4139 -15.0016 -2.8272 0.4585 1.7248 12.5029 -14.9796 -2.9541 0.273 1.7939 12.4142 -15.002 -2.8276 0.4579 1.7248 12.5031
          -14.8904 -2.742 1.0266 2.2461 12.46 -14.9139 -3.1126 0.5114 2.34 12.4602 -14.9429 -2.916 0.4648 2.3038 13.2561 -14.9318 -2.5641 0.4729 1.9562 12.9247 -14.9439 -2.9156 0.4649 2.3042 13.2561 -14.9318 -2.564 0.4729 1.9573 12.9248
          -14.8896 -2.7419 1.027 2.2465 13.768 -14.8691 -2.2079 0.678 2.4292 13.3749 -14.9202 -2.1394 0.8078 2.5349 13.3438 -14.9111 -2.4471 1.0148 2.3604 13.1935 -14.919 -2.1395 0.8082 2.5344 13.344 -14.91 -2.447 1.015 2.3604 13.1935
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 1.89 2.01 1
          "" "electrons" 14.18 14.52 1
          "init_run" "wfcinit" 0.69 0.69 1
@@ -812,8 +704,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 2,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 2,
         alat = 7.0103,
         omega = 245.3705,
         nat = 2,
@@ -833,8 +724,7 @@ end
         nstep = 55,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Min" 174 174 60
          "gvecs" "Min" 2079 2079 416
          "sticks" "Max" 175 175 61
@@ -845,8 +735,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (
-        cart = [
+    @test parse_ibz(str) == (cart = [
             0.0 0.0 0.1534638 0.0625
             -0.1436461 -0.2488023 0.2557731 0.1875
             0.2872922 0.4976046 -0.0511547 0.1875
@@ -858,11 +747,9 @@ end
             0.0 0.0 0.4603915 0.0625
             0.4309383 0.746407 0.1534638 0.1875
         ],
-        cryst = nothing,
-    )
+        cryst = nothing,)
 
-    @test parse_stress(str) == (
-        [
+    @test parse_stress(str) == ([
          217.55,
          142.98,
          33.14,
@@ -924,8 +811,7 @@ end
          [0.26 0.0 -0.0; 0.0 0.26 -0.0; -0.0 -0.0 0.5],
          [0.3 0.0 -0.0; 0.0 0.3 -0.0; -0.0 0.0 0.68],
          [0.05 -0.0 -0.0; -0.0 0.05 -0.0; -0.0 -0.0 0.2],
-        ],
-    )
+        ],)
 
     @test parse_cell_parameters(str) == [
         [
@@ -1143,9 +1029,7 @@ end
      #      )
      # ]
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 25.0 DavidsonDiagonalization() 0.01 4.3 0.7 0.3 -25.43995582 -25.4437112 0.01555792
              1 2 25.0 DavidsonDiagonalization() 0.000156 1.0 0.7 0.4 -25.44012469 -25.44030751 0.00088879
              1 3 25.0 DavidsonDiagonalization() 8.89e-6 1.6 0.7 0.4 -25.44015903 -25.44016035 5.01e-6
@@ -1242,15 +1126,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -25.4401674,
+    @test parse_electrons_energies(str, :converged) == (-25.4401674,
         -25.44016741,
         2.0e-8,
         nothing,
         nothing,
         nothing,
-        nothing,
-    )
+        nothing,)
 
     @test parse_version(str) == "6.0"
 
@@ -1258,8 +1140,7 @@ end
 
     @test parse_fft_dimensions(str) == (4159, (nr1 = 24, nr2 = 24, nr3 = 24))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0 0.2398 0.1432
          0.0 0.0469 0.5611
          0.1535 -0.277 -0.0
@@ -1642,11 +1523,9 @@ end
          10.156 13.052 -6.8699 -0.7135 1.7705 4.7389 4.146 8.5061 10.3982
          14.5874 -5.1183 -0.4992 2.7516 2.7446 6.0503 9.817 8.5061 13.2013
          -6.4261 -3.7324 4.1509 3.9535 6.0285 9.3275 12.9782 9.6283 15.2383
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 0.12 0.15 1
          "" "electrons" 5.8 5.9 19
          "" "update_pot" 1.09 1.11 18
@@ -1693,8 +1572,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 2,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 2,
         alat = 5.0,
         omega = 675.0316,
         nat = 2,
@@ -1714,8 +1592,7 @@ end
         nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Min" 63 63 22
          "gvecs" "Min" 4920 4920 1053
          "sticks" "Max" 64 64 23
@@ -1726,8 +1603,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (
-        cart = [
+    @test parse_ibz(str) == (cart = [
             0.0 0.0 0.0 0.0138889
             0.0 0.0933154 0.0 0.0277778
             0.0 0.1866307 0.0 0.0277778
@@ -1803,11 +1679,9 @@ end
             -0.5 0.2146254 0.0 0.0277778
             -0.5 -0.8118437 0.0 0.0138889
         ],
-        cryst = nothing,
-    )
+        cryst = nothing,)
 
-    @test parse_stress(str) == (
-        [-102.58, -88.9, -56.37, 18.73, -0.55, -0.49, 1.27, 0.49, 0.01, 1.64],
+    @test parse_stress(str) == ([-102.58, -88.9, -56.37, 18.73, -0.55, -0.49, 1.27, 0.49, 0.01, 1.64],
         [
          [-0.00087326 -0.00016767 0.0; -0.00016767 -0.00121864 0.0; 0.0 0.0 0.0],
          [-0.00081252 -0.00021559 0.0; -0.00021559 -0.00100054 0.0; 0.0 0.0 0.0],
@@ -1831,8 +1705,7 @@ end
          [0.62 -0.29 0.0; -0.29 0.86 0.0; 0.0 0.0 0.0],
          [-0.04 0.01 0.0; 0.01 0.07 0.0; 0.0 0.0 0.0],
          [2.36 0.12 0.0; 0.12 2.58 0.0; 0.0 0.0 0.0],
-        ],
-    )
+        ],)
 
     @test parse_cell_parameters(str) == []
 
@@ -1848,9 +1721,7 @@ end
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.040179553, 0.020179171, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [0.000179347, 1.390083827, 0.0], [1, 1, 1])])
     # ]
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 36.0 DavidsonDiagonalization() 0.01 9.7 0.7 4.4 -22.7419296 -22.79397166 0.09226467
              1 2 36.0 DavidsonDiagonalization() 0.00115 4.3 0.7 6.6 -22.75741266 -22.75819232 0.00220438
              1 3 36.0 nothing nothing nothing 0.7 13.2 -22.76081155 -22.7611125 0.00052542
@@ -1992,15 +1863,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -22.76095737,
+    @test parse_electrons_energies(str, :converged) == (-22.76095737,
         -22.76095737,
         5.9e-10,
         nothing,
         [39.24275678, -19.23546571, -6.59178126, -36.17669235],
         nothing,
-        0.00022517,
-    )
+        0.00022517,)
 
     @test parse_version(str) == "6.1"
 
@@ -2008,8 +1877,7 @@ end
 
     @test parse_fft_dimensions(str) == (19689, (nr1 = 20, nr2 = 20, nr3 = 120))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0 0.0 -0.4278
          0.0 0.1695 0.0
          0.0 -0.5325 0.3527
@@ -3492,11 +3360,9 @@ end
          -11.3492 5.7353 -16.3748 2.9359 -12.1075 6.2708 -16.2297 3.2153
          -8.6716 6.4453 -10.5995 6.869 -8.1161 6.9517 -10.8164 6.7611
          -8.3461 6.721 -7.7564 6.9334 -7.9083 7.9675 -7.7567 6.8505
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 1.39 1.68 2
          "" "electrons" 337.65 402.35 10
          "" "update_pot" 1.39 1.48 8
@@ -3547,8 +3413,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 2,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 2,
         alat = 12.0,
         omega = 1728.0,
         nat = 2,
@@ -3568,8 +3433,7 @@ end
         nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Sum" 1649 1101 277
          "gvecs" "Sum" 50541 27609 3407
         ],
@@ -3602,9 +3466,7 @@ end
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("C", [2.139767533, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0])])
     # ]
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 24.0 DavidsonDiagonalization() 0.01 2.0 0.7 1.1 -43.00560028 -43.13946473 0.20142084
              1 2 24.0 DavidsonDiagonalization() 0.00201 4.0 0.7 1.2 -42.97192905 -43.22189611 0.69794621
              1 3 24.0 DavidsonDiagonalization() 0.00201 3.0 0.7 1.4 -43.09499395 -43.09749186 0.00768862
@@ -3666,15 +3528,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -43.09625738,
+    @test parse_electrons_energies(str, :converged) == (-43.09625738,
         -43.0962577,
         3.9e-7,
         nothing,
         nothing,
         nothing,
-        nothing,
-    )
+        nothing,)
 
     @test parse_version(str) == "5.2.1"
 
@@ -3682,8 +3542,7 @@ end
 
     @test parse_fft_dimensions(str) == (25271, (nr1 = 45, nr2 = 45, nr3 = 45))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0 0.0 0.0
          0.0 0.0 0.0
          0.0 0.0 0.0
@@ -3712,11 +3571,9 @@ end
          -29.5199 -11.2059 -13.3812 -8.383 -11.3935
          -13.3829 -8.422 -11.5131 -28.7994 -11.3935
          -11.819 -28.6088 -11.5131 -13.3835 -8.381
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 0.86 0.88 1
          "" "electrons" 7.88 7.95 13
          "" "update_pot" 0.9 0.93 12
@@ -3764,8 +3621,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 3,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 3,
         alat = 12.0,
         omega = 1728.0,
         nat = 3,
@@ -3785,8 +3641,7 @@ end
         nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Sum" 1369 1369 349
          "gvecs" "Sum" 38401 38401 4801
         ],
@@ -3809,9 +3664,7 @@ end
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("O", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.029112625, 1.029112625, 1.126614785], [1, 1, 1])])
     # ]
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 30.0 DavidsonDiagonalization() 0.01 8.0 0.7 2.4 -43.77716297 -44.16056246 0.48854594
              1 2 30.0 DavidsonDiagonalization() 0.00611 2.0 0.7 3.1 -43.8883681 -44.11207947 0.4291763
              1 3 30.0 DavidsonDiagonalization() 0.00536 2.0 0.7 3.7 -43.98513387 -43.9870297 0.0046026
@@ -3855,15 +3708,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -43.98713779,
+    @test parse_electrons_energies(str, :converged) == (-43.98713779,
         -43.98713782,
         8.0e-8,
         -152.747884,
         [-83.31808498, 43.20085074, -8.51939717, 14.56351319],
         nothing,
-        nothing,
-    )
+        nothing,)
 
     @test parse_version(str) == "6.2"
 
@@ -3871,8 +3722,7 @@ end
 
     @test parse_fft_dimensions(str) == (19201, (nr1 = 45, nr2 = 45, nr3 = 45))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0 0.0 0.0
          0.0 0.0 0.0
          0.0 0.0 0.0
@@ -3889,11 +3739,9 @@ end
          -1.3182 -7.1093 -9.0127 -13.1787 -25.2037 2.6457 2.004 1.7255
          1.9473 -1.4483 -7.135 -9.0749 -13.116 -25.1968 2.6539 2.0
          2.1707 1.6724 -1.4273 -7.151 -9.1444 -13.0324 -25.184 2.6531
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 1.15 1.15 1
          "" "electrons" 23.97 23.98 7
          "" "update_pot" 3.66 3.66 6
@@ -3942,8 +3790,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 5,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 5,
         alat = 12.0,
         omega = 1728.0,
         nat = 5,
@@ -3963,8 +3810,7 @@ end
         nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Sum" 1369 1369 349
          "gvecs" "Sum" 38401 38401 4801
         ],
@@ -3985,9 +3831,7 @@ end
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("bohr", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("N", [0.0, 0.0, 0.0], [0, 0, 0]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("H", [1.129577564, 1.129577564, 1.129577564], [1, 1, 1])])
     # ]
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 30.0 DavidsonDiagonalization() 0.01 3.0 0.7 2.8 -31.57695851 -33.30284118 2.34289398
              1 2 30.0 DavidsonDiagonalization() 0.01 2.0 0.7 3.4 -32.20709529 -32.59490336 0.73212995
              1 3 30.0 DavidsonDiagonalization() 0.00915 2.0 0.7 4.1 -32.34001777 -32.3467286 0.01300493
@@ -4025,15 +3869,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -32.34437204,
+    @test parse_electrons_energies(str, :converged) == (-32.34437204,
         -32.34437208,
         5.0e-8,
         -113.643173,
         [-82.06686425, 38.91703901, -8.21266386, 27.33665144],
         nothing,
-        nothing,
-    )
+        nothing,)
 
     @test parse_version(str) == "6.2"
 
@@ -4041,8 +3883,7 @@ end
 
     @test parse_fft_dimensions(str) == (19201, (nr1 = 45, nr2 = 45, nr3 = 45))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0 0.0 0.0
          0.0 0.0 0.0
          0.0 0.0 0.0
@@ -4055,11 +3896,9 @@ end
          -22.3919 -3.7177 -7.5142 -20.7553 -4.6059 -20.8479 -31.5898 -4.5487
          -22.3919 -31.2273 -4.7342 -20.7553 -4.6059 -7.412 -20.842 -4.5487
          -7.041 -20.5654 -4.7342 -20.7553 -31.5977 -4.5444 -20.842 -4.5487
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 1.22 1.31 1
          "" "electrons" 20.66 20.75 5
          "" "update_pot" 2.52 2.52 4
@@ -4108,8 +3947,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 3,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 3,
         alat = 5.9716,
         omega = 2213.0132,
         nat = 3,
@@ -4129,8 +3967,7 @@ end
         nstep = 300,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Min" 253 124 37
          "gvecs" "Min" 77613 26474 4339
          "sticks" "Max" 255 125 38
@@ -4141,8 +3978,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (
-        cart = [
+    @test parse_ibz(str) == (cart = [
             0.0 0.0 0.0 0.0078125
             0.0 0.0721688 0.0 0.046875
             0.0 0.1443376 0.0 0.046875
@@ -4205,8 +4041,7 @@ end
             0.25 0.3125 0.0 0.09375
             0.25 0.375 0.0 0.046875
             0.3125 0.3125 0.0 0.046875
-        ],
-    )
+        ],)
 
     @test all(isempty, parse_stress(str))
 
@@ -4216,9 +4051,7 @@ end
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("alat", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("S", [0.5, 0.28867513, 1.86331695], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("Mo", [0.0, 0.57735027, 2.350404949], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("S", [0.0, 0.57735027, 2.838203782], [1, 1, 1])])
     # ]
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 50.0 DavidsonDiagonalization() 0.01 3.0 0.7 10.1 -180.35021564 -181.15850969 0.95068425
              1 2 50.0 DavidsonDiagonalization() 0.00367 5.1 0.7 19.4 -177.05589334 -184.83602299 52.96038171
              1 3 50.0 DavidsonDiagonalization() 0.00367 4.7 0.7 28.7 -180.94555842 -181.08909805 0.67171122
@@ -4238,15 +4071,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -181.02562091,
+    @test parse_electrons_energies(str, :converged) == (-181.02562091,
         -181.02562123,
         8.8e-10,
         nothing,
         [-2649.72274889, 1320.02437487, -42.50453186, 1179.75742402],
         nothing,
-        nothing,
-    )
+        nothing,)
 
     @test parse_version(str) == "6.1"
 
@@ -4254,8 +4085,7 @@ end
 
     @test parse_fft_dimensions(str) == (310487, (nr1 = 40, nr2 = 40, nr3 = 480))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0 0.0625 0.125
          0.0 0.1804 0.5052
          0.0 0.0 0.0
@@ -4318,11 +4148,9 @@ end
          -5.7135 -9.2642 -38.9682 -0.2942 -4.9781 -7.5168 -38.815 0.3201 -4.5656 -7.6843 -16.5132 -64.7379 -1.9824 -7.2846 -16.0064 -39.0928 -0.8745
          -5.2287 -7.6572 -38.817 0.3184 -4.657 -6.9239 -17.1246 -64.7425 -1.748 -7.1454 -16.1165 -39.144 -1.4473 -6.6299 -9.3053 -38.9717 -0.3918
          -3.9775 -7.156 -16.9671 -64.741 -1.7658 -6.3757 -16.3578 -39.1259 -1.2303 -6.0117 -9.4942 -38.939 -1.1503 -5.5964 -9.1035 -38.9333 1.0046
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 2.9 3.0 1
          "" "electrons" 87.76 89.4 1
          "" "forces" 0.83 0.88 1
@@ -4380,8 +4208,7 @@ end
 
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
-    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(
-        ibrav = 4,
+    @test tryparse(Preamble, str) == parse(Preamble, str) == Preamble(ibrav = 4,
         alat = 10.8223,
         omega = 2655.9321,
         nat = 4,
@@ -4401,8 +4228,7 @@ end
         nstep = 50,
     )
 
-    @test parse_fft_base_info(str) == DataFrame(
-        [
+    @test parse_fft_base_info(str) == DataFrame([
          "sticks" "Min" 187 187 54
          "gvecs" "Min" 8037 8037 1261
          "sticks" "Max" 188 188 56
@@ -4413,8 +4239,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (
-        cart = [
+    @test parse_ibz(str) == (cart = [
             0.0833333 0.0833333 0.0 0.1111111
             0.0833333 0.25 0.0 0.1111111
             0.0833333 0.4166667 0.0 0.1111111
@@ -4434,8 +4259,7 @@ end
             0.4166667 -0.25 0.0 0.1111111
             0.4166667 -0.0833333 0.0 0.1111111
         ],
-        cryst = nothing,
-    )
+        cryst = nothing,)
 
     @test all(isempty, parse_stress(str))
 
@@ -4445,9 +4269,7 @@ end
     #     QuantumESPRESSOBase.Cards.AtomicPositionsCard{String,Array{QuantumESPRESSOBase.Cards.AtomicPosition,1}}("angstrom", QuantumESPRESSOBase.Cards.AtomicPosition[QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("Al", [0.0, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("Al", [2.863450038, 0.0, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("Al", [0.0, 2.863450038, 0.0], [1, 1, 1]), QuantumESPRESSOBase.Cards.AtomicPosition{String,Array{Float64,1},Array{Int64,1}}("Al", [2.863450038, 2.863450038, 0.0], [1, 1, 1])])
     # ]
 
-    @test parse_scf_calculation(str) == groupby(
-        DataFrame(
-            [
+    @test parse_iteration_head(str) == groupby(DataFrame([
              1 1 20.0 DavidsonDiagonalization() 0.01 2.9 0.3 2.6 -49.52188732 -49.53876762 0.0697686
              1 2 20.0 DavidsonDiagonalization() 0.000581 1.0 0.3 3.1 -49.51177719 -49.52342336 0.02663719
              1 3 20.0 DavidsonDiagonalization() 0.000222 1.0 0.3 3.7 -49.51482345 -49.51499369 0.0005093
@@ -4461,15 +4283,13 @@ end
         :n,
     )
 
-    @test parse_converged_energy(str) == (
-        -49.51665947,
+    @test parse_electrons_energies(str, :converged) == (-49.51665947,
         -49.51665955,
         7.1e-7,
         nothing,
         [-320.16789804, 160.63877064, -39.2194214, 149.23211567],
         nothing,
-        -0.00022634,
-    )
+        -0.00022634,)
 
     @test parse_version(str) == "6.1"
 
@@ -4477,8 +4297,7 @@ end
 
     @test parse_fft_dimensions(str) == (32157, (nr1 = 32, nr2 = 32, nr3 = 72))
 
-    @test parse_bands(str) == (
-        [
+    @test parse_bands(str) == ([
          0.0833 0.25 0.4167
          0.0833 0.0833 0.0833
          0.0 0.0 0.0
@@ -4517,11 +4336,9 @@ end
          -5.0744 -6.3276 -7.7771 -1.8457 -3.2623 -4.2752 -6.3276 -9.1394 -2.0499 -3.9029
          -4.4973 -5.3896 -7.7771 -10.8568 -2.4628 -4.2752 -5.3896 -9.1394 -10.3632 -2.6623
          -3.9372 -4.7337 -6.0688 -8.6654 -2.3069 -2.9617 -4.7336 -8.4114 -9.6289 -1.3875
-        ],
-    )
+        ],)
 
-    @test parse_clock(str) == DataFrame(
-        [
+    @test parse_clock(str) == DataFrame([
          "" "init_run" 0.47 0.54 1
          "" "electrons" 6.26 7.18 1
          "" "forces" 0.12 0.22 1
