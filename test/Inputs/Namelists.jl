@@ -1,24 +1,37 @@
+module Namelists
+
+module PWscf
+
 using Test
 
 using Compat: isnothing
-using QuantumESPRESSOBase
-using QuantumESPRESSOBase.Namelists
 using QuantumESPRESSOBase.Namelists.PWscf
-using QuantumESPRESSOBase.Namelists.CP
-using QuantumESPRESSOBase.Namelists.PHonon
 
 using QuantumESPRESSOParsers.Namelists
 
-@testset "Parse empty string" begin
-    @test isnothing(parse(PWscf.ControlNamelist, " "))
-    @test isnothing(parse(PWscf.ControlNamelist, "&control/"))
-    @test parse(PWscf.ControlNamelist, "&control\n/\n") == PWscf.ControlNamelist()
-    @test_throws Meta.ParseError parse(PWscf.ControlNamelist, " ")
+@testset "Parse empty strings" begin
+    @test_throws Meta.ParseError parse(ControlNamelist, " ")
+    @test isnothing(tryparse(ControlNamelist, " "))
+    @test_throws Meta.ParseError parse(ControlNamelist, "&control/")
+    @test isnothing(tryparse(ControlNamelist, "&control/"))
+    @test parse(ControlNamelist, "&control\n/\n") == ControlNamelist()
+    @test_throws Meta.ParseError parse(ControlNamelist, " ")
     @test_logs(
         (:info, "An empty Namelist found! Default values will be used!"),
-        parse(PWscf.ControlNamelist, "&control\n/"),
+        parse(ControlNamelist, "&control\n/"),
     )
 end # testset
+
+end # module PWscf
+
+module CP
+
+using Test
+
+using Compat: isnothing
+using QuantumESPRESSOBase.Namelists.CP
+
+using QuantumESPRESSOParsers.Namelists
 
 @testset "Parse CP input" begin
     # This data is from https://github.com/QEF/q-e/blob/master/CPV/examples/example01/run_example.
@@ -71,11 +84,11 @@ end # testset
     Si  2.13389003   3.81348642   6.85202747
     Si  6.77884003  11.85881642   6.85202747
     """
-    control = parse(CP.ControlNamelist, str)
-    system = parse(CP.SystemNamelist, str)
-    electrons = parse(CP.ElectronsNamelist, str)
-    ions = parse(CP.IonsNamelist, str)
-    # @test control == CP.ControlNamelist(
+    control = parse(ControlNamelist, str)
+    system = parse(SystemNamelist, str)
+    electrons = parse(ElectronsNamelist, str)
+    ions = parse(IonsNamelist, str)
+    # @test control == ControlNamelist(
     #     calculation = "cp",
     #     restart_mode = "from_scratch",
     #     nstep = 20,
@@ -87,7 +100,7 @@ end # testset
     #     pseudo_dir = raw"$PSEUDO_DIR/",
     #     outdir = raw"$TMP_DIR/",
     # )
-    # @test system == CP.SystemNamelist(
+    # @test system == SystemNamelist(
     #     ibrav = 8,
     #     celldm = [9.28990, 1.73206, 1.09955],
     #     nat = 18,
@@ -103,7 +116,7 @@ end # testset
     #     q2sigma = 2.0,
     #     ecfixed = 16.0,
     # )
-    # @test electrons = CP.ElectronsNamelist(
+    # @test electrons = ElectronsNamelist(
     #     electron_dynamics = "damp",
     #     electron_damping = 0.2,
     #     startingwfc = "random",
@@ -111,5 +124,9 @@ end # testset
     #     emass = 700.0,
     #     emass_cutoff = 3.0,
     # )
-    # @test ions == CP.IonsNamelist(ion_dynamics = "none", ion_radius = [1.0, 1.0])
+    # @test ions == IonsNamelist(ion_dynamics = "none", ion_radius = [1.0, 1.0])
 end # testset
+
+end # module CP
+
+end # module Namelists
