@@ -9,9 +9,11 @@ using QuantumESPRESSOBase.Namelists.PHonon
 
 using QuantumESPRESSOParsers.Namelists
 
-@testset "Parse empty string" begin
-    @test isnothing(parse(PWscf.ControlNamelist, " "))
-    @test isnothing(parse(PWscf.ControlNamelist, "&control/"))
+@testset "Parse empty strings" begin
+    @test_throws Meta.ParseError parse(PWscf.ControlNamelist, " ")
+    @test isnothing(tryparse(PWscf.ControlNamelist, " "))
+    @test_throws Meta.ParseError parse(PWscf.ControlNamelist, "&control/")
+    @test isnothing(tryparse(PWscf.ControlNamelist, "&control/"))
     @test parse(PWscf.ControlNamelist, "&control\n/\n") == PWscf.ControlNamelist()
     @test_throws Meta.ParseError parse(PWscf.ControlNamelist, " ")
     @test_logs(
