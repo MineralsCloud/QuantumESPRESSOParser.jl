@@ -16,7 +16,7 @@ using Fortran90Namelists.FortranToJulia: FortranData
 using QuantumESPRESSOBase: titleof
 using QuantumESPRESSOBase.Namelists: Namelist
 
-using QuantumESPRESSOParsers
+using QuantumESPRESSOParsers: nonnothingtype
 
 # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L315-L321
 const NAMELIST_ITEM = r"""
@@ -31,13 +31,16 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     result = Dict{Symbol,Any}()
     head = titleof(T)
     # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L305-L312
-    NAMELIST_BLOCK = Regex("""
-                           ^ [ \\t]* &$head [ \\t]* \$  # Match `Namelist`'s name
-                           (?<body>
-                            [\\S\\s]*?  # Match any line non-greedily
-                           )            # Save the group of text between `Namelist`s
-                           ^ [ \\t]* \\/ [ \\t]* \$  # Match line with "/" as the only non-whitespace char
-                           """, "imx")
+    NAMELIST_BLOCK = Regex(
+        """
+        ^ [ \\t]* &$head [ \\t]* \$  # Match `Namelist`'s name
+        (?<body>
+         [\\S\\s]*?  # Match any line non-greedily
+        )            # Save the group of text between `Namelist`s
+        ^ [ \\t]* \\/ [ \\t]* \$  # Match line with "/" as the only non-whitespace char
+        """,
+        "imx",
+    )
     m = match(NAMELIST_BLOCK, str)
     if isnothing(m)
         raise ? throw(Meta.ParseError("Namelist not found in string!")) : return
@@ -52,7 +55,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
             if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
                 i = parse(Int, item[:index])
                 i < 0 && throw(InvalidUserInput("Negative index found in $(item[:index])!"))
-                S = QuantumESPRESSOParsers.nonnothingtype(eltype(fieldtype(T, k)))
+                S = nonnothingtype(eltype(fieldtype(T, k)))
                 v = parse(S, v)
                 arr = get(result, k, [])
                 if i > length(arr)  # Works even if `x` is empty. If empty, `length(x)` will be `0`.
