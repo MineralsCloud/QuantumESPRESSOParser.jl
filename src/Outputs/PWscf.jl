@@ -11,7 +11,7 @@ julia>
 """
 module PWscf
 
-using Compat: isnothing
+using Compat: isnothing, only
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Parameters: @with_kw
@@ -458,7 +458,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     if isnothing(m)
         raise ? throw(Meta.ParseError("No info found!")) : return
     end
-    body = first(m.captures)
+    body = only(m.captures)
     for (field, regex) in (
         :ibrav => NUMBER_OF_ATOMS_PER_CELL,
         :alat => LATTICE_PARAMETER,
