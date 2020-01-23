@@ -409,7 +409,7 @@ end # function parse_fft_dimensions
 function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     m = match(TIME_BLOCK, str)
     isnothing(m) && return
-    content = m.captures[1]
+    content = only(m.captures)
 
     info = DataFrame(
         subroutine = String[],
@@ -442,7 +442,7 @@ end # function parse_clock
 
 function whatinput(str::AbstractString)::Maybe{String}
     m = match(READING_INPUT_FROM, str)
-    !isnothing(m) ? m[1] : return
+    !isnothing(m) ? only(m) : return
 end # function whatinput
 
 function isrelaxed(str::AbstractString)::Bool

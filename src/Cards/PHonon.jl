@@ -1,6 +1,6 @@
 module PHonon
 
-using Compat: isnothing
+using Compat: isnothing, only
 using Fortran90Namelists.FortranToJulia: FortranData
 using QuantumESPRESSOBase.Cards.PHonon: SpecialQPoint, QPointsSpecsCard
 
@@ -29,7 +29,7 @@ const Q_POINTS_SPECIAL_ITEM_REGEX = r"""
 function Base.parse(::Type{<:QPointsSpecsCard}, str::AbstractString)
     m = match(Q_POINTS_SPECIAL_BLOCK_REGEX, str)
     if !isnothing(m)
-        captured = m.captures[1]
+        captured = only(m.captures)
         data = SpecialQPoint[]
         for matched in eachmatch(Q_POINTS_SPECIAL_ITEM_REGEX, captured)
             # TODO: Match `nqs`

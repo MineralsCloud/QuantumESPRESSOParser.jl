@@ -1,6 +1,6 @@
 module PWscf
 
-using Compat: isnothing
+using Compat: isnothing, only
 using Fortran90Namelists.FortranToJulia: FortranData
 using QuantumESPRESSOBase.Cards: Card
 using QuantumESPRESSOBase.Cards.PWscf: AtomicSpecies,
@@ -171,7 +171,7 @@ function tryparse_internal(::Type{<:AtomicSpeciesCard}, str::AbstractString, rai
     if isnothing(m)
         raise ? throw(Meta.ParseError("Cannot find card `ATOMIC_SPECIES`!")) : return
     end
-    content = m.captures[1]
+    content = only(m.captures)
     data = AtomicSpecies[]
     for matched in eachmatch(ATOMIC_SPECIES_ITEM, content)
         captured = matched.captures
