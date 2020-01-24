@@ -16,6 +16,7 @@ using Compat: isnothing, only
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Parameters: @with_kw
 using QuantumESPRESSOBase.Cards.PWscf
+using VersionParsing: vparse
 
 using QuantumESPRESSOParsers
 
@@ -388,9 +389,9 @@ function parse_smearing_energy(str::AbstractString)
     return df
 end # function parse_smearing_energy
 
-function parse_version(str::AbstractString)::Maybe{String}
+function parse_version(str::AbstractString)::Maybe{VersionNumber}
     m = match(PWSCF_VERSION, str)
-    !isnothing(m) ? m[:version] : return
+    !isnothing(m) ? vparse(m[:version]) : return
 end # function parse_version
 
 function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
