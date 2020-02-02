@@ -28,9 +28,9 @@ version = "0.6.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "ed2c4abadf84c53d9e58510b5fc48912c2336fbb"
+git-tree-sha1 = "3819f476b6b37ef8ea837070ed831b4ebadfa1e9"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "2.2.0"
+version = "3.2.0"
 
 [[ConstructionBase]]
 git-tree-sha1 = "a2a6a5fea4d6f730ec4c18a76d27ec10e8ec1c50"
@@ -134,7 +134,6 @@ uuid = "caafb194-7e8d-11e9-2724-d5981dd0806d"
 version = "0.2.4"
 
 [[LibGit2]]
-deps = ["Printf"]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
 
 [[Libdl]]
@@ -180,12 +179,12 @@ version = "0.12.0"
 
 [[Parsers]]
 deps = ["Dates", "Test"]
-git-tree-sha1 = "0139ba59ce9bc680e2925aec5b7db79065d60556"
+git-tree-sha1 = "d112c19ccca00924d5d3a38b11ae2b4b268dda39"
 uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
-version = "0.3.10"
+version = "0.3.11"
 
 [[Pkg]]
-deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
+deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "Test", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PooledArrays]]
@@ -199,8 +198,8 @@ deps = ["Unicode"]
 uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 
 [[Pseudopotentials]]
-deps = ["DataFrames", "JLD2", "JSON", "Parameters"]
-git-tree-sha1 = "d81950dbaf4652f19bb67c9e70d753b63ffecdb1"
+deps = ["DataFrames", "JLD2", "JSON", "Parameters", "REPL"]
+git-tree-sha1 = "ed1c0db3acf6d213fad2ec68da347af1073bf31a"
 repo-rev = "master"
 repo-url = "https://github.com/MineralsCloud/Pseudopotentials.jl"
 uuid = "1b2dc2e6-48aa-4f00-b8f4-19d1a71d7a0e"
@@ -208,7 +207,7 @@ version = "0.1.0"
 
 [[QuantumESPRESSOBase]]
 deps = ["AutoHashEquals", "Compat", "Formatting", "Kaleido", "LinearAlgebra", "OrderedCollections", "Parameters", "Pseudopotentials", "Setfield", "Unitful", "UnitfulAtomic"]
-git-tree-sha1 = "76891891bec3b1752f4445ce9874bb3a9d735578"
+git-tree-sha1 = "a07dde8d6067c0213fe90915edd754351627e7cc"
 repo-rev = "master"
 repo-url = "git@github.com:MineralsCloud/QuantumESPRESSOBase.jl.git"
 uuid = "51b62caa-b28f-11e9-38c2-1f67cb498e05"
@@ -298,9 +297,9 @@ uuid = "4ec0a83e-493e-50e2-b9ac-8f72acf5a8f5"
 
 [[Unitful]]
 deps = ["ConstructionBase", "LinearAlgebra", "Random"]
-git-tree-sha1 = "c1ba76e3ca74a838e221e69b0ff8429226c5826a"
+git-tree-sha1 = "0b95bcc0745541528ff3a95b722367e6cc12f43e"
 uuid = "1986cc42-f94f-5a68-af5c-568840ba703d"
-version = "0.18.0"
+version = "1.0.0"
 
 [[UnitfulAtomic]]
 deps = ["Unitful"]
