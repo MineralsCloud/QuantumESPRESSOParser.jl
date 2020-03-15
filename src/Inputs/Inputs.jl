@@ -17,7 +17,7 @@ using QuantumESPRESSOBase.Inputs: Namelist, titleof
 
 using QuantumESPRESSOParsers: nonnothingtype
 
-struct InvalidUserInput
+struct InvalidInput
     msg::String
 end
 
@@ -57,7 +57,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
         else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
             if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
                 i = parse(Int, item[:index])
-                i < 0 && throw(InvalidUserInput("Negative index found in $(item[:index])!"))
+                i < 0 && throw(InvalidInput("Negative index found in $(item[:index])!"))
                 S = nonnothingtype(eltype(fieldtype(T, k)))
                 v = parse(S, v)
                 arr = get(result, k, [])
