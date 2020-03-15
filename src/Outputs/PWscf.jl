@@ -19,6 +19,7 @@ using QuantumESPRESSOBase.Inputs.PWscf
 using VersionParsing: vparse
 
 using QuantumESPRESSOParsers: nonnothingtype
+using QuantumESPRESSOParsers.Outputs: SubroutineError
 
 export DiagonalizationStyle,
        Preamble,
