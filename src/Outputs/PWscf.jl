@@ -18,7 +18,7 @@ using Parameters: @with_kw
 using QuantumESPRESSOBase.Inputs.PWscf
 using VersionParsing: vparse
 
-using QuantumESPRESSOParsers
+using QuantumESPRESSOParsers: nonnothingtype
 
 export DiagonalizationStyle,
        Preamble,
@@ -56,6 +56,12 @@ export DiagonalizationStyle,
        parsefinal
 
 include("regexes.jl")
+
+struct SubroutineError
+    name::String
+    cerr::String
+    msg::String
+end
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
@@ -479,7 +485,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     )
         m = match(regex, body)
         if !isnothing(m)
-            S = QuantumESPRESSOParsers.nonnothingtype(fieldtype(Preamble, field))
+            S = nonnothingtype(fieldtype(Preamble, field))
             push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
         end
     end

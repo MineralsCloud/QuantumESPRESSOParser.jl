@@ -15,7 +15,11 @@ using Compat: isnothing
 using PyFortran90Namelists: FortranData
 using QuantumESPRESSOBase.Inputs: Namelist, titleof
 
-using QuantumESPRESSOParsers: InvalidUserInput, nonnothingtype
+using QuantumESPRESSOParsers: nonnothingtype
+
+struct InvalidUserInput
+    msg::String
+end
 
 # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L315-L321
 const NAMELIST_ITEM = r"""
