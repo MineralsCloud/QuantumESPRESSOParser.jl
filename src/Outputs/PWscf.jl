@@ -57,12 +57,6 @@ export DiagonalizationStyle,
 
 include("regexes.jl")
 
-struct SubroutineError
-    name::String
-    cerr::String
-    msg::String
-end
-
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
 
