@@ -14,7 +14,7 @@ module PWscf
 using Compat: isnothing, only
 using PyFortran90Namelists: FortranData
 
-using QuantumESPRESSOBase.Inputs: entryname
+using QuantumESPRESSOBase.Inputs: Card, entryname
 using QuantumESPRESSOBase.Inputs.PWscf:
     ControlNamelist,
     SystemNamelist,
@@ -288,15 +288,15 @@ Base.parse(::Type{T}, str::AbstractString) where {T<:Card} = tryparse_internal(T
 function Base.parse(::Type{PWInput}, str::AbstractString)
     dict = Dict{Symbol,Any}()
     for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
-        push!(dict, asfieldname(T) => tryparse(T, str))  # Optional cards, can be `nothing`
+        push!(dict, entryname(T) => tryparse(T, str))  # Optional cards, can be `nothing`
     end
     for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)
-        push!(dict, asfieldname(T) => parse(T, str))  # Must-have cards, or else error
+        push!(dict, entryname(T) => parse(T, str))  # Must-have cards, or else error
     end
     for T in
         (ControlNamelist, SystemNamelist, ElectronsNamelist, IonsNamelist, CellNamelist)
         nml = tryparse(T, str)
-        push!(dict, asfieldname(T) => isnothing(nml) ? T() : nml)
+        push!(dict, entryname(T) => isnothing(nml) ? T() : nml)
     end
     return PWInput(; dict...)
 end # function Base.parse

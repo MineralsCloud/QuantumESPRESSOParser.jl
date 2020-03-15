@@ -15,7 +15,7 @@ using Compat: isnothing, only
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Parameters: @with_kw
-using QuantumESPRESSOBase.Cards.PWscf
+using QuantumESPRESSOBase.Inputs.PWscf
 using VersionParsing: vparse
 
 using QuantumESPRESSOParsers
