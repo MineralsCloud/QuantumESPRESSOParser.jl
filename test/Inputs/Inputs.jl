@@ -1,13 +1,13 @@
-module Namelists
+module Inputs
 
 module PWscf
 
 using Test
 
 using Compat: isnothing
-using QuantumESPRESSOBase.Namelists.PWscf
+using QuantumESPRESSOBase.Inputs.PWscf
 
-using QuantumESPRESSOParsers.Namelists
+using QuantumESPRESSOParsers.Inputs
 
 @testset "Parse empty strings" begin
     @test_throws Meta.ParseError parse(ControlNamelist, " ")
@@ -29,9 +29,9 @@ module CP
 using Test
 
 using Compat: isnothing
-using QuantumESPRESSOBase.Namelists.CP
+using QuantumESPRESSOBase.Inputs.CP
 
-using QuantumESPRESSOParsers.Namelists
+using QuantumESPRESSOParsers.Inputs
 
 @testset "Parse CP input" begin
     # This data is from https://github.com/QEF/q-e/blob/master/CPV/examples/example01/run_example.

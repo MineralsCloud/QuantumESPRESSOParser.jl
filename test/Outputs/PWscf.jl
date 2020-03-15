@@ -2,10 +2,8 @@ using Test
 
 using Compat: isnothing
 using DataFrames
-using QuantumESPRESSOBase
-using QuantumESPRESSOBase.Cards.PWscf
+using QuantumESPRESSOBase.Inputs.PWscf
 
-using QuantumESPRESSOParsers
 using QuantumESPRESSOParsers.Outputs.PWscf
 
 @testset "Parse scf Al output" begin
