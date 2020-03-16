@@ -226,23 +226,27 @@ function tryparse_internal(T::Type{AtomicPositionsCard}, str::AbstractString, ra
     end
     return AtomicPositionsCard(data, option)
 end # function tryparse_internal
-function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bool)
+function tryparse_internal(::Type{KPointsCard{GammaPoint}}, str::AbstractString, raise::Bool)
     m = match(K_POINTS_GAMMA_BLOCK, str)
-    !isnothing(m) && return KPointsCard(GammaPoint())
-
+    if !isnothing(m)
+        return KPointsCard(GammaPoint())
+    else
+        raise ? throw(Meta.ParseError("cannot find card `K_POINTS`!")) : return
+    end
+end # function tryparse_internal
+function tryparse_internal(::Type{KPointsCard{MonkhorstPackGrid}}, str::AbstractString, raise::Bool)
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
     if !isnothing(m)
         data = map(x -> parse(Int, FortranData(x)), m.captures)
         return KPointsCard(MonkhorstPackGrid(data[1:3], data[4:6]))
+    else
+        raise ? throw(Meta.ParseError("cannot find card `K_POINTS`!")) : return
     end
-
+end # function tryparse_internal
+function tryparse_internal(::Type{KPointsCard{Vector{SpecialKPoint}}}, str::AbstractString, raise::Bool)
     m = match(K_POINTS_SPECIAL_BLOCK, str)
     if !isnothing(m)
-        if isnothing(m.captures[1])
-            option = "tpiba"
-        else
-            option = m.captures[1]
-        end
+        option = isnothing(m.captures[1]) ? "tpiba" : m.captures[1]
         captured = m.captures[2]
         data = SpecialKPoint[]
         for matched in eachmatch(K_POINTS_SPECIAL_ITEM, captured)
@@ -252,9 +256,12 @@ function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bo
             push!(data, point)
         end
         return KPointsCard(data, option)
+    else
+        raise ? throw(Meta.ParseError("cannot find card `K_POINTS`!")) : return
     end
-
-    raise ? throw(Meta.ParseError("Cannot find card `K_POINTS`!")) : return
+end # function tryparse_internal
+function tryparse_internal(::Type{KPointsCard}, str::AbstractString, raise::Bool)
+    
 end # function tryparse_internal
 function tryparse_internal(::Type{<:CellParametersCard}, str::AbstractString, raise::Bool)
     m = match(CELL_PARAMETERS_BLOCK, str)
