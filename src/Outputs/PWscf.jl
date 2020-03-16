@@ -15,10 +15,11 @@ using Compat: isnothing, only
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Parameters: @with_kw
-using QuantumESPRESSOBase.Cards.PWscf
+using QuantumESPRESSOBase.Inputs.PWscf
 using VersionParsing: vparse
 
-using QuantumESPRESSOParsers
+using QuantumESPRESSOParsers: nonnothingtype
+using QuantumESPRESSOParsers.Outputs: SubroutineError
 
 export DiagonalizationStyle,
        Preamble,
@@ -479,7 +480,7 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
     )
         m = match(regex, body)
         if !isnothing(m)
-            S = QuantumESPRESSOParsers.nonnothingtype(fieldtype(Preamble, field))
+            S = nonnothingtype(fieldtype(Preamble, field))
             push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
         end
     end
