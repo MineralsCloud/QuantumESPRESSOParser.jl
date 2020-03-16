@@ -233,7 +233,7 @@ version = "1.91.4"
 
 [[PyFortran90Namelists]]
 deps = ["Compat", "Pkg", "PyCall", "VersionParsing"]
-git-tree-sha1 = "719db07640afc8171e98ccdc989c4ad1fe52ddf6"
+git-tree-sha1 = "c66e29b8c7ef0fa64a10c9946ca4be85b2ffe81c"
 repo-rev = "master"
 repo-url = "git@github.com:singularitti/PyFortran90Namelists.jl.git"
 uuid = "e44308e6-bd5b-11e9-2850-49daf8f1ec40"
@@ -241,7 +241,7 @@ version = "0.1.0"
 
 [[QuantumESPRESSOBase]]
 deps = ["Compat", "Crystallography", "Formatting", "Kaleido", "LinearAlgebra", "OrderedCollections", "Parameters", "Pseudopotentials", "PyFortran90Namelists", "Setfield", "StaticArrays", "Unitful", "UnitfulAtomic"]
-git-tree-sha1 = "7e312dc7aa37be1255d7d5425687ddb9bb294a2a"
+git-tree-sha1 = "2e63b396611cf552fe27164715e4f8371cef576b"
 repo-rev = "master"
 repo-url = "git@github.com:MineralsCloud/QuantumESPRESSOBase.jl.git"
 uuid = "51b62caa-b28f-11e9-38c2-1f67cb498e05"
