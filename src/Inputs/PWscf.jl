@@ -184,7 +184,7 @@ const CELL_PARAMETERS_ITEM = r"""
 )
 """mx
 
-function tryparse_internal(::Type{<:AtomicSpeciesCard}, str::AbstractString, raise::Bool)
+function tryparse_internal(::Type{AtomicSpeciesCard}, str::AbstractString, raise::Bool)
     m = match(ATOMIC_SPECIES_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     if isnothing(m)
@@ -194,14 +194,13 @@ function tryparse_internal(::Type{<:AtomicSpeciesCard}, str::AbstractString, rai
     data = AtomicSpecies[]
     for matched in eachmatch(ATOMIC_SPECIES_ITEM, content)
         captured = matched.captures
-        atom, mass, pseudopotential = string(captured[1]),
-        parse(Float64, FortranData(captured[2])),
-        string(captured[3])
+        atom, mass, pseudopotential =
+            captured[1], parse(Float64, FortranData(captured[2])), captured[3]
         push!(data, AtomicSpecies(atom, mass, pseudopotential))
     end
     return AtomicSpeciesCard(data)
 end # function tryparse_internal
-function tryparse_internal(T::Type{<:AtomicPositionsCard}, str::AbstractString, raise::Bool)
+function tryparse_internal(T::Type{AtomicPositionsCard}, str::AbstractString, raise::Bool)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     if isnothing(m)
@@ -221,20 +220,20 @@ function tryparse_internal(T::Type{<:AtomicPositionsCard}, str::AbstractString, 
         # The `if_pos` field is optionally given by users. If they do not give, we provide the default values `1`.
         if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
         # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
-        atom, pos = string(captured[1]),
+        atom, pos = captured[1],
         map(x -> parse(Float64, FortranData(x)), [captured[2], captured[5], captured[8]])
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
-    return AtomicPositionsCard(option, data)
+    return AtomicPositionsCard(data, option)
 end # function tryparse_internal
 function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bool)
     m = match(K_POINTS_GAMMA_BLOCK, str)
-    !isnothing(m) && return KPointsCard("gamma", GammaPoint())
+    !isnothing(m) && return KPointsCard(GammaPoint())
 
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
     if !isnothing(m)
         data = map(x -> parse(Int, FortranData(x)), m.captures)
-        return KPointsCard("automatic", MonkhorstPackGrid(data[1:3], data[4:6]))
+        return KPointsCard(MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 
     m = match(K_POINTS_SPECIAL_BLOCK, str)
@@ -252,7 +251,7 @@ function tryparse_internal(::Type{<:KPointsCard}, str::AbstractString, raise::Bo
                 SpecialKPoint(map(x -> parse(Float64, FortranData(x)), matched.captures)...)
             push!(data, point)
         end
-        return KPointsCard(option, data)
+        return KPointsCard(data, option)
     end
 
     raise ? throw(Meta.ParseError("Cannot find card `K_POINTS`!")) : return
@@ -278,7 +277,7 @@ function tryparse_internal(::Type{<:CellParametersCard}, str::AbstractString, ra
             [captured[1], captured[4], captured[7]],
         )
     end
-    return CellParametersCard(option, data)
+    return CellParametersCard(data, option)
 end # function tryparse_internal
 
 Base.tryparse(::Type{T}, str::AbstractString) where {T<:Card} =
@@ -288,15 +287,15 @@ Base.parse(::Type{T}, str::AbstractString) where {T<:Card} = tryparse_internal(T
 function Base.parse(::Type{PWInput}, str::AbstractString)
     dict = Dict{Symbol,Any}()
     for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
-        push!(dict, entryname(T) => tryparse(T, str))  # Optional cards, can be `nothing`
+        push!(dict, entryname(T, PWInput) => tryparse(T, str))  # Optional cards, can be `nothing`
     end
     for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)
-        push!(dict, entryname(T) => parse(T, str))  # Must-have cards, or else error
+        push!(dict, entryname(T, PWInput) => parse(T, str))  # Must-have cards, or else error
     end
     for T in
         (ControlNamelist, SystemNamelist, ElectronsNamelist, IonsNamelist, CellNamelist)
         nml = tryparse(T, str)
-        push!(dict, entryname(T) => isnothing(nml) ? T() : nml)
+        push!(dict, entryname(T, PWInput) => isnothing(nml) ? T() : nml)
     end
     return PWInput(; dict...)
 end # function Base.parse
