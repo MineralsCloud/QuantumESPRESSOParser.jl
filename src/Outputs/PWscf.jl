@@ -529,9 +529,9 @@ function tryparse_internal(
     end
     if m[:option] == "alat"
         alat = parse(Float64, m[:alat])
-        return T("bohr", alat * data)
+        return T(alat * data, "bohr")
     end
-    return T(m[:option], data)
+    return T(data, m[:option])
 end # function tryparse_internal
 function tryparse_internal(
     ::Type{T},
@@ -546,14 +546,13 @@ function tryparse_internal(
     option = string(m[1])
     body = m[2]
     data = AtomicPosition[]
-
     for matched in eachmatch(ATOMIC_POSITIONS_ITEM, body)
         captured = matched.captures
         if_pos = map(x -> isnothing(x) ? 1 : parse(Int, x), captured[5:7])
-        atom, pos = string(captured[1]), map(x -> parse(Float64, x), captured[2:4])
+        atom, pos = captured[1], map(x -> parse(Float64, x), captured[2:4])
         push!(data, AtomicPosition(atom, pos, if_pos))
     end
-    return AtomicPositionsCard(option, data)
+    return AtomicPositionsCard(data, option)
 end # function tryparse_internal
 
 const _INTERNAL_TYPES = Union{Preamble,SubroutineError}
