@@ -251,7 +251,10 @@ function Base.tryparse(::Type{KPointsCard{Vector{SpecialKPoint}}}, str::Abstract
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
-
+    for T in (GammaPoint, MonkhorstPackGrid, Vector{SpecialKPoint})
+        x = tryparse(KPointsCard{T}, str)
+        isnothing(x) ? continue : return x
+    end
 end # function Base.tryparse
 function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
@@ -282,7 +285,7 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
 end # function Base.parse
 function Base.parse(::Type{PWInput}, str::AbstractString)
     dict = Dict{Symbol,Any}()
-    for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
+    for T in (CellParametersCard{Float64},)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
         push!(dict, entryname(T, PWInput) => tryparse(T, str))  # Optional cards, can be `nothing`
     end
     for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)
