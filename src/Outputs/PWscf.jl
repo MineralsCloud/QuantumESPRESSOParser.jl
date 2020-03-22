@@ -545,15 +545,16 @@ function Base.parse(
     isnothing(x) ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function Base.parse
 
-# This is an internal function and should not be exported.
-regexof(::Type{<:CellParametersCard})::Regex = CELL_PARAMETERS_BLOCK
-regexof(::Type{<:AtomicPositionsCard})::Regex = ATOMIC_POSITIONS_BLOCK
+const REGEXOF = Dict{Symbol,Regex}(
+    :CellParametersCard => CELL_PARAMETERS_BLOCK,
+    :AtomicPositionsCard => ATOMIC_POSITIONS_BLOCK,
+)
 
 tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse(T, str)
 parsefirst(::Type{T}, str::AbstractString) where {T} = parse(T, str)
 
 function tryparseall(::Type{T}, str::AbstractString) where {T}
-    return map(eachmatch(regexof(T), str)) do x
+    return map(eachmatch(REGEXOF(T), str)) do x
         try
             tryparse(T, x.match)
         catch
@@ -562,7 +563,7 @@ function tryparseall(::Type{T}, str::AbstractString) where {T}
     end
 end # function parseall
 function parseall(::Type{T}, str::AbstractString) where {T}
-    return map(eachmatch(regexof(T), str)) do x
+    return map(eachmatch(REGEXOF(T), str)) do x
         try
             tryparse(T, x.match)
         catch
@@ -580,7 +581,7 @@ function _parsenext_internal(
     start::Integer,
     raise::Bool,
 ) where {T}
-    x = findnext(regexof(T), str, start)
+    x = findnext(REGEXOF(T), str, start)
     if isnothing(x)
         raise ? throw(Meta.ParseError("Nothing found for next!")) : return
     end
@@ -597,7 +598,7 @@ function tryparsefinal(
 ) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && return
-    m = match(regexof(T), m.match)
+    m = match(REGEXOF(T), m.match)
     isnothing(m) && return
     return tryparse(T, m.match)
 end # function parsefinal
@@ -607,7 +608,7 @@ function parsefinal(
 ) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && throw(Meta.ParseError("No final coordinates found!"))
-    m = match(regexof(T), m.match)
+    m = match(REGEXOF(T), m.match)
     isnothing(m) && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
     return tryparse(T, m.match)
 end # function parsefinal
