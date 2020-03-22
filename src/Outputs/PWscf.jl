@@ -21,11 +21,11 @@ using VersionParsing: vparse
 using QuantumESPRESSOParsers: nonnothingtype
 using QuantumESPRESSOParsers.Outputs: SubroutineError
 
-export DiagonalizationStyle,
+export Diagonalization,
     Preamble,
-    DavidsonDiagonalization,
-    CGDiagonalization,
-    PPCGDiagonalization,
+    Davidson,
+    ConjugateGradient,
+    ProjectedPreconditionedConjugateGradient,
     parse_fft_base_info,
     parse_symmetries,
     parse_ibz,
@@ -61,10 +61,10 @@ include("regexes.jl")
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
 
-abstract type DiagonalizationStyle end
-struct DavidsonDiagonalization <: DiagonalizationStyle end
-struct CGDiagonalization <: DiagonalizationStyle end
-struct PPCGDiagonalization <: DiagonalizationStyle end
+abstract type Diagonalization end
+struct Davidson <: Diagonalization end
+struct ConjugateGradient<: Diagonalization end
+struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
 
 @with_kw struct Preamble
     ibrav::Int
@@ -203,7 +203,7 @@ function parse_diagonalization(str::AbstractString)
     df = DataFrame(
         step = Int[],
         iteration = Int[],
-        diag = DiagonalizationStyle[],  # Diagonalization style
+        diag = Diagonalization[],  # Diagonalization style
         ethr = Float64[],  # Energy threshold
         avg = Float64[],  # Average # of iterations
     )
@@ -215,7 +215,7 @@ function _parse_diagonalization(str::AbstractString)
     m = match(C_BANDS, str)
     if !isnothing(m)
         solver = if m[:diag] == "Davidson diagonalization with overlap"
-            DavidsonDiagonalization()
+            Davidson()
         elseif m[:diag] == "CG style diagonalization"
             CGDiagonalization()
         elseif m[:diag] == "PPCG style diagonalization"
