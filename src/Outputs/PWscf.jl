@@ -22,39 +22,39 @@ using QuantumESPRESSOParsers: nonnothingtype
 using QuantumESPRESSOParsers.Outputs: SubroutineError
 
 export DiagonalizationStyle,
-       Preamble,
-       DavidsonDiagonalization,
-       CGDiagonalization,
-       PPCGDiagonalization,
-       parse_fft_base_info,
-       parse_symmetries,
-       parse_ibz,
-       parse_stress,
-       parse_iteration_time,
-       parse_bands,
-       parse_all_electron_energy,
-       parse_energy_decomposition,
-       parse_paw_contribution,
-       parse_smearing_energy,
-       parse_version,
-       parse_parallel_info,
-       parse_fft_dimensions,
-       parse_iteration_head,
-       parse_electrons_energies,
-       parse_clock,
-       whatinput,
-       isrelaxed,
-       isjobdone,
-       tryparsefirst,
-       parsefirst,
-       tryparseall,
-       parseall,
-       tryparselast,
-       parselast,
-       tryparsenext,
-       parsenext,
-       tryparsefinal,
-       parsefinal
+    Preamble,
+    DavidsonDiagonalization,
+    CGDiagonalization,
+    PPCGDiagonalization,
+    parse_fft_base_info,
+    parse_symmetries,
+    parse_ibz,
+    parse_stress,
+    parse_iteration_time,
+    parse_bands,
+    parse_all_electron_energy,
+    parse_energy_decomposition,
+    parse_paw_contribution,
+    parse_smearing_energy,
+    parse_version,
+    parse_parallel_info,
+    parse_fft_dimensions,
+    parse_iteration_head,
+    parse_electrons_energies,
+    parse_clock,
+    whatinput,
+    isrelaxed,
+    isjobdone,
+    tryparsefirst,
+    parsefirst,
+    tryparseall,
+    parseall,
+    tryparselast,
+    parselast,
+    tryparsenext,
+    parsenext,
+    tryparsefinal,
+    parsefinal
 
 include("regexes.jl")
 
@@ -98,13 +98,8 @@ rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is
 return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
 function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
-    df = DataFrame(
-        kind = String[],
-        stats = String[],
-        dense = Int[],
-        smooth = Int[],
-        PW = [],
-    )
+    df =
+        DataFrame(kind = String[], stats = String[], dense = Int[], smooth = Int[], PW = [])
     m = match(FFT_BASE_INFO, str)
     if isnothing(m)
         @info("The FFT base info is not found!")
@@ -275,11 +270,11 @@ function _parse_electrons_energies(str::AbstractString, ::Val{:combined})
     m = 1  # Initial step number
     for (i, n) in enumerate(nonconverged.step)
         if n != m
-            @assert(all(isnothing, nonconverged[i - 1, 3:5]))
+            @assert(all(isnothing, nonconverged[i-1, 3:5]))
             # nonconverged[i - 1, 3:5] = converged[n, 2:4]  # Converged energies do not have `iteration` column
-            nonconverged[i - 1, 3] = converged[n, 2]
-            nonconverged[i - 1, 4] = converged[n, 3]
-            nonconverged[i - 1, 5] = converged[n, 4]
+            nonconverged[i-1, 3] = converged[n, 2]
+            nonconverged[i-1, 4] = converged[n, 3]
+            nonconverged[i-1, 5] = converged[n, 4]
         end
         m = n  # Save the last step number
     end
@@ -303,7 +298,7 @@ function parse_bands(str::AbstractString)
     if !isnothing(m)
         kpts, bands = Vector{Float64}[], Vector{Float64}[]
         regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES :
-                KS_ENERGIES_BANDS
+            KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
             push!(
                 kpts,
@@ -316,7 +311,7 @@ function parse_bands(str::AbstractString)
         end
         len, nbnd = length(kpts), length(bands[1])
         kpts, bands = reshape(Iterators.flatten(kpts) |> collect, len, 3),
-            reshape(Iterators.flatten(bands) |> collect, len, nbnd)
+        reshape(Iterators.flatten(bands) |> collect, len, nbnd)
     end  # Keep them `nothing` if `m` is `nothing`
     return kpts, bands
 end # function parse_bands
@@ -346,10 +341,7 @@ function parse_energy_decomposition(str::AbstractString)
         data = if any(isnothing, (m, m[:decomp]))
             ntuple(_ -> nothing, 4)
         else
-            map(
-                x -> parse(Float64, x[1]),
-                eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]),
-            )
+            map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]))
         end
         push!(df, [i data...])
     end
@@ -479,13 +471,19 @@ function Base.tryparse(::Type{Preamble}, str::AbstractString)
             m = match(regex, body)
             if !isnothing(m)
                 S = nonnothingtype(fieldtype(Preamble, field))
-                push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
+                push!(
+                    arr,
+                    field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]),
+                )
             end
         end
         # 2 special cases
         m = match(NUMBER_OF_ELECTRONS, body)
         if all(!isnothing, m.captures[2:end])
-            push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
+            push!(
+                arr,
+                zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])),
+            )
         end
         m = match(NUMBER_OF_ITERATIONS_USED, body)
         if !isnothing(m)
@@ -539,7 +537,10 @@ function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     end
 end # function Base.tryparse
 
-function Base.parse(::Type{T}, str::AbstractString) where {T<:Union{Preamble,SubroutineError,CellParametersCard{Float64},AtomicPositionsCard}}
+function Base.parse(
+    ::Type{T},
+    str::AbstractString,
+) where {T<:Union{Preamble,SubroutineError,CellParametersCard{Float64},AtomicPositionsCard}}
     x = tryparse(T, str)
     isnothing(x) ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function Base.parse
