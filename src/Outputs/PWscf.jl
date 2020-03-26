@@ -21,50 +21,50 @@ using VersionParsing: vparse
 using QuantumESPRESSOParsers: nonnothingtype
 using QuantumESPRESSOParsers.Outputs: SubroutineError
 
-export DiagonalizationStyle,
-       Preamble,
-       DavidsonDiagonalization,
-       CGDiagonalization,
-       PPCGDiagonalization,
-       parse_fft_base_info,
-       parse_symmetries,
-       parse_ibz,
-       parse_stress,
-       parse_iteration_time,
-       parse_bands,
-       parse_all_electron_energy,
-       parse_energy_decomposition,
-       parse_paw_contribution,
-       parse_smearing_energy,
-       parse_version,
-       parse_parallel_info,
-       parse_fft_dimensions,
-       parse_iteration_head,
-       parse_electrons_energies,
-       parse_clock,
-       whatinput,
-       isrelaxed,
-       isjobdone,
-       tryparsefirst,
-       parsefirst,
-       tryparseall,
-       parseall,
-       tryparselast,
-       parselast,
-       tryparsenext,
-       parsenext,
-       tryparsefinal,
-       parsefinal
+export Diagonalization,
+    Preamble,
+    Davidson,
+    ConjugateGradient,
+    ProjectedPreconditionedConjugateGradient,
+    parse_fft_base_info,
+    parse_symmetries,
+    parse_ibz,
+    parse_stress,
+    parse_iteration_time,
+    parse_bands,
+    parse_all_electron_energy,
+    parse_energy_decomposition,
+    parse_paw_contribution,
+    parse_smearing_energy,
+    parse_version,
+    parse_parallel_info,
+    parse_fft_dimensions,
+    parse_iteration_head,
+    parse_electrons_energies,
+    parse_clock,
+    whatinput,
+    isrelaxed,
+    isjobdone,
+    tryparsefirst,
+    parsefirst,
+    tryparseall,
+    parseall,
+    tryparselast,
+    parselast,
+    tryparsenext,
+    parsenext,
+    tryparsefinal,
+    parsefinal
 
 include("regexes.jl")
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
 
-abstract type DiagonalizationStyle end
-struct DavidsonDiagonalization <: DiagonalizationStyle end
-struct CGDiagonalization <: DiagonalizationStyle end
-struct PPCGDiagonalization <: DiagonalizationStyle end
+abstract type Diagonalization end
+struct Davidson <: Diagonalization end
+struct ConjugateGradient<: Diagonalization end
+struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
 
 @with_kw struct Preamble
     ibrav::Int
@@ -98,13 +98,8 @@ rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is
 return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
 function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
-    df = DataFrame(
-        kind = String[],
-        stats = String[],
-        dense = Int[],
-        smooth = Int[],
-        PW = [],
-    )
+    df =
+        DataFrame(kind = String[], stats = String[], dense = Int[], smooth = Int[], PW = [])
     m = match(FFT_BASE_INFO, str)
     if isnothing(m)
         @info("The FFT base info is not found!")
@@ -208,7 +203,7 @@ function parse_diagonalization(str::AbstractString)
     df = DataFrame(
         step = Int[],
         iteration = Int[],
-        diag = DiagonalizationStyle[],  # Diagonalization style
+        diag = Diagonalization[],  # Diagonalization style
         ethr = Float64[],  # Energy threshold
         avg = Float64[],  # Average # of iterations
     )
@@ -220,7 +215,7 @@ function _parse_diagonalization(str::AbstractString)
     m = match(C_BANDS, str)
     if !isnothing(m)
         solver = if m[:diag] == "Davidson diagonalization with overlap"
-            DavidsonDiagonalization()
+            Davidson()
         elseif m[:diag] == "CG style diagonalization"
             CGDiagonalization()
         elseif m[:diag] == "PPCG style diagonalization"
@@ -275,11 +270,11 @@ function _parse_electrons_energies(str::AbstractString, ::Val{:combined})
     m = 1  # Initial step number
     for (i, n) in enumerate(nonconverged.step)
         if n != m
-            @assert(all(isnothing, nonconverged[i - 1, 3:5]))
+            @assert(all(isnothing, nonconverged[i-1, 3:5]))
             # nonconverged[i - 1, 3:5] = converged[n, 2:4]  # Converged energies do not have `iteration` column
-            nonconverged[i - 1, 3] = converged[n, 2]
-            nonconverged[i - 1, 4] = converged[n, 3]
-            nonconverged[i - 1, 5] = converged[n, 4]
+            nonconverged[i-1, 3] = converged[n, 2]
+            nonconverged[i-1, 4] = converged[n, 3]
+            nonconverged[i-1, 5] = converged[n, 4]
         end
         m = n  # Save the last step number
     end
@@ -303,7 +298,7 @@ function parse_bands(str::AbstractString)
     if !isnothing(m)
         kpts, bands = Vector{Float64}[], Vector{Float64}[]
         regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES :
-                KS_ENERGIES_BANDS
+            KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
             push!(
                 kpts,
@@ -316,7 +311,7 @@ function parse_bands(str::AbstractString)
         end
         len, nbnd = length(kpts), length(bands[1])
         kpts, bands = reshape(Iterators.flatten(kpts) |> collect, len, 3),
-            reshape(Iterators.flatten(bands) |> collect, len, nbnd)
+        reshape(Iterators.flatten(bands) |> collect, len, nbnd)
     end  # Keep them `nothing` if `m` is `nothing`
     return kpts, bands
 end # function parse_bands
@@ -346,10 +341,7 @@ function parse_energy_decomposition(str::AbstractString)
         data = if any(isnothing, (m, m[:decomp]))
             ntuple(_ -> nothing, 4)
         else
-            map(
-                x -> parse(Float64, x[1]),
-                eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]),
-            )
+            map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]))
         end
         push!(df, [i data...])
     end
@@ -401,11 +393,11 @@ function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
     return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m[:num])
 end # function parse_parallel_info
 
-function parse_fft_dimensions(str::AbstractString)::Maybe{Tuple{Int,NamedTuple}}
+function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
     m = match(FFT_DIMENSIONS, str)
     isnothing(m) && return
     parsed = map(x -> parse(Int, x), m.captures)
-    return parsed[1], NamedTuple{(:nr1, :nr2, :nr3)}(parsed[2:end])
+    return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
@@ -454,136 +446,126 @@ end # function isrelaxed
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
 # This is an internal function and should not be exported.
-function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Preamble}
+function Base.tryparse(::Type{Preamble}, str::AbstractString)
     arr = Pair{Symbol,Any}[]
     m = match(SUMMARY_BLOCK, str)
-    if isnothing(m)
-        raise ? throw(Meta.ParseError("No info found!")) : return
-    end
-    body = only(m.captures)
-    for (field, regex) in (
-        :ibrav => NUMBER_OF_ATOMS_PER_CELL,
-        :alat => LATTICE_PARAMETER,
-        :omega => UNIT_CELL_VOLUME,
-        :nat => NUMBER_OF_ATOMS_PER_CELL,
-        :ntyp => NUMBER_OF_ATOMIC_TYPES,
-        :nelec => NUMBER_OF_ELECTRONS,
-        :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
-        :ecutwfc => KINETIC_ENERGY_CUTOFF,
-        :ecutrho => CHARGE_DENSITY_CUTOFF,
-        :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
-        :conv_thr => CONVERGENCE_THRESHOLD,
-        :mixing_beta => MIXING_BETA,
-        :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
-        :xc => EXCHANGE_CORRELATION,
-        :nstep => NSTEP,
-    )
-        m = match(regex, body)
-        if !isnothing(m)
-            S = nonnothingtype(fieldtype(Preamble, field))
-            push!(arr, field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]))
+    return if isnothing(m)
+        body = only(m.captures)
+        for (field, regex) in (
+            :ibrav => NUMBER_OF_ATOMS_PER_CELL,
+            :alat => LATTICE_PARAMETER,
+            :omega => UNIT_CELL_VOLUME,
+            :nat => NUMBER_OF_ATOMS_PER_CELL,
+            :ntyp => NUMBER_OF_ATOMIC_TYPES,
+            :nelec => NUMBER_OF_ELECTRONS,
+            :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
+            :ecutwfc => KINETIC_ENERGY_CUTOFF,
+            :ecutrho => CHARGE_DENSITY_CUTOFF,
+            :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
+            :conv_thr => CONVERGENCE_THRESHOLD,
+            :mixing_beta => MIXING_BETA,
+            :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
+            :xc => EXCHANGE_CORRELATION,
+            :nstep => NSTEP,
+        )
+            m = match(regex, body)
+            if !isnothing(m)
+                S = nonnothingtype(fieldtype(Preamble, field))
+                push!(
+                    arr,
+                    field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]),
+                )
+            end
         end
+        # 2 special cases
+        m = match(NUMBER_OF_ELECTRONS, body)
+        if all(!isnothing, m.captures[2:end])
+            push!(
+                arr,
+                zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])),
+            )
+        end
+        m = match(NUMBER_OF_ITERATIONS_USED, body)
+        if !isnothing(m)
+            push!(arr, :mixing_mode => m[2])
+        end
+        Preamble(; arr...)
     end
-    # 2 special cases
-    m = match(NUMBER_OF_ELECTRONS, body)
-    if all(!isnothing, m.captures[2:end])
-        push!(arr, zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])))
-    end
-    m = match(NUMBER_OF_ITERATIONS_USED, body)
-    if !isnothing(m)
-        push!(arr, :mixing_mode => m[2])
-    end
-    return T(; arr...)
-end # function tryparse_internal
-function tryparse_internal(
-    ::Type{T},
-    str::AbstractString,
-    raise::Bool,
-) where {T<:SubroutineError}
+end # function Base.tryparse
+function Base.tryparse(::Type{SubroutineError}, str::AbstractString)
     # According to my observation, a QE output can have at most one type of
     # `SubroutineError`. Warn me if there can be multiple types of errors.
     m = match(ERROR_BLOCK, str)
-    if isnothing(m)
+    return if !isnothing(m)
         # `tryparse` returns nothing if the string does not contain what we want,
         # while `parse` raises an error.
-        raise ? throw(Meta.ParseError("No error found!")) : return
+        body = strip(m[:body])
+        # Referenced from https://stackoverflow.com/a/454919/3260253
+        e, msg = map(strip, split(body, r"[\r\n]+"))
+        m = match(ERROR_IN_ROUTINE, e)
+        SubroutineError(m[1], m[2], msg)
     end
-    body = strip(m[:body])
-    # Referenced from https://stackoverflow.com/a/454919/3260253
-    e, msg = map(strip, split(body, r"[\r\n]+"))
-    m = match(ERROR_IN_ROUTINE, e)
-    return T(m[1], m[2], msg)
-end # function tryparse_internal
-function tryparse_internal(
-    ::Type{T},
-    str::AbstractString,
-    raise::Bool,
-) where {T<:CellParametersCard}
+end # function Base.tryparse
+function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
-    if isnothing(m)
-        raise ? throw(Meta.ParseError("Cannot find `CELL_PARAMETERS`!")) : return
+    return if !isnothing(m)
+        body, data = m[:data], Matrix{Float64}(undef, 3, 3)  # Initialization
+        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
+            data[i, :] = map(x -> parse(Float64, x), matched.captures)
+        end
+        if m[:option] == "alat"
+            alat = parse(Float64, m[:alat])
+            T(alat * data, "bohr")
+        end
+        CellParametersCard(data, m[:option])
     end
-    body, data = m[:data], Matrix{Float64}(undef, 3, 3)  # Initialization
-    for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
-        data[i, :] = map(x -> parse(Float64, x), matched.captures)
-    end
-    if m[:option] == "alat"
-        alat = parse(Float64, m[:alat])
-        return T(alat * data, "bohr")
-    end
-    return T(data, m[:option])
-end # function tryparse_internal
-function tryparse_internal(
-    ::Type{T},
-    str::AbstractString,
-    raise::Bool,
-) where {T<:AtomicPositionsCard}
+end # function Base.tryparse
+function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     atomic_positions = AtomicPositionsCard[]
     m = match(ATOMIC_POSITIONS_BLOCK, str)
-    if isnothing(m)
-        raise ? throw(Meta.ParseError("Cannot find `ATOMIC_POSITIONS`!")) : return
+    return if !isnothing(m)
+        option = string(m[1])
+        body = m[2]
+        data = AtomicPosition[]
+        for matched in eachmatch(ATOMIC_POSITIONS_ITEM, body)
+            captured = matched.captures
+            if_pos = map(x -> isnothing(x) ? 1 : parse(Int, x), captured[5:7])
+            atom, pos = captured[1], map(x -> parse(Float64, x), captured[2:4])
+            push!(data, AtomicPosition(atom, pos, if_pos))
+        end
+        AtomicPositionsCard(data, option)
     end
-    option = string(m[1])
-    body = m[2]
-    data = AtomicPosition[]
-    for matched in eachmatch(ATOMIC_POSITIONS_ITEM, body)
-        captured = matched.captures
-        if_pos = map(x -> isnothing(x) ? 1 : parse(Int, x), captured[5:7])
-        atom, pos = captured[1], map(x -> parse(Float64, x), captured[2:4])
-        push!(data, AtomicPosition(atom, pos, if_pos))
-    end
-    return AtomicPositionsCard(data, option)
-end # function tryparse_internal
-
-const _INTERNAL_TYPES = Union{Preamble,SubroutineError}
-
-function Base.tryparse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
-    return tryparse_internal(T, str, false)
 end # function Base.tryparse
-function Base.parse(::Type{T}, str::AbstractString) where {T<:_INTERNAL_TYPES}
-    return tryparse_internal(T, str, true)
+
+function Base.parse(
+    ::Type{T},
+    str::AbstractString,
+) where {T<:Union{Preamble,SubroutineError,CellParametersCard{Float64},AtomicPositionsCard}}
+    x = tryparse(T, str)
+    isnothing(x) ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function Base.parse
 
-# This is an internal function and should not be exported.
-regexof(::Type{<:CellParametersCard})::Regex = CELL_PARAMETERS_BLOCK
-regexof(::Type{<:AtomicPositionsCard})::Regex = ATOMIC_POSITIONS_BLOCK
+const REGEXOF = Dict{Symbol,Regex}(
+    :CellParametersCard => CELL_PARAMETERS_BLOCK,
+    :AtomicPositionsCard => ATOMIC_POSITIONS_BLOCK,
+)
 
-tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse_internal(T, str, false)
-parsefirst(::Type{T}, str::AbstractString) where {T} = tryparse_internal(T, str, true)
+tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse(T, str)
+parsefirst(::Type{T}, str::AbstractString) where {T} = parse(T, str)
 
 function tryparseall(::Type{T}, str::AbstractString) where {T}
-    return map(eachmatch(regexof(T), str)) do x
+    return map(eachmatch(REGEXOF(T), str)) do x
         try
-            tryparse_internal(T, x.match, true)
+            tryparse(T, x.match)
         catch
             nothing
         end
     end
 end # function parseall
 function parseall(::Type{T}, str::AbstractString) where {T}
-    return map(eachmatch(regexof(T), str)) do x
+    return map(eachmatch(REGEXOF(T), str)) do x
         try
-            tryparse_internal(T, x.match, true)
+            tryparse(T, x.match)
         catch
             Meta.ParseError("Pass failed!")
         end
@@ -593,29 +575,42 @@ end # function parseall
 tryparselast(::Type{T}, str::AbstractString) where {T} = tryparseall(T, str)[end]
 parselast(::Type{T}, str::AbstractString) where {T} = parseall(T, str)[end]
 
-function _parsenext_internal(::Type{T}, str::AbstractString, start::Integer, raise::Bool) where {T}
-    x = findnext(regexof(T), str, start)
+function _parsenext_internal(
+    ::Type{T},
+    str::AbstractString,
+    start::Integer,
+    raise::Bool,
+) where {T}
+    x = findnext(REGEXOF(T), str, start)
     if isnothing(x)
         raise ? throw(Meta.ParseError("Nothing found for next!")) : return
     end
-    return tryparse_internal(T, str[x], true)
+    return tryparse(T, str[x])
 end # function parsenext
-tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, false)
-parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} = _parsenext_internal(T, str, start, true)
+tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
+    _parsenext_internal(T, str, start, false)
+parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
+    _parsenext_internal(T, str, start, true)
 
-function tryparsefinal(::Type{T}, str::AbstractString) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
+function tryparsefinal(
+    ::Type{T},
+    str::AbstractString,
+) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && return
-    m = match(regexof(T), m.match)
+    m = match(REGEXOF(T), m.match)
     isnothing(m) && return
-    return tryparse_internal(T, m.match, false)
+    return tryparse(T, m.match)
 end # function parsefinal
-function parsefinal(::Type{T}, str::AbstractString) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
+function parsefinal(
+    ::Type{T},
+    str::AbstractString,
+) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && throw(Meta.ParseError("No final coordinates found!"))
-    m = match(regexof(T), m.match)
+    m = match(REGEXOF(T), m.match)
     isnothing(m) && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
-    return tryparse_internal(T, m.match, true)
+    return tryparse(T, m.match)
 end # function parsefinal
 
 end
