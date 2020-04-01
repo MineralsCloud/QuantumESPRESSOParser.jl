@@ -598,7 +598,7 @@ function tryparsefinal(
 ) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && return
-    m = match(REGEXOF(T), m.match)
+    m = match(REGEXOF[T], m.match)
     isnothing(m) && return
     return tryparse(T, m.match)
 end # function parsefinal
@@ -608,7 +608,7 @@ function parsefinal(
 ) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && throw(Meta.ParseError("No final coordinates found!"))
-    m = match(REGEXOF(T), m.match)
+    m = match(REGEXOF[T], m.match)
     isnothing(m) && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
     return tryparse(T, m.match)
 end # function parsefinal
