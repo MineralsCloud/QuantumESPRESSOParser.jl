@@ -515,7 +515,7 @@ function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
         end
         if m[:option] == "alat"
             alat = parse(Float64, m[:alat])
-            T(alat * data, "bohr")
+            CellParametersCard(alat * data, "bohr")
         end
         CellParametersCard(data, m[:option])
     end
@@ -595,20 +595,20 @@ parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
 function tryparsefinal(
     ::Type{T},
     str::AbstractString,
-) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
+) where {T<:Union{CellParametersCard{Float64},AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && return
-    m = match(REGEXOF[T], m.match)
+    m = match(REGEXOF[nameof(T)], m.match)
     isnothing(m) && return
     return tryparse(T, m.match)
 end # function parsefinal
 function parsefinal(
     ::Type{T},
     str::AbstractString,
-) where {T<:Union{CellParametersCard,AtomicPositionsCard}}
+) where {T<:Union{CellParametersCard{Float64},AtomicPositionsCard}}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && throw(Meta.ParseError("No final coordinates found!"))
-    m = match(REGEXOF[T], m.match)
+    m = match(REGEXOF[nameof(T)], m.match)
     isnothing(m) && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
     return tryparse(T, m.match)
 end # function parsefinal
