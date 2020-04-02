@@ -30,8 +30,7 @@ const NAMELIST_ITEM = r"""
                       [\n,]                          # Return or comma separates "key = value" pairs
                       """mx
 
-# This is an internal function and should not be exported.
-function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T<:Namelist}
+function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist}
     result = Dict{Symbol,Any}()
     head = titleof(T)
     # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L305-L312
@@ -46,42 +45,41 @@ function tryparse_internal(::Type{T}, str::AbstractString, raise::Bool) where {T
         "imx",
     )
     m = match(NAMELIST_BLOCK, str)
-    if isnothing(m)
-        raise ? throw(Meta.ParseError("Namelist not found in string!")) : return
-    end
-    for item in eachmatch(NAMELIST_ITEM, m[:body])
-        k = Symbol(item[:key])
-        v = FortranData(string(item[:value]))
-        # Parse a `FortranData` from `value` as type of the field of the namelist `T`
-        if isnothing(item[:index])  # Cases like `ntyp = 2`
-            result[k] = parse(fieldtype(T, k), v)
-        else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
-            if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
-                i = parse(Int, item[:index])
-                i < 0 && throw(InvalidInput("Negative index found in $(item[:index])!"))
-                S = nonnothingtype(eltype(fieldtype(T, k)))
-                v = parse(S, v)
-                arr = get(result, k, [])
-                if i > length(arr)  # Works even if `x` is empty. If empty, `length(x)` will be `0`.
-                    append!(arr, Vector{Union{Nothing,T}}(nothing, i - length(arr)))
+    return if !isnothing(m)
+        for item in eachmatch(NAMELIST_ITEM, m[:body])
+            k = Symbol(item[:key])
+            v = FortranData(string(item[:value]))
+            # Parse a `FortranData` from `value` as type of the field of the namelist `T`
+            if isnothing(item[:index])  # Cases like `ntyp = 2`
+                result[k] = parse(fieldtype(T, k), v)
+            else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
+                if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
+                    i = parse(Int, item[:index])
+                    i < 0 && throw(InvalidInput("Negative index found in $(item[:index])!"))
+                    S = nonnothingtype(eltype(fieldtype(T, k)))
+                    v = parse(S, v)
+                    arr = get(result, k, [])
+                    if i > length(arr)  # Works even if `x` is empty. If empty, `length(x)` will be `0`.
+                        append!(arr, Vector{Union{Nothing,T}}(nothing, i - length(arr)))
+                    end
+                    arr[i] = v  # Now `index` cannot be greater than `length(x)` => a normal assignment
+                    result[k] = arr
+                else  # item[:kind] == '%'
+                    i = string(item[:index])
+                    # TODO: This is not finished!
                 end
-                arr[i] = v  # Now `index` cannot be greater than `length(x)` => a normal assignment
-                result[k] = arr
-            else  # item[:kind] == '%'
-                i = string(item[:index])
-                # TODO: This is not finished!
             end
         end
+        isempty(result) && @info("An empty Namelist found! Default values will be used!")
+        # Works even if `result` is empty. If empty, it just returns the default `Namelist`.
+        T(; result...)
     end
-    isempty(result) && @info("An empty Namelist found! Default values will be used!")
-    # Works even if `result` is empty. If empty, it just returns the default `Namelist`.
-    return T(; result...)
-end # function tryparse_internal
+end # function Base.tryparse
 
-Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist} =
-    tryparse_internal(T, str, false)
-Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist} =
-    tryparse_internal(T, str, true)
+function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
+    x = tryparse(T, str)
+    isnothing(x) ? throw(Meta.ParseError("cannot find namelist `$(titleof(T))`!")) : x
+end # function Base.parse
 Base.parse(::Type{T}, fp::AbstractPath) where {T<:Namelist} = parse(T, read(fp, String))
 
 include("PWscf.jl")
