@@ -22,6 +22,10 @@ struct InvalidInput
     msg::String
 end
 
+struct InputString <: AbstractString
+    str::String
+end
+
 # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L315-L321
 const NAMELIST_ITEM = r"""
                       [ \t]* (?<key>\w+?) (?: (?<kind>[\(%]) (?<index>\w+) \)? )? [ \t]*  # Match and store key
@@ -30,7 +34,10 @@ const NAMELIST_ITEM = r"""
                       [\n,]                          # Return or comma separates "key = value" pairs
                       """mx
 
-function Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist}
+Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist} =
+    parse(T, InputString(str))
+function Base.tryparse(::Type{T}, str::InputString) where {T<:Namelist}
+    str = str.str
     result = Dict{Symbol,Any}()
     head = titleof(T)
     # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L305-L312
