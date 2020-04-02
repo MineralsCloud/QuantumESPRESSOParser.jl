@@ -12,6 +12,7 @@ julia>
 module PWscf
 
 using Compat: isnothing, only
+using FilePaths: AbstractPath
 using PyFortran90Namelists: FortranData
 
 using QuantumESPRESSOBase.Inputs: Card, entryname, titleof
@@ -298,5 +299,6 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
     end
     return PWInput(; dict...)
 end # function Base.parse
+Base.parse(::Type{T}, fp::AbstractPath) where {T<:Union{Card,PWInput}} = parse(T, read(fp, String))
 
 end

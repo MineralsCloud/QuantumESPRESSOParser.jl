@@ -12,6 +12,7 @@ julia>
 module Inputs
 
 using Compat: isnothing
+using FilePaths: AbstractPath
 using PyFortran90Namelists: FortranData
 using QuantumESPRESSOBase.Inputs: Namelist, titleof
 
@@ -81,6 +82,7 @@ Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist} =
     tryparse_internal(T, str, false)
 Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist} =
     tryparse_internal(T, str, true)
+Base.parse(::Type{T}, fp::AbstractPath) where {T<:Namelist} = parse(T, read(fp, String))
 
 include("PWscf.jl")
 # include("PHonon.jl")
