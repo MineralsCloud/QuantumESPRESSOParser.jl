@@ -16,8 +16,6 @@ using FilePaths: AbstractPath
 using PyFortran90Namelists: FortranData
 using QuantumESPRESSOBase.Inputs: Namelist, titleof
 
-using QuantumESPRESSOParsers: nonnothingtype
-
 struct InvalidInput
     msg::String
 end
@@ -88,6 +86,9 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
     isnothing(x) ? throw(Meta.ParseError("cannot find namelist `$(titleof(T))`!")) : x
 end # function Base.parse
 Base.parse(::Type{T}, fp::AbstractPath) where {T<:Namelist} = parse(T, read(fp, String))
+
+# Referenced from https://discourse.julialang.org/t/how-to-get-the-non-nothing-type-from-union-t-nothing/30523
+nonnothingtype(::Type{T}) where {T} = Core.Compiler.typesubtract(T, Nothing)  # Should not be exported
 
 include("PWscf.jl")
 # include("PHonon.jl")
