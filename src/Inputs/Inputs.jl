@@ -13,7 +13,7 @@ module Inputs
 
 using Compat: isnothing
 using FilePaths: AbstractPath
-using PyFortran90Namelists: FortranData
+using PyFortran90Namelists: FortranData, Parser
 using QuantumESPRESSOBase.Inputs: Namelist, titleof
 
 struct InvalidInput
@@ -24,60 +24,14 @@ struct InputString <: AbstractString
     str::String
 end
 
-# From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L315-L321
-const NAMELIST_ITEM = r"""
-                      [ \t]* (?<key>\w+?) (?: (?<kind>[\(%]) (?<index>\w+) \)? )? [ \t]*  # Match and store key
-                      =                              # Equals sign separates key and value
-                      [ \t]* (?<value>\S+?) [ \t]*  # Match and store value
-                      [\n,]                          # Return or comma separates "key = value" pairs
-                      """mx
-
 Base.tryparse(::Type{T}, str::AbstractString) where {T<:Namelist} =
-    parse(T, InputString(str))
+    tryparse(T, InputString(str))
 function Base.tryparse(::Type{T}, str::InputString) where {T<:Namelist}
     str = str.str
-    result = Dict{Symbol,Any}()
-    head = titleof(T)
-    # From https://github.com/aiidateam/qe-tools/blob/570a648/qe_tools/parsers/qeinputparser.py#L305-L312
-    NAMELIST_BLOCK = Regex(
-        """
-        ^ [ \\t]* &$head [ \\t]* \$  # Match `Namelist`'s name
-        (?<body>
-         [\\S\\s]*?  # Match any line non-greedily
-        )            # Save the group of text between `Namelist`s
-        ^ [ \\t]* \\/ [ \\t]* \$  # Match line with "/" as the only non-whitespace char
-        """,
-        "imx",
-    )
-    m = match(NAMELIST_BLOCK, str)
-    return if !isnothing(m)
-        for item in eachmatch(NAMELIST_ITEM, m[:body])
-            k = Symbol(item[:key])
-            v = FortranData(string(item[:value]))
-            # Parse a `FortranData` from `value` as type of the field of the namelist `T`
-            if isnothing(item[:index])  # Cases like `ntyp = 2`
-                result[k] = parse(fieldtype(T, k), v)
-            else  # An entry with multiple values, e.g., `celldm(2) = 3.0`.
-                if item[:kind] == "("  # Note: it cannot be `'('`. It will result in `false`!
-                    i = parse(Int, item[:index])
-                    i < 0 && throw(InvalidInput("Negative index found in $(item[:index])!"))
-                    S = nonnothingtype(eltype(fieldtype(T, k)))
-                    v = parse(S, v)
-                    arr = get(result, k, [])
-                    if i > length(arr)  # Works even if `x` is empty. If empty, `length(x)` will be `0`.
-                        append!(arr, Vector{Union{Nothing,T}}(nothing, i - length(arr)))
-                    end
-                    arr[i] = v  # Now `index` cannot be greater than `length(x)` => a normal assignment
-                    result[k] = arr
-                else  # item[:kind] == '%'
-                    i = string(item[:index])
-                    # TODO: This is not finished!
-                end
-            end
-        end
-        isempty(result) && @info("An empty Namelist found! Default values will be used!")
-        # Works even if `result` is empty. If empty, it just returns the default `Namelist`.
-        T(; result...)
+    d::Dict{String,Any} = Parser().reads(str)
+    return if haskey(d, lowercase(titleof(T)))
+        dict = Dict(Symbol(k) => v for (k, v) in d[lowercase(titleof(T))])
+        T(; dict...)
     end
 end # function Base.tryparse
 
@@ -86,9 +40,6 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
     isnothing(x) ? throw(Meta.ParseError("cannot find namelist `$(titleof(T))`!")) : x
 end # function Base.parse
 Base.parse(::Type{T}, fp::AbstractPath) where {T<:Namelist} = parse(T, read(fp, String))
-
-# Referenced from https://discourse.julialang.org/t/how-to-get-the-non-nothing-type-from-union-t-nothing/30523
-nonnothingtype(::Type{T}) where {T} = Core.Compiler.typesubtract(T, Nothing)  # Should not be exported
 
 include("PWscf.jl")
 # include("PHonon.jl")
