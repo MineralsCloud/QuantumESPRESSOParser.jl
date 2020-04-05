@@ -18,8 +18,7 @@ using Parameters: @with_kw
 using QuantumESPRESSOBase.Inputs.PWscf
 using VersionParsing: vparse
 
-using QuantumESPRESSOParsers: nonnothingtype
-using QuantumESPRESSOParsers.Outputs: SubroutineError
+using ..Outputs: SubroutineError
 
 export Diagonalization,
     Preamble,
@@ -451,29 +450,28 @@ function Base.tryparse(::Type{Preamble}, str::AbstractString)
     m = match(SUMMARY_BLOCK, str)
     return if !isnothing(m)
         body = only(m.captures)
-        for (field, regex) in (
-            :ibrav => NUMBER_OF_ATOMS_PER_CELL,
-            :alat => LATTICE_PARAMETER,
-            :omega => UNIT_CELL_VOLUME,
-            :nat => NUMBER_OF_ATOMS_PER_CELL,
-            :ntyp => NUMBER_OF_ATOMIC_TYPES,
-            :nelec => NUMBER_OF_ELECTRONS,
-            :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
-            :ecutwfc => KINETIC_ENERGY_CUTOFF,
-            :ecutrho => CHARGE_DENSITY_CUTOFF,
-            :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
-            :conv_thr => CONVERGENCE_THRESHOLD,
-            :mixing_beta => MIXING_BETA,
-            :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
-            :xc => EXCHANGE_CORRELATION,
-            :nstep => NSTEP,
+        for (field, (regex, T)) in (
+            :ibrav => (NUMBER_OF_ATOMS_PER_CELL, Int),
+            :alat => (LATTICE_PARAMETER, Float64),
+            :omega => (UNIT_CELL_VOLUME, Float64),
+            :nat => (NUMBER_OF_ATOMS_PER_CELL, Int),
+            :ntyp => (NUMBER_OF_ATOMIC_TYPES, Int),
+            :nelec => (NUMBER_OF_ELECTRONS, Float64),
+            :nbnd => (NUMBER_OF_KOHN_SHAM_STATES, Int),
+            :ecutwfc => (KINETIC_ENERGY_CUTOFF, Float64),
+            :ecutrho => (CHARGE_DENSITY_CUTOFF, Float64),
+            :ecutfock => (CUTOFF_FOR_FOCK_OPERATOR, Float64),
+            :conv_thr => (CONVERGENCE_THRESHOLD, Float64),
+            :mixing_beta => (MIXING_BETA, Float64),
+            :mixing_ndim => (NUMBER_OF_ITERATIONS_USED, Int),
+            :xc => (EXCHANGE_CORRELATION, String),
+            :nstep => (NSTEP, Int),
         )
             m = match(regex, body)
             if !isnothing(m)
-                S = nonnothingtype(fieldtype(Preamble, field))
                 push!(
                     arr,
-                    field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]),
+                    field => (T <: AbstractString ? string : Base.Fix1(parse, T))(m[1]),
                 )
             end
         end
