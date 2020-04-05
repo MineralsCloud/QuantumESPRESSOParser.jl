@@ -449,7 +449,7 @@ isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 function Base.tryparse(::Type{Preamble}, str::AbstractString)
     arr = Pair{Symbol,Any}[]
     m = match(SUMMARY_BLOCK, str)
-    return if isnothing(m)
+    return if !isnothing(m)
         body = only(m.captures)
         for (field, regex) in (
             :ibrav => NUMBER_OF_ATOMS_PER_CELL,
