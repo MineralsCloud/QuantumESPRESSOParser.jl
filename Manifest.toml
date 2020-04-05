@@ -254,7 +254,7 @@ version = "0.1.0"
 
 [[QuantumESPRESSOBase]]
 deps = ["Compat", "Crystallography", "Formatting", "Kaleido", "LinearAlgebra", "OrderedCollections", "Parameters", "Pseudopotentials", "PyFortran90Namelists", "Setfield", "StaticArrays", "Unitful", "UnitfulAtomic"]
-git-tree-sha1 = "aadbc1da77dc93da16e1c3e30b9b7385a971a507"
+git-tree-sha1 = "14b55624760ba9af44df0432a139113c994154a7"
 repo-rev = "master"
 repo-url = "git@github.com:MineralsCloud/QuantumESPRESSOBase.jl.git"
 uuid = "51b62caa-b28f-11e9-38c2-1f67cb498e05"
@@ -269,9 +269,9 @@ deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[RecipesBase]]
-git-tree-sha1 = "b4ed4a7f988ea2340017916f7c9e5d7560b52cae"
+git-tree-sha1 = "d352369b00094cadb43d694333b051b3d55abaf2"
 uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
-version = "0.8.0"
+version = "1.0.0"
 
 [[Reexport]]
 deps = ["Pkg"]
