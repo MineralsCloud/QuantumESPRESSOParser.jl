@@ -446,48 +446,79 @@ isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
 # This is an internal function and should not be exported.
 function Base.tryparse(::Type{Preamble}, str::AbstractString)
-    arr = Pair{Symbol,Any}[]
+    dict = Dict{Symbol,Any}()
     m = match(SUMMARY_BLOCK, str)
     return if !isnothing(m)
         body = only(m.captures)
-        for (field, (regex, T)) in (
-            :ibrav => (NUMBER_OF_ATOMS_PER_CELL, Int),
-            :alat => (LATTICE_PARAMETER, Float64),
-            :omega => (UNIT_CELL_VOLUME, Float64),
-            :nat => (NUMBER_OF_ATOMS_PER_CELL, Int),
-            :ntyp => (NUMBER_OF_ATOMIC_TYPES, Int),
-            :nelec => (NUMBER_OF_ELECTRONS, Float64),
-            :nbnd => (NUMBER_OF_KOHN_SHAM_STATES, Int),
-            :ecutwfc => (KINETIC_ENERGY_CUTOFF, Float64),
-            :ecutrho => (CHARGE_DENSITY_CUTOFF, Float64),
-            :ecutfock => (CUTOFF_FOR_FOCK_OPERATOR, Float64),
-            :conv_thr => (CONVERGENCE_THRESHOLD, Float64),
-            :mixing_beta => (MIXING_BETA, Float64),
-            :mixing_ndim => (NUMBER_OF_ITERATIONS_USED, Int),
-            :xc => (EXCHANGE_CORRELATION, String),
-            :nstep => (NSTEP, Int),
+        f = (T, x) -> T == String ? string(x) : parse(T, x)
+        for (field, regex, T) in zip(
+            (
+                :ibrav,
+                :alat,
+                :omega,
+                :nat,
+                :ntyp,
+                :nelec,
+                :nbnd,
+                :ecutwfc,
+                :ecutrho,
+                :ecutfock,
+                :conv_thr,
+                :mixing_beta,
+                :mixing_ndim,
+                :xc,
+                :nstep,
+            ),
+            (
+                NUMBER_OF_ATOMS_PER_CELL,
+                LATTICE_PARAMETER,
+                UNIT_CELL_VOLUME,
+                NUMBER_OF_ATOMS_PER_CELL,
+                NUMBER_OF_ATOMIC_TYPES,
+                NUMBER_OF_ELECTRONS,
+                NUMBER_OF_KOHN_SHAM_STATES,
+                KINETIC_ENERGY_CUTOFF,
+                CHARGE_DENSITY_CUTOFF,
+                CUTOFF_FOR_FOCK_OPERATOR,
+                CONVERGENCE_THRESHOLD,
+                MIXING_BETA,
+                NUMBER_OF_ITERATIONS_USED,
+                EXCHANGE_CORRELATION,
+                NSTEP,
+            ),
+            (
+                Int,
+                Float64,
+                Float64,
+                Int,
+                Int,
+                Float64,
+                Int,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Int,
+                String,
+                Int,
+            ),
         )
             m = match(regex, body)
             if !isnothing(m)
-                push!(
-                    arr,
-                    field => (T <: AbstractString ? string : Base.Fix1(parse, T))(m[1]),
-                )
+                dict[field] = f(T, m[1])
             end
         end
         # 2 special cases
-        m = match(NUMBER_OF_ELECTRONS, body)
-        if all(!isnothing, m.captures[2:end])
-            push!(
-                arr,
-                zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])),
-            )
+        let x = match(NUMBER_OF_ELECTRONS, body), y = match(NUMBER_OF_ITERATIONS_USED, body)
+            if all(!isnothing, x.captures[2:end])
+                dict[:nelup], dict[:neldw] = parse.(Float64, x.captures[2:end])
+            end
+            if !isnothing(y)
+                dict[:mixing_mode] = y[2]
+            end
         end
-        m = match(NUMBER_OF_ITERATIONS_USED, body)
-        if !isnothing(m)
-            push!(arr, :mixing_mode => m[2])
-        end
-        Preamble(; arr...)
+        Preamble(; dict...)
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{SubroutineError}, str::AbstractString)
