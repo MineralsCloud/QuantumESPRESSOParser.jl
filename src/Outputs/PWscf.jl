@@ -18,8 +18,7 @@ using Parameters: @with_kw
 using QuantumESPRESSOBase.Inputs.PWscf
 using VersionParsing: vparse
 
-using QuantumESPRESSOParsers: nonnothingtype
-using QuantumESPRESSOParsers.Outputs: SubroutineError
+using ..Outputs: SubroutineError
 
 export Diagonalization,
     Preamble,
@@ -63,7 +62,7 @@ const Maybe{T} = Union{T,Nothing}  # Should not be exported
 
 abstract type Diagonalization end
 struct Davidson <: Diagonalization end
-struct ConjugateGradient<: Diagonalization end
+struct ConjugateGradient <: Diagonalization end
 struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
 
 @with_kw struct Preamble
@@ -217,9 +216,9 @@ function _parse_diagonalization(str::AbstractString)
         solver = if m[:diag] == "Davidson diagonalization with overlap"
             Davidson()
         elseif m[:diag] == "CG style diagonalization"
-            CGDiagonalization()
+            ConjugateGradient()
         elseif m[:diag] == "PPCG style diagonalization"
-            PPCGDiagonalization()
+            ProjectedPreconditionedConjugateGradient()
         else
             error("unknown diagonalization style!")
         end
@@ -447,49 +446,79 @@ isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
 # This is an internal function and should not be exported.
 function Base.tryparse(::Type{Preamble}, str::AbstractString)
-    arr = Pair{Symbol,Any}[]
+    dict = Dict{Symbol,Any}()
     m = match(SUMMARY_BLOCK, str)
-    return if isnothing(m)
+    return if !isnothing(m)
         body = only(m.captures)
-        for (field, regex) in (
-            :ibrav => NUMBER_OF_ATOMS_PER_CELL,
-            :alat => LATTICE_PARAMETER,
-            :omega => UNIT_CELL_VOLUME,
-            :nat => NUMBER_OF_ATOMS_PER_CELL,
-            :ntyp => NUMBER_OF_ATOMIC_TYPES,
-            :nelec => NUMBER_OF_ELECTRONS,
-            :nbnd => NUMBER_OF_KOHN_SHAM_STATES,
-            :ecutwfc => KINETIC_ENERGY_CUTOFF,
-            :ecutrho => CHARGE_DENSITY_CUTOFF,
-            :ecutfock => CUTOFF_FOR_FOCK_OPERATOR,
-            :conv_thr => CONVERGENCE_THRESHOLD,
-            :mixing_beta => MIXING_BETA,
-            :mixing_ndim => NUMBER_OF_ITERATIONS_USED,
-            :xc => EXCHANGE_CORRELATION,
-            :nstep => NSTEP,
+        f = (T, x) -> T == String ? string(x) : parse(T, x)
+        for (field, regex, T) in zip(
+            (
+                :ibrav,
+                :alat,
+                :omega,
+                :nat,
+                :ntyp,
+                :nelec,
+                :nbnd,
+                :ecutwfc,
+                :ecutrho,
+                :ecutfock,
+                :conv_thr,
+                :mixing_beta,
+                :mixing_ndim,
+                :xc,
+                :nstep,
+            ),
+            (
+                NUMBER_OF_ATOMS_PER_CELL,
+                LATTICE_PARAMETER,
+                UNIT_CELL_VOLUME,
+                NUMBER_OF_ATOMS_PER_CELL,
+                NUMBER_OF_ATOMIC_TYPES,
+                NUMBER_OF_ELECTRONS,
+                NUMBER_OF_KOHN_SHAM_STATES,
+                KINETIC_ENERGY_CUTOFF,
+                CHARGE_DENSITY_CUTOFF,
+                CUTOFF_FOR_FOCK_OPERATOR,
+                CONVERGENCE_THRESHOLD,
+                MIXING_BETA,
+                NUMBER_OF_ITERATIONS_USED,
+                EXCHANGE_CORRELATION,
+                NSTEP,
+            ),
+            (
+                Int,
+                Float64,
+                Float64,
+                Int,
+                Int,
+                Float64,
+                Int,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Float64,
+                Int,
+                String,
+                Int,
+            ),
         )
             m = match(regex, body)
             if !isnothing(m)
-                S = nonnothingtype(fieldtype(Preamble, field))
-                push!(
-                    arr,
-                    field => (S <: AbstractString ? string : Base.Fix1(parse, S))(m[1]),
-                )
+                dict[field] = f(T, m[1])
             end
         end
         # 2 special cases
-        m = match(NUMBER_OF_ELECTRONS, body)
-        if all(!isnothing, m.captures[2:end])
-            push!(
-                arr,
-                zip([:nelup, :neldw], map(x -> parse(Float64, x), m.captures[2:end])),
-            )
+        let x = match(NUMBER_OF_ELECTRONS, body), y = match(NUMBER_OF_ITERATIONS_USED, body)
+            if all(!isnothing, x.captures[2:end])
+                dict[:nelup], dict[:neldw] = parse.(Float64, x.captures[2:end])
+            end
+            if !isnothing(y)
+                dict[:mixing_mode] = y[2]
+            end
         end
-        m = match(NUMBER_OF_ITERATIONS_USED, body)
-        if !isnothing(m)
-            push!(arr, :mixing_mode => m[2])
-        end
-        Preamble(; arr...)
+        Preamble(; dict...)
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{SubroutineError}, str::AbstractString)

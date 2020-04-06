@@ -13,7 +13,6 @@ module PWscf
 
 using Compat: isnothing, only
 using PyFortran90Namelists: FortranData
-
 using QuantumESPRESSOBase.Inputs: Card, entryname, titleof
 using QuantumESPRESSOBase.Inputs.PWscf:
     ControlNamelist,
