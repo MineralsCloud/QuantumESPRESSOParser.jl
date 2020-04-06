@@ -62,7 +62,7 @@ const Maybe{T} = Union{T,Nothing}  # Should not be exported
 
 abstract type Diagonalization end
 struct Davidson <: Diagonalization end
-struct ConjugateGradient<: Diagonalization end
+struct ConjugateGradient <: Diagonalization end
 struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
 
 @with_kw struct Preamble
@@ -216,9 +216,9 @@ function _parse_diagonalization(str::AbstractString)
         solver = if m[:diag] == "Davidson diagonalization with overlap"
             Davidson()
         elseif m[:diag] == "CG style diagonalization"
-            CGDiagonalization()
+            ConjugateGradient()
         elseif m[:diag] == "PPCG style diagonalization"
-            PPCGDiagonalization()
+            ProjectedPreconditionedConjugateGradient()
         else
             error("unknown diagonalization style!")
         end
