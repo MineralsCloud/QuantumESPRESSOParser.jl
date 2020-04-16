@@ -433,14 +433,12 @@ function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     return info
 end # function parse_clock
 
-function parse_input_name(str::AbstractString)::Maybe{String}
+function parse_input_name(str::AbstractString)
     m = match(READING_INPUT_FROM, str)
-    !isnothing(m) ? only(m) : return
+    return isnothing(m) ? nothing : only(m)
 end # function parse_input_name
 
-function isrelaxed(str::AbstractString)::Bool
-    isnothing(match(FINAL_COORDINATES_BLOCK, str)) ? false : true
-end # function isrelaxed
+isrelaxed(str::AbstractString) = isnothing(match(FINAL_COORDINATES_BLOCK, str)) ? false : true
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
