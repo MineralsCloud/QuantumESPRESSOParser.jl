@@ -41,7 +41,7 @@ export Diagonalization,
     parse_iteration_head,
     parse_electrons_energies,
     parse_clock,
-    whatinput,
+    parse_input_name,
     isrelaxed,
     isjobdone,
     tryparsefirst,
@@ -433,10 +433,10 @@ function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     return info
 end # function parse_clock
 
-function whatinput(str::AbstractString)::Maybe{String}
+function parse_input_name(str::AbstractString)::Maybe{String}
     m = match(READING_INPUT_FROM, str)
     !isnothing(m) ? only(m) : return
-end # function whatinput
+end # function parse_input_name
 
 function isrelaxed(str::AbstractString)::Bool
     isnothing(match(FINAL_COORDINATES_BLOCK, str)) ? false : true

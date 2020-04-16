@@ -246,7 +246,7 @@ using QuantumESPRESSOParsers.Outputs.PWscf
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == false
 
@@ -404,7 +404,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == false
 
@@ -534,7 +534,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "NaCl-001.in"
+    @test parse_input_name(str) == "NaCl-001.in"
 
     @test isrelaxed(str) == false
 
@@ -685,7 +685,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == false
 
@@ -1553,7 +1553,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == true
 
@@ -3394,7 +3394,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == true
 
@@ -3602,7 +3602,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "/home/giannozz/trunk/espresso/PW/tests/relax-damped.in"
+    @test parse_input_name(str) == "/home/giannozz/trunk/espresso/PW/tests/relax-damped.in"
 
     @test isrelaxed(str) == true
 
@@ -3771,7 +3771,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == true
 
@@ -3928,7 +3928,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == true
 
@@ -4189,7 +4189,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == true
 
@@ -4368,7 +4368,7 @@ end
         [:subroutine, :item, :CPU, :wall, :calls],
     )
 
-    @test whatinput(str) == "standard input"
+    @test parse_input_name(str) == "standard input"
 
     @test isrelaxed(str) == true
 
