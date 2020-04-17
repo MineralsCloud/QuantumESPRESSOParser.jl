@@ -41,7 +41,7 @@ export Diagonalization,
     parse_iteration_head,
     parse_electrons_energies,
     parse_clock,
-    whatinput,
+    parse_input_name,
     isrelaxed,
     isjobdone,
     tryparsefirst,
@@ -433,14 +433,12 @@ function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     return info
 end # function parse_clock
 
-function whatinput(str::AbstractString)::Maybe{String}
+function parse_input_name(str::AbstractString)
     m = match(READING_INPUT_FROM, str)
-    !isnothing(m) ? only(m) : return
-end # function whatinput
+    return isnothing(m) ? nothing : only(m)
+end # function parse_input_name
 
-function isrelaxed(str::AbstractString)::Bool
-    isnothing(match(FINAL_COORDINATES_BLOCK, str)) ? false : true
-end # function isrelaxed
+isrelaxed(str::AbstractString) = isnothing(match(FINAL_COORDINATES_BLOCK, str)) ? false : true
 
 isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
 
@@ -535,7 +533,8 @@ function Base.tryparse(::Type{SubroutineError}, str::AbstractString)
         SubroutineError(m[1], m[2], msg)
     end
 end # function Base.tryparse
-function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
+
+function tryparse_internal(::Type{CellParametersCard{Float64}}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     return if !isnothing(m)
         body, data = m[:data], Matrix{Float64}(undef, 3, 3)  # Initialization
@@ -548,8 +547,8 @@ function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
         end
         CellParametersCard(data, m[:option])
     end
-end # function Base.tryparse
-function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
+end # function tryparse_internal
+function tryparse_internal(::Type{AtomicPositionsCard}, str::AbstractString)
     atomic_positions = AtomicPositionsCard[]
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     return if !isnothing(m)
@@ -564,45 +563,55 @@ function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
         end
         AtomicPositionsCard(data, option)
     end
-end # function Base.tryparse
+end # function tryparse_internal
+
+const AtomicStructure = Union{CellParametersCard{Float64},AtomicPositionsCard}
 
 function Base.parse(
     ::Type{T},
     str::AbstractString,
-) where {T<:Union{Preamble,SubroutineError,CellParametersCard{Float64},AtomicPositionsCard}}
+) where {T<:Union{Preamble,SubroutineError}}
     x = tryparse(T, str)
     isnothing(x) ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function Base.parse
+
+function _parse(
+    ::Type{T},
+    str::AbstractString,
+) where {T<:AtomicStructure}
+    x = tryparse(T, str)
+    isnothing(x) ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
+end # function _parse
 
 const REGEXOF = Dict{Symbol,Regex}(
     :CellParametersCard => CELL_PARAMETERS_BLOCK,
     :AtomicPositionsCard => ATOMIC_POSITIONS_BLOCK,
 )
 
-tryparsefirst(::Type{T}, str::AbstractString) where {T} = tryparse(T, str)
-parsefirst(::Type{T}, str::AbstractString) where {T} = parse(T, str)
+tryparsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = tryparse_internal(T, str)
+parsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = _parse(T, str)
 
-function tryparseall(::Type{T}, str::AbstractString) where {T}
+function tryparseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     return map(eachmatch(REGEXOF(T), str)) do x
         try
-            tryparse(T, x.match)
+            tryparse_internal(T, x.match)
         catch
             nothing
         end
     end
 end # function parseall
-function parseall(::Type{T}, str::AbstractString) where {T}
+function parseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     return map(eachmatch(REGEXOF(T), str)) do x
         try
-            tryparse(T, x.match)
+            tryparse_internal(T, x.match)
         catch
             Meta.ParseError("Pass failed!")
         end
     end
 end # function parseall
 
-tryparselast(::Type{T}, str::AbstractString) where {T} = tryparseall(T, str)[end]
-parselast(::Type{T}, str::AbstractString) where {T} = parseall(T, str)[end]
+tryparselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = tryparseall(T, str)[end]
+parselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = parseall(T, str)[end]
 
 function _parsenext_internal(
     ::Type{T},
@@ -614,7 +623,7 @@ function _parsenext_internal(
     if isnothing(x)
         raise ? throw(Meta.ParseError("Nothing found for next!")) : return
     end
-    return tryparse(T, str[x])
+    return tryparse_internal(T, str[x])
 end # function parsenext
 tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
     _parsenext_internal(T, str, start, false)
@@ -624,22 +633,22 @@ parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
 function tryparsefinal(
     ::Type{T},
     str::AbstractString,
-) where {T<:Union{CellParametersCard{Float64},AtomicPositionsCard}}
+) where {T<:AtomicStructure}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && return
     m = match(REGEXOF[nameof(T)], m.match)
     isnothing(m) && return
-    return tryparse(T, m.match)
+    return tryparse_internal(T, m.match)
 end # function parsefinal
 function parsefinal(
     ::Type{T},
     str::AbstractString,
-) where {T<:Union{CellParametersCard{Float64},AtomicPositionsCard}}
+) where {T<:AtomicStructure}
     m = match(FINAL_COORDINATES_BLOCK, str)
     isnothing(m) && throw(Meta.ParseError("No final coordinates found!"))
     m = match(REGEXOF[nameof(T)], m.match)
     isnothing(m) && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
-    return tryparse(T, m.match)
+    return tryparse_internal(T, m.match)
 end # function parsefinal
 
 end
