@@ -13,7 +13,7 @@ module Inputs
 
 using Compat: isnothing
 using PyFortran90Namelists: FortranData, Parser
-using QuantumESPRESSOBase.Inputs: Namelist, InputEntry, titleof, qestring
+using QuantumESPRESSOBase.Inputs: Namelist, InputEntry, Input, titleof, qestring
 
 export InputFile
 
@@ -41,7 +41,9 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
 end # function Base.parse
 
 Base.read(f::InputFile{String}) = read(f.source, String)
+
 Base.write(f::InputFile{String}, x::InputEntry) = write(f.source, qestring(x))
+Base.write(f::InputFile{String}, x::Input) = write(f.source, qestring(x))
 
 include("PWscf.jl")
 # include("PHonon.jl")
