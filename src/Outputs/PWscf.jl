@@ -544,8 +544,9 @@ function tryparse_internal(::Type{CellParametersCard{Float64}}, str::AbstractStr
         if m[:option] == "alat"
             alat = parse(Float64, m[:alat])
             CellParametersCard(alat * data, "bohr")
+        else
+            CellParametersCard(data, m[:option])
         end
-        CellParametersCard(data, m[:option])
     end
 end # function tryparse_internal
 function tryparse_internal(::Type{AtomicPositionsCard}, str::AbstractString)
