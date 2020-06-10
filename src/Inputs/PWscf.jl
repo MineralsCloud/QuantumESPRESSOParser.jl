@@ -11,7 +11,7 @@ julia>
 """
 module PWscf
 
-using Compat: isnothing, only
+using Compat: only
 using PyFortran90Namelists: FortranData
 using QuantumESPRESSOBase.Inputs: Card, entryname, titleof
 using QuantumESPRESSOBase.Inputs.PWscf:
@@ -186,7 +186,7 @@ const CELL_PARAMETERS_ITEM = r"""
 function Base.tryparse(T::Type{AtomicSpeciesCard}, str::AbstractString)
     m = match(ATOMIC_SPECIES_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    return if !isnothing(m)
+    return if m !== nothing
         content = only(m.captures)
         data = AtomicSpecies[]
         for matched in eachmatch(ATOMIC_SPECIES_ITEM, content)
@@ -201,9 +201,9 @@ end # function Base.tryparse
 function Base.tryparse(T::Type{AtomicPositionsCard}, str::AbstractString)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    return if !isnothing(m)
+    return if m !== nothing
         option = string(m.captures[1])
-        if isnothing(option)
+        if option === nothing
             @warn "Not specifying units is DEPRECATED and will no longer be allowed in the future!"
             @info "No option is specified, 'alat' is assumed."
             option = "alat"
@@ -217,7 +217,10 @@ function Base.tryparse(T::Type{AtomicPositionsCard}, str::AbstractString)
             if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
             # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
             atom, pos = captured[1],
-            map(x -> parse(Float64, FortranData(x)), [captured[2], captured[5], captured[8]])
+            map(
+                x -> parse(Float64, FortranData(x)),
+                [captured[2], captured[5], captured[8]],
+            )
             push!(data, AtomicPosition(atom, pos, if_pos))
         end
         AtomicPositionsCard(data, option)
@@ -225,19 +228,19 @@ function Base.tryparse(T::Type{AtomicPositionsCard}, str::AbstractString)
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard{GammaPoint}}, str::AbstractString)
     m = match(K_POINTS_GAMMA_BLOCK, str)
-    return isnothing(m) ? nothing : KPointsCard(GammaPoint())
+    return m === nothing ? nothing : KPointsCard(GammaPoint())
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard{MonkhorstPackGrid}}, str::AbstractString)
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
-    return if !isnothing(m)
+    return if m !== nothing
         data = map(x -> parse(Int, FortranData(x)), m.captures)
         KPointsCard(MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard{Vector{SpecialKPoint}}}, str::AbstractString)
     m = match(K_POINTS_SPECIAL_BLOCK, str)
-    return if !isnothing(m)
-        option = isnothing(m.captures[1]) ? "tpiba" : m.captures[1]
+    return if m !== nothing
+        option = m.captures[1] === nothing ? "tpiba" : m.captures[1]
         captured = m.captures[2]
         data = SpecialKPoint[]
         for matched in eachmatch(K_POINTS_SPECIAL_ITEM, captured)
@@ -252,13 +255,15 @@ end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
     for T in (GammaPoint, MonkhorstPackGrid, Vector{SpecialKPoint})
         x = tryparse(KPointsCard{T}, str)
-        isnothing(x) ? continue : return x
+        if x !== nothing
+            return x
+        end
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    return if !isnothing(m)
+    return if m !== nothing
         option = string(m[:option])
         if isempty(option)
             @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
@@ -280,7 +285,11 @@ end # function Base.tryparse
 
 function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
     x = tryparse(T, str)
-    isnothing(x) ? throw(Meta.ParseError("cannot find card `$(titleof(T))`!")) : x
+    if x === nothing
+        throw(Meta.ParseError("cannot find card `$(titleof(T))`!"))
+    else
+        return x
+    end
 end # function Base.parse
 function Base.parse(::Type{PWInput}, str::AbstractString)
     dict = Dict{Symbol,Any}()
@@ -293,7 +302,7 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
     for T in
         (ControlNamelist, SystemNamelist, ElectronsNamelist, IonsNamelist, CellNamelist)
         nml = tryparse(T, str)
-        push!(dict, entryname(T, PWInput) => isnothing(nml) ? T() : nml)
+        push!(dict, entryname(T, PWInput) => (nml === nothing ? T() : nml))
     end
     return PWInput(; dict...)
 end # function Base.parse
