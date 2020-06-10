@@ -4,16 +4,15 @@ module PWscf
 
 using Test
 
-using Compat: isnothing
 using QuantumESPRESSOBase.Inputs.PWscf
 
 using QuantumESPRESSOParsers.Inputs
 
 @testset "Parse empty strings" begin
     @test_throws Meta.ParseError parse(ControlNamelist, " ")
-    @test isnothing(tryparse(ControlNamelist, " "))
+    @test tryparse(ControlNamelist, " ") === nothing
     @test_throws Meta.ParseError parse(ControlNamelist, "&control/")
-    @test isnothing(tryparse(ControlNamelist, "&control/"))
+    @test tryparse(ControlNamelist, "&control/") === nothing
     @test parse(ControlNamelist, "&control\n/\n") == ControlNamelist()
     @test_throws Meta.ParseError parse(ControlNamelist, " ")
     @test_logs(
@@ -28,7 +27,6 @@ module CP
 
 using Test
 
-using Compat: isnothing
 using QuantumESPRESSOBase.Inputs.CP
 
 using QuantumESPRESSOParsers.Inputs

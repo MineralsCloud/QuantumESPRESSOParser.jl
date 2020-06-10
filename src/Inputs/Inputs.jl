@@ -11,7 +11,6 @@ julia>
 """
 module Inputs
 
-using Compat: isnothing
 using PyFortran90Namelists: FortranData, Parser
 using QuantumESPRESSOBase.Inputs: Namelist, InputEntry, Input, titleof, inputstring
 
@@ -37,7 +36,11 @@ end # function Base.tryparse
 Base.parse(::Type{T}, f::InputFile) where {T<:InputEntry} = parse(T, read(f))
 function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
     x = tryparse(T, str)
-    isnothing(x) ? throw(Meta.ParseError("cannot find namelist `$(titleof(T))`!")) : x
+    if x === nothing
+        throw(Meta.ParseError("cannot find namelist `$(titleof(T))`!"))
+    else
+        return x
+    end
 end # function Base.parse
 
 Base.read(f::InputFile{String}) = read(f.source, String)

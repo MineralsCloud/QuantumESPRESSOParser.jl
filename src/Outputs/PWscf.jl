@@ -11,7 +11,7 @@ julia>
 """
 module PWscf
 
-using Compat: isnothing, only
+using Compat: only
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Parameters: @with_kw
@@ -100,7 +100,7 @@ function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
     df =
         DataFrame(kind = String[], stats = String[], dense = Int[], smooth = Int[], PW = [])
     m = match(FFT_BASE_INFO, str)
-    if isnothing(m)
+    if m === nothing
         @info("The FFT base info is not found!")
         return
     end
@@ -117,14 +117,14 @@ end # function parse_fft_base_info
 
 function parse_symmetries(str::AbstractString)
     m = match(SYM_OPS, str)
-    isnothing(m) && return
+    m === nothing && return
     num_sym_ops = isempty(m[:n]) ? 0 : parse(Int, m[:n])
 end # function parse_symmetries
 
 # Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
 function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
-    if isnothing(m)
+    if m === nothing
         @info("The k-points info is not found!")
         return
     end
@@ -132,7 +132,7 @@ function parse_ibz(str::AbstractString)::Maybe{Tuple}
     result = []
     kinds = (:cart => "tpiba", :cryst => "crystal")
     for (k, v) in kinds
-        if !isnothing(m[k])
+        if m[k] !== nothing
             x = Matrix{Float64}(undef, nk, 4)
             for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
                 x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
@@ -212,7 +212,7 @@ end # function parse_diagonalization
 function _parse_diagonalization(str::AbstractString)
     solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
     m = match(C_BANDS, str)
-    if !isnothing(m)
+    if m !== nothing
         solver = if m[:diag] == "Davidson diagonalization with overlap"
             Davidson()
         elseif m[:diag] == "CG style diagonalization"
@@ -230,7 +230,7 @@ end # function _parse_diagonalization
 function _parse_nonconverged_energy(str::AbstractString)
     ɛ, hf, δ = nothing, nothing, nothing  # Initialization
     m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
-    if !isnothing(m)
+    if m !== nothing
         ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
     end  # Keep them `nothing` if `m` is `nothing`
     return ɛ, hf, δ
@@ -253,7 +253,7 @@ function _parse_electrons_energies(str::AbstractString, ::Val{:converged})
         δ = Maybe{Float64}[],  # Estimated scf accuracy
     )
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
-        data = if !isnothing(m)
+        data = if m !== nothing
             map(x -> parse(Float64, x), m.captures[1:3])
         else
             ntuple(_ -> nothing, 3)
@@ -269,7 +269,7 @@ function _parse_electrons_energies(str::AbstractString, ::Val{:combined})
     m = 1  # Initial step number
     for (i, n) in enumerate(nonconverged.step)
         if n != m
-            @assert(all(isnothing, nonconverged[i-1, 3:5]))
+            @assert(all(==(nothing), nonconverged[i-1, 3:5]))
             # nonconverged[i - 1, 3:5] = converged[n, 2:4]  # Converged energies do not have `iteration` column
             nonconverged[i-1, 3] = converged[n, 2]
             nonconverged[i-1, 4] = converged[n, 3]
@@ -294,9 +294,9 @@ function parse_bands(str::AbstractString)
     str == "Number of k-points >= 100: set verbosity='high' to print the bands." && return
     kpts, bands = nothing, nothing  # Initialization
     m = match(KS_ENERGIES_BLOCK, str)
-    if !isnothing(m)
+    if m !== nothing
         kpts, bands = Vector{Float64}[], Vector{Float64}[]
-        regex = isnothing(match(KS_ENERGIES_BANDS, str)) ? KS_ENERGIES_BAND_ENERGIES :
+        regex = match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
             KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
             push!(
@@ -318,7 +318,7 @@ end # function parse_bands
 function parse_all_electron_energy(str::AbstractString)
     df = DataFrame(step = Int[], ae = Maybe{Float64}[])
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
-        ae = if any(isnothing, (m, m[:ae]))
+        ae = if any(==(nothing), (m, m[:ae]))
             nothing
         else
             parse(Float64, match(Regex(FIXED_POINT_REAL), m[:ae])[1])
@@ -337,7 +337,7 @@ function parse_energy_decomposition(str::AbstractString)
         ewald = Maybe{Float64}[],
     )
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
-        data = if any(isnothing, (m, m[:decomp]))
+        data = if any(==(nothing), (m, m[:decomp]))
             ntuple(_ -> nothing, 4)
         else
             map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]))
@@ -358,7 +358,7 @@ function parse_paw_contribution(str::AbstractString)
         exc = Maybe{Float64}[],
     )
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
-        data = if any(isnothing, (m, m[:one]))
+        data = if any(==(nothing), (m, m[:one]))
             ntuple(_ -> nothing, 6)
         else
             map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:one]))
@@ -371,7 +371,7 @@ end # function parse_paw_contribution
 function parse_smearing_energy(str::AbstractString)
     df = DataFrame(step = Int[], smearing = Maybe{Float64}[])
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
-        smearing = if any(isnothing, (m, m[:smearing]))
+        smearing = if any(==(nothing), (m, m[:smearing]))
             nothing
         else
             parse(Float64, match(Regex(FIXED_POINT_REAL), m[:smearing])[1])
@@ -383,25 +383,25 @@ end # function parse_smearing_energy
 
 function parse_version(str::AbstractString)::Maybe{VersionNumber}
     m = match(PWSCF_VERSION, str)
-    !isnothing(m) ? vparse(m[:version]) : return
+    m !== nothing ? vparse(m[:version]) : return
 end # function parse_version
 
 function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
     m = match(PARALLEL_INFO, str)
-    isnothing(m) && return
-    return m[:kind], isnothing(m[:num]) ? 1 : parse(Int, m[:num])
+    m === nothing && return
+    return m[:kind], m[:num] === nothing ? 1 : parse(Int, m[:num])
 end # function parse_parallel_info
 
 function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
     m = match(FFT_DIMENSIONS, str)
-    isnothing(m) && return
+    m === nothing && return
     parsed = map(x -> parse(Int, x), m.captures)
     return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     m = match(TIME_BLOCK, str)
-    isnothing(m) && return
+    m === nothing && return
     content = only(m.captures)
 
     info = DataFrame(
@@ -423,9 +423,13 @@ function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
         PARALLEL_ROUTINES_TIME_BLOCK
     ]
         block = match(regex, content)
-        isnothing(block) && continue
-        for m in eachmatch(TIME_ITEM, block[:body])
-            push!(info, [block[:head] m[1] map(x -> parse(Float64, x), m.captures[2:4])...])
+        if block !== nothing
+            for m in eachmatch(TIME_ITEM, block[:body])
+                push!(
+                    info,
+                    [block[:head] m[1] map(x -> parse(Float64, x), m.captures[2:4])...],
+                )
+            end
         end
     end
     # m = match(TERMINATED_DATE, content)
@@ -435,18 +439,19 @@ end # function parse_clock
 
 function parse_input_name(str::AbstractString)
     m = match(READING_INPUT_FROM, str)
-    return isnothing(m) ? nothing : only(m)
+    return m === nothing ? nothing : only(m)
 end # function parse_input_name
 
-isrelaxed(str::AbstractString) = isnothing(match(FINAL_COORDINATES_BLOCK, str)) ? false : true
+isrelaxed(str::AbstractString) =
+    match(FINAL_COORDINATES_BLOCK, str) === nothing ? false : true
 
-isjobdone(str::AbstractString) = !isnothing(match(JOB_DONE, str))
+isjobdone(str::AbstractString) = match(JOB_DONE, str) !== nothing
 
 # This is an internal function and should not be exported.
 function Base.tryparse(::Type{Preamble}, str::AbstractString)
     dict = Dict{Symbol,Any}()
     m = match(SUMMARY_BLOCK, str)
-    return if !isnothing(m)
+    return if m !== nothing
         body = only(m.captures)
         f = (T, x) -> T == String ? string(x) : parse(T, x)
         for (field, regex, T) in zip(
@@ -503,16 +508,16 @@ function Base.tryparse(::Type{Preamble}, str::AbstractString)
             ),
         )
             m = match(regex, body)
-            if !isnothing(m)
+            if m !== nothing
                 dict[field] = f(T, m[1])
             end
         end
         # 2 special cases
         let x = match(NUMBER_OF_ELECTRONS, body), y = match(NUMBER_OF_ITERATIONS_USED, body)
-            if all(!isnothing, x.captures[2:end])
+            if all(!=(nothing), x.captures[2:end])
                 dict[:nelup], dict[:neldw] = parse.(Float64, x.captures[2:end])
             end
-            if !isnothing(y)
+            if y !== nothing
                 dict[:mixing_mode] = y[2]
             end
         end
@@ -523,7 +528,7 @@ function Base.tryparse(::Type{SubroutineError}, str::AbstractString)
     # According to my observation, a QE output can have at most one type of
     # `SubroutineError`. Warn me if there can be multiple types of errors.
     m = match(ERROR_BLOCK, str)
-    return if !isnothing(m)
+    return if m !== nothing
         # `tryparse` returns nothing if the string does not contain what we want,
         # while `parse` raises an error.
         body = strip(m[:body])
@@ -536,7 +541,7 @@ end # function Base.tryparse
 
 function tryparse_internal(::Type{CellParametersCard{Float64}}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
-    return if !isnothing(m)
+    return if m !== nothing
         body, data = m[:data], Matrix{Float64}(undef, 3, 3)  # Initialization
         for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
             data[i, :] = map(x -> parse(Float64, x), matched.captures)
@@ -552,13 +557,13 @@ end # function tryparse_internal
 function tryparse_internal(::Type{AtomicPositionsCard}, str::AbstractString)
     atomic_positions = AtomicPositionsCard[]
     m = match(ATOMIC_POSITIONS_BLOCK, str)
-    return if !isnothing(m)
+    return if m !== nothing
         option = string(m[1])
         body = m[2]
         data = AtomicPosition[]
         for matched in eachmatch(ATOMIC_POSITIONS_ITEM, body)
             captured = matched.captures
-            if_pos = map(x -> isnothing(x) ? 1 : parse(Int, x), captured[5:7])
+            if_pos = map(x -> x === nothing ? 1 : parse(Int, x), captured[5:7])
             atom, pos = captured[1], map(x -> parse(Float64, x), captured[2:4])
             push!(data, AtomicPosition(atom, pos, if_pos))
         end
@@ -573,15 +578,12 @@ function Base.parse(
     str::AbstractString,
 ) where {T<:Union{Preamble,SubroutineError}}
     x = tryparse(T, str)
-    isnothing(x) ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
+    x === nothing ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function Base.parse
 
-function _parse(
-    ::Type{T},
-    str::AbstractString,
-) where {T<:AtomicStructure}
+function _parse(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     x = tryparse(T, str)
-    isnothing(x) ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
+    x === nothing ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function _parse
 
 const REGEXOF = Dict{Symbol,Regex}(
@@ -589,7 +591,8 @@ const REGEXOF = Dict{Symbol,Regex}(
     :AtomicPositionsCard => ATOMIC_POSITIONS_BLOCK,
 )
 
-tryparsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = tryparse_internal(T, str)
+tryparsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
+    tryparse_internal(T, str)
 parsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = _parse(T, str)
 
 function tryparseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
@@ -611,7 +614,8 @@ function parseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     end
 end # function parseall
 
-tryparselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = tryparseall(T, str)[end]
+tryparselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
+    tryparseall(T, str)[end]
 parselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = parseall(T, str)[end]
 
 function _parsenext_internal(
@@ -621,7 +625,7 @@ function _parsenext_internal(
     raise::Bool,
 ) where {T}
     x = findnext(REGEXOF(T), str, start)
-    if isnothing(x)
+    if x === nothing
         raise ? throw(Meta.ParseError("Nothing found for next!")) : return
     end
     return tryparse_internal(T, str[x])
@@ -631,24 +635,18 @@ tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
 parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
     _parsenext_internal(T, str, start, true)
 
-function tryparsefinal(
-    ::Type{T},
-    str::AbstractString,
-) where {T<:AtomicStructure}
+function tryparsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m = match(FINAL_COORDINATES_BLOCK, str)
-    isnothing(m) && return
+    m === nothing && return
     m = match(REGEXOF[nameof(T)], m.match)
-    isnothing(m) && return
+    m === nothing && return
     return tryparse_internal(T, m.match)
 end # function parsefinal
-function parsefinal(
-    ::Type{T},
-    str::AbstractString,
-) where {T<:AtomicStructure}
+function parsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m = match(FINAL_COORDINATES_BLOCK, str)
-    isnothing(m) && throw(Meta.ParseError("No final coordinates found!"))
+    m === nothing && throw(Meta.ParseError("No final coordinates found!"))
     m = match(REGEXOF[nameof(T)], m.match)
-    isnothing(m) && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
+    m === nothing && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
     return tryparse_internal(T, m.match)
 end # function parsefinal
 

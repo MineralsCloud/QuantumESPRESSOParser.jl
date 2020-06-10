@@ -1,6 +1,6 @@
 module PHonon
 
-using Compat: isnothing, only
+using Compat: only
 using QuantumESPRESSOBase.Inputs: Namelist
 using QuantumESPRESSOBase.Inputs.PHonon
 
@@ -30,7 +30,7 @@ const Q_POINTS_SPECIAL_ITEM_REGEX = r"""
 
 # function Base.parse(::Type{QPointsSpecsCard}, str::AbstractString)
 #     m = match(Q_POINTS_SPECIAL_BLOCK_REGEX, str)
-#     if !isnothing(m)
+#     if m !== nothing
 #         captured = only(m.captures)
 #         data = SpecialQPoint[]
 #         for matched in eachmatch(Q_POINTS_SPECIAL_ITEM_REGEX, captured)
