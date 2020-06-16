@@ -13,7 +13,7 @@ module PWscf
 
 using Compat: only
 using PyFortran90Namelists: FortranData
-using QuantumESPRESSOBase.Inputs: Card, entryname, titleof
+using QuantumESPRESSOBase.Inputs: Card, entryname, titleof, inputstring
 using QuantumESPRESSOBase.Inputs.PWscf:
     ControlNamelist,
     SystemNamelist,
@@ -30,6 +30,8 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     SpecialKPoint,
     CellParametersCard,
     PWInput
+
+export format_text, format_file
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK = r"""
@@ -306,5 +308,24 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
     end
     return PWInput(; dict...)
 end # function Base.parse
+
+function format_file(filename::AbstractString; overwrite::Bool = true, kwargs...)
+    open(filename, "r+") do io
+        text = read(io, String)
+        println(text)
+        formatted_text = format_text(text; kwargs...)
+        if overwrite
+            seekstart(io)
+            write(io, formatted_text)
+        else
+            println(formatted_text)
+        end
+    end
+end # function format_file
+
+function format_text(text::AbstractString; indent = ' '^4, delim = ' ', newline = '\n')
+    object = parse(PWInput, text)
+    return inputstring(object; indent = indent, newline = newline, delim = delim)
+end # function format_text
 
 end
