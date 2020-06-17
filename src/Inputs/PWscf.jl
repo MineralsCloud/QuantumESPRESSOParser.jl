@@ -310,16 +310,14 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
 end # function Base.parse
 
 function format_file(filename::AbstractString; overwrite::Bool = true, kwargs...)
-    open(filename, "r+") do io
-        text = read(io, String)
-        println(text)
-        formatted_text = format_text(text; kwargs...)
-        if overwrite
-            seekstart(io)
+    text = read(filename, String)
+    formatted_text = format_text(text; kwargs...)
+    if overwrite
+        open(filename, "w") do io
             write(io, formatted_text)
-        else
-            println(formatted_text)
         end
+    else
+        println(formatted_text)
     end
 end # function format_file
 
