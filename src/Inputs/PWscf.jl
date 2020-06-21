@@ -13,7 +13,7 @@ module PWscf
 
 using Compat: only
 using PyFortran90Namelists: FortranData
-using QuantumESPRESSOBase.Inputs: Card, entryname, titleof, inputstring
+using QuantumESPRESSOBase.Inputs: Card, titleof, inputstring
 using QuantumESPRESSOBase.Inputs.PWscf:
     ControlNamelist,
     SystemNamelist,
@@ -31,7 +31,24 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     CellParametersCard,
     PWInput
 
-export format_text, format_file
+export ControlNamelist,
+    SystemNamelist,
+    ElectronsNamelist,
+    IonsNamelist,
+    CellNamelist,
+    AtomicSpecies,
+    AtomicSpeciesCard,
+    AtomicPosition,
+    AtomicPositionsCard,
+    KPointsCard,
+    GammaPoint,
+    MonkhorstPackGrid,
+    SpecialKPoint,
+    CellParametersCard,
+    PWInput,
+    format_text,
+    format_file,
+    inputstring
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
 const ATOMIC_POSITIONS_BLOCK = r"""
@@ -185,47 +202,50 @@ const CELL_PARAMETERS_ITEM = r"""
 )
 """mx
 
-function Base.tryparse(T::Type{AtomicSpeciesCard}, str::AbstractString)
+function Base.tryparse(::Type{AtomicSpeciesCard}, str::AbstractString)
     m = match(ATOMIC_SPECIES_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    return if m !== nothing
+    if m !== nothing
         content = only(m.captures)
-        data = AtomicSpecies[]
-        for matched in eachmatch(ATOMIC_SPECIES_ITEM, content)
-            captured = matched.captures
-            atom, mass, pseudopotential =
-                captured[1], parse(Float64, FortranData(captured[2])), captured[3]
-            push!(data, AtomicSpecies(atom, mass, pseudopotential))
-        end
-        AtomicSpeciesCard(data)
+        return AtomicSpeciesCard(
+            map(eachmatch(ATOMIC_SPECIES_ITEM, content)) do matched
+                captured = matched.captures
+                atom, mass, pseudopotential =
+                    captured[1], parse(Float64, FortranData(captured[2])), captured[3]
+                AtomicSpecies(atom, mass, pseudopotential)
+            end,
+        )
     end
 end # function Base.tryparse
-function Base.tryparse(T::Type{AtomicPositionsCard}, str::AbstractString)
+function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    return if m !== nothing
-        option = string(m.captures[1])
-        if option === nothing
+    if m !== nothing
+        if string(m.captures[1]) === nothing
             @warn "Not specifying units is DEPRECATED and will no longer be allowed in the future!"
             @info "No option is specified, 'alat' is assumed."
             option = "alat"
+        else
+            option = string(m.captures[1])
         end
         content = m.captures[2]
-        data = AtomicPosition[]
-        for matched in eachmatch(ATOMIC_POSITIONS_ITEM, content)
-            # The `matched` cannot be a `nothing` since we have tested by the block regular expression
-            captured = matched.captures
-            # The `if_pos` field is optionally given by users. If they do not give, we provide the default values `1`.
-            if_pos = map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
-            # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
-            atom, pos = captured[1],
-            map(
-                x -> parse(Float64, FortranData(x)),
-                [captured[2], captured[5], captured[8]],
-            )
-            push!(data, AtomicPosition(atom, pos, if_pos))
-        end
-        AtomicPositionsCard(data, option)
+        return AtomicPositionsCard(
+            map(eachmatch(ATOMIC_POSITIONS_ITEM, content)) do matched
+                # The `matched` cannot be a `nothing` since we have tested by the block regular expression
+                captured = matched.captures
+                # The `if_pos` field is optionally given by users. If they do not give, we provide the default values `1`.
+                if_pos =
+                    map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
+                # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
+                atom, pos = captured[1],
+                map(
+                    x -> parse(Float64, FortranData(x)),
+                    [captured[2], captured[5], captured[8]],
+                )
+                AtomicPosition(atom, pos, if_pos)
+            end,
+            option,
+        )
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard{GammaPoint}}, str::AbstractString)
@@ -234,24 +254,25 @@ function Base.tryparse(::Type{KPointsCard{GammaPoint}}, str::AbstractString)
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard{MonkhorstPackGrid}}, str::AbstractString)
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
-    return if m !== nothing
+    if m !== nothing
         data = map(x -> parse(Int, FortranData(x)), m.captures)
-        KPointsCard(MonkhorstPackGrid(data[1:3], data[4:6]))
+        return KPointsCard(MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard{Vector{SpecialKPoint}}}, str::AbstractString)
     m = match(K_POINTS_SPECIAL_BLOCK, str)
-    return if m !== nothing
+    if m !== nothing
         option = m.captures[1] === nothing ? "tpiba" : m.captures[1]
-        captured = m.captures[2]
-        data = SpecialKPoint[]
-        for matched in eachmatch(K_POINTS_SPECIAL_ITEM, captured)
-            # TODO: Match `nks`
-            point =
-                SpecialKPoint(map(x -> parse(Float64, FortranData(x)), matched.captures)...)
-            push!(data, point)
-        end
-        KPointsCard(data, option)
+        return KPointsCard(
+            map(eachmatch(K_POINTS_SPECIAL_ITEM, m.captures[2])) do matched
+                # TODO: Match `nks`
+                SpecialKPoint(map(
+                    x -> parse(Float64, FortranData(x)),
+                    matched.captures,
+                )...)
+            end,
+            option,
+        )
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
@@ -265,7 +286,7 @@ end # function Base.tryparse
 function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    return if m !== nothing
+    if m !== nothing
         option = string(m[:option])
         if isempty(option)
             @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
@@ -281,7 +302,7 @@ function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
                 [captured[1], captured[4], captured[7]],
             )
         end
-        CellParametersCard(data, option)
+        return CellParametersCard(data, option)
     end
 end # function Base.tryparse
 
@@ -294,19 +315,22 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
     end
 end # function Base.parse
 function Base.parse(::Type{PWInput}, str::AbstractString)
-    dict = Dict{Symbol,Any}()
+    args = []
     for T in (CellParametersCard{Float64},)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
-        push!(dict, entryname(T, PWInput) => tryparse(T, str))  # Optional cards, can be `nothing`
+        x = tryparse(T, str)  # Optional cards
+        if x !== nothing
+            push!(args, x)
+        end
     end
-    for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)
-        push!(dict, entryname(T, PWInput) => parse(T, str))  # Must-have cards, or else error
+    for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)  # Must-have cards, or else error
+        push!(args, parse(T, str))
     end
     for T in
         (ControlNamelist, SystemNamelist, ElectronsNamelist, IonsNamelist, CellNamelist)
-        nml = tryparse(T, str)
-        push!(dict, entryname(T, PWInput) => (nml === nothing ? T() : nml))
+        x = tryparse(T, str)
+        push!(args, x === nothing ? T() : x)
     end
-    return PWInput(; dict...)
+    return PWInput(args...)
 end # function Base.parse
 
 function format_file(filename::AbstractString; overwrite::Bool = true, kwargs...)
