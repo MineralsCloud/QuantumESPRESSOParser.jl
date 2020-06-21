@@ -539,7 +539,7 @@ function Base.tryparse(::Type{SubroutineError}, str::AbstractString)
     end
 end # function Base.tryparse
 
-function tryparse_internal(::Type{CellParametersCard{Float64}}, str::AbstractString)
+function tryparse_internal(::Type{CellParametersCard}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     return if m !== nothing
         body, data = m[:data], Matrix{Float64}(undef, 3, 3)  # Initialization
@@ -571,7 +571,7 @@ function tryparse_internal(::Type{AtomicPositionsCard}, str::AbstractString)
     end
 end # function tryparse_internal
 
-const AtomicStructure = Union{CellParametersCard{Float64},AtomicPositionsCard}
+const AtomicStructure = Union{CellParametersCard,AtomicPositionsCard}
 
 function Base.parse(
     ::Type{T},
