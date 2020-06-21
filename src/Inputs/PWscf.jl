@@ -283,7 +283,7 @@ function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
         end
     end
 end # function Base.tryparse
-function Base.tryparse(::Type{CellParametersCard{Float64}}, str::AbstractString)
+function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     if m !== nothing
@@ -316,7 +316,7 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
 end # function Base.parse
 function Base.parse(::Type{PWInput}, str::AbstractString)
     args = []
-    for T in (CellParametersCard{Float64},)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
+    for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
         x = tryparse(T, str)  # Optional cards
         if x !== nothing
             push!(args, x)
