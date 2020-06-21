@@ -586,9 +586,9 @@ function _parse(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     x === nothing ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function _parse
 
-const REGEXOF = Dict{Symbol,Regex}(
-    :CellParametersCard => CELL_PARAMETERS_BLOCK,
-    :AtomicPositionsCard => ATOMIC_POSITIONS_BLOCK,
+const REGEXOF = (
+    CellParametersCard = CELL_PARAMETERS_BLOCK,
+    AtomicPositionsCard = ATOMIC_POSITIONS_BLOCK,
 )
 
 tryparsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
@@ -596,7 +596,7 @@ tryparsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
 parsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = _parse(T, str)
 
 function tryparseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
-    return map(eachmatch(REGEXOF(T), str)) do x
+    return map(eachmatch(REGEXOF[nameof(T)], str)) do x
         try
             tryparse_internal(T, x.match)
         catch
