@@ -185,7 +185,7 @@ const CELL_PARAMETERS_ITEM = r"""
 )
 """mx
 
-function Base.tryparse(T::Type{AtomicSpeciesCard}, str::AbstractString)
+function Base.tryparse(::Type{AtomicSpeciesCard}, str::AbstractString)
     m = match(ATOMIC_SPECIES_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     return if m !== nothing
@@ -200,7 +200,7 @@ function Base.tryparse(T::Type{AtomicSpeciesCard}, str::AbstractString)
         AtomicSpeciesCard(data)
     end
 end # function Base.tryparse
-function Base.tryparse(T::Type{AtomicPositionsCard}, str::AbstractString)
+function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     return if m !== nothing
