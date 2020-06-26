@@ -112,7 +112,7 @@ const STRESS_BLOCK = r"""
 total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
 \(kbar\)\s+P=\s*([\-|\+]? (?: [0-9]*[\.][0-9]+ | [0-9]+[\.]?[0-9]*)
     ([E|e|d|D][+|-]?[0-9]+)?)
-[\n]
+\R
 (
 (?:
 \s*
@@ -132,7 +132,7 @@ const ITERATION_HEAD = Regex("\\s*$INTEGER\\s+ecut=\\s*$FIXED_POINT_REAL\\s+Ry\\
 # and https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L65-L73.
 const C_BANDS = Regex(
     """
-    (?<diag>Davidson diagonalization[^\r\n]+|CG style diagonalization|PPCG style diagonalization)
+    (?<diag>Davidson diagonalization.*|CG style diagonalization|PPCG style diagonalization)
     \\h*ethr =\\h*$GENERAL_REAL,  avg # of iterations =\\h*$FIXED_POINT_REAL""",
     "m",
 )

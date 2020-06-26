@@ -50,10 +50,10 @@ export ControlNamelist,
     format_file,
     inputstring
 
-# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_POSITIONS_BLOCK = r"""
 ^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
-[{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\n    # The units are after the string in optional brackets
+[{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\R    # The units are after the string in optional brackets
 (?P<block>                                      # This is the block of positions
     (
         (
@@ -88,11 +88,11 @@ const ATOMIC_POSITIONS_BLOCK = r"""
             |                                   # OR
             \s*                                 # A line only containing white space
          )
-        [\n]                                    # line break at the end
+        \R                                      # line break at the end
     )+                                          # A positions block should be one or more lines
 )
 """imx
-# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py.
+# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py.
 const CELL_PARAMETERS_BLOCK = r"""
 ^ [ \t]*
 CELL_PARAMETERS [ \t]*
@@ -117,42 +117,42 @@ CELL_PARAMETERS [ \t]*
 ){3}                 # I need exactly 3 vectors
 )
 """imx
-# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py#L683-L691
 const ATOMIC_SPECIES_BLOCK = r"""
-^ [ \t]* ATOMIC_SPECIES [ \t]* $\n
+^ [ \t]* ATOMIC_SPECIES [ \t]* \R+
 (?P<block>
  (?:
-  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* $\n?
+  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* \R?
  )+
 )
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_SPECIAL_BLOCK = r"""
 ^ [ \t]* K_POINTS [ \t]*
-    [{(]? [ \t]* (?P<type>\S+?)? [ \t]* [)}]? [ \t]* $\n
-^ [ \t]* \S+ [ \t]* $\n  # nks
+    [{(]? [ \t]* (?P<type>\S+?)? [ \t]* [)}]? [ \t]* \R+
+^ [ \t]* \S+ [ \t]* \R+  # nks
 (?P<block>
  (?:
-  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* $\n?
+  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* \R+
  )+
 )
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_AUTOMATIC_BLOCK = r"""
-^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* automatic [ \t]* [)}]? [ \t]* $\n
+^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* automatic [ \t]* [)}]? [ \t]* \R
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+)
-    [ \t]+ (\S+) [ \t]* $\n?
+    [ \t]+ (\S+) [ \t]* \R+
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_GAMMA_BLOCK = r"""
-^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* $\n
+^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* \R+
 """imx
-# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_SPECIES_ITEM = r"""
 ^ [ \t]* (?P<name>\S+) [ \t]+ (?P<mass>\S+) [ \t]+ (?P<pseudo>\S+)
-    [ \t]* $\n?
+    [ \t]* $\R?
 """mx
-# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_POSITIONS_ITEM = r"""
 ^                                       # Linestart
 [ \t]*                                  # Optional white space
@@ -180,9 +180,9 @@ const ATOMIC_POSITIONS_ITEM = r"""
 """mx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_SPECIAL_ITEM = r"""
-^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\n?
+^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\R?
 """mx
-# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/qeinputparser.py
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const CELL_PARAMETERS_ITEM = r"""
 ^                        # Linestart
 [ \t]*                   # Optional white space
