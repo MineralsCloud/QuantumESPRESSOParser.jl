@@ -127,7 +127,7 @@ const ATOMIC_SPECIES_BLOCK = r"""
 )
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
-K_POINTS_SPECIAL_BLOCK = r"""
+const K_POINTS_SPECIAL_BLOCK = r"""
 ^ [ \t]* K_POINTS [ \t]*
     [{(]? [ \t]* (?P<type>\S+?)? [ \t]* [)}]? [ \t]* \R+
 ^ [ \t]* \S+ [ \t]* \R+  # nks
@@ -138,13 +138,13 @@ K_POINTS_SPECIAL_BLOCK = r"""
 )
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
-K_POINTS_AUTOMATIC_BLOCK = r"""
+const K_POINTS_AUTOMATIC_BLOCK = r"""
 ^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* automatic [ \t]* [)}]? [ \t]* \R
 ^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+)
     [ \t]+ (\S+) [ \t]* \R+
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
-K_POINTS_GAMMA_BLOCK = r"""
+const K_POINTS_GAMMA_BLOCK = r"""
 ^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* \R+
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
