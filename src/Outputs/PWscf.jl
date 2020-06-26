@@ -105,7 +105,7 @@ function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
         return
     end
     body = m[:body]
-    for line in split(body, r"[\r\n]+")  # Don’t want empty lines
+    for line in split(body, r"\R+")  # Don’t want empty lines
         # "Min",4X,2I8,I7,12X,2I9,I8
         sp = split(line, " ", keepempty = false)  # Don't want empty strings
         numbers = map(x -> parse(Int, x), sp[2:7])
@@ -153,7 +153,7 @@ function parse_stress(str::AbstractString)
         push!(pressures, parse(Float64, pressure))
 
         stress_atomic, stress_kbar = ntuple(_ -> Matrix{Float64}(undef, 3, 3), 2)
-        for (i, line) in enumerate(split(content, r"[\r\n]+"))
+        for (i, line) in enumerate(split(content, r"\R+"))
             tmp = map(x -> parse(Float64, x), split(line, " ", keepempty = false))
             stress_atomic[i, :], stress_kbar[i, :] = tmp[1:3], tmp[4:6]
         end
@@ -533,7 +533,7 @@ function Base.tryparse(::Type{SubroutineError}, str::AbstractString)
         # while `parse` raises an error.
         body = strip(m[:body])
         # Referenced from https://stackoverflow.com/a/454919/3260253
-        e, msg = map(strip, split(body, r"[\r\n]+"))
+        e, msg = map(strip, split(body, r"\R+"))
         m = match(ERROR_IN_ROUTINE, e)
         SubroutineError(m[1], m[2], msg)
     end

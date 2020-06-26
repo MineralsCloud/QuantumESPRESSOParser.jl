@@ -7,11 +7,11 @@ using QuantumESPRESSOBase.Inputs.PHonon
 using PyFortran90Namelists: FortranData
 
 const Q_POINTS_SPECIAL_BLOCK_REGEX = r"""
-^ [ \t]* qPointsSpecs [ \t]*$\n
-^ [ \t]* \S+ [ \t]* $\n  # nqs
+^ [ \t]* qPointsSpecs [ \t]*$\R
+^ [ \t]* \S+ [ \t]* $\R  # nqs
 (?P<block>
  (?:
-  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* $\n?
+  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* $\R?
  )+
 )
 """imx
