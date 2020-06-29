@@ -1,7 +1,7 @@
 module PHonon
 
 using Compat: only
-using QuantumESPRESSOBase.Inputs: Namelist
+using QuantumESPRESSOBase.Inputs: Namelist, titleof
 using QuantumESPRESSOBase.Inputs.PHonon:
     SpecialKPoint,
     QPointsCard,
@@ -37,7 +37,7 @@ const Q_POINTS_SPECIAL_ITEM_REGEX = r"""
     (?:[E|e|d|D][+|-]?\d+)?)\h*
 """imx
 
-function Base.parse(::Type{QPointsCard}, str::AbstractString)
+function Base.tryparse(::Type{QPointsCard}, str::AbstractString)
     m = match(Q_POINTS_SPECIAL_BLOCK_REGEX, str)
     if m === nothing
         @info "no q-points are provided."
@@ -50,19 +50,54 @@ function Base.parse(::Type{QPointsCard}, str::AbstractString)
         end
         return QPointsCard(data)
     end
-end # function Base.parse
-function Base.parse(::Type{PhInput}, str::AbstractString)
-    inputph = parse(PhNamelist, str)
-    q_points = parse(QPointsCard, str)
-    return PhInput(inputph, q_points)
-end # function Base.parse
-Base.parse(::Type{Q2rInput}, str::AbstractString) = Q2rInput(parse(Q2rNamelist, str))
+end # function Base.tryparse
+function Base.tryparse(::Type{PhInput}, str::AbstractString)
+    args = []
+    for T in (PhNamelist, QPointsCard)
+        push!(args, tryparse(T, str))
+    end
+    if all(x === nothing for x in args)
+        return
+    else
+        return PhInput(args[1], args[2])
+    end
+end # function Base.tryparse
+function Base.tryparse(::Type{Q2rInput}, str::AbstractString)
+    if parse(Q2rNamelist, str)
+        return Q2rInput(parse(Q2rNamelist, str))
+    else
+        return
+    end
+end # function Base.tryparse
 function Base.parse(::Type{MatdynInput}, str::AbstractString)
-    input = parse(MatdynNamelist, str)
-    q_points = parse(QPointsCard, str)
-    return MatdynInput(input, q_points)
+    args = []
+    for T in (MatdynNamelist, QPointsCard)
+        push!(args, tryparse(T, str))
+    end
+    if all(x === nothing for x in args)
+        return
+    else
+        return MatdynInput(args[1], args[2])
+    end
+end # function Base.tryparse
+function Base.tryparse(::Type{DynmatInput}, str::AbstractString)
+    if parse(DynmatNamelist, str)
+        return DynmatInput(parse(DynmatNamelist, str))
+    else
+        return
+    end
+end # function Base.tryparse
+
+function Base.parse(
+    ::Type{T},
+    str::AbstractString,
+) where {T<:Union{QPointsCard,PhInput,Q2rInput,DynmatInput,MatdynInput}}
+    x = tryparse(T, str)
+    if x === nothing
+        throw(Meta.ParseError("cannot find card `$(titleof(T))`!"))
+    else
+        return x
+    end
 end # function Base.parse
-Base.parse(::Type{DynmatInput}, str::AbstractString) =
-    DynmatInput(parse(DynmatNamelist, str))
 
 end
