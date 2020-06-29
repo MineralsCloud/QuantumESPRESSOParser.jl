@@ -52,6 +52,6 @@ Base.write(f::InputFile{String}, x::QuantumESPRESSOInputEntry) =
 Base.write(f::InputFile{String}, x::Input) = write(f.source, inputstring(x))
 
 include("PWscf.jl")
-# include("PHonon.jl")
+include("PHonon.jl")
 
 end
