@@ -52,6 +52,13 @@ function Base.tryparse(::Type{QPointsCard}, str::AbstractString)
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{PhInput}, str::AbstractString)
+    title_line = ""
+    for line in split(str, r"\r\n|\r|\n")
+        if !isempty(line)
+            title_line = line
+            break
+        end
+    end
     args = []
     for T in (PhNamelist, QPointsCard)
         push!(args, tryparse(T, str))
@@ -59,7 +66,7 @@ function Base.tryparse(::Type{PhInput}, str::AbstractString)
     if all(x === nothing for x in args)
         return
     else
-        return PhInput(args[1], args[2])
+        return PhInput(title_line, args[1], args[2])
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{Q2rInput}, str::AbstractString)
