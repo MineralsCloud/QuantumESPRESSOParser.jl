@@ -70,7 +70,8 @@ function Base.tryparse(::Type{PhInput}, str::AbstractString)
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{Q2rInput}, str::AbstractString)
-    if parse(Q2rNamelist, str)
+    x = parse(Q2rNamelist, str)
+    if x !== nothing
         return Q2rInput(parse(Q2rNamelist, str))
     else
         return
