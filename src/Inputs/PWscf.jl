@@ -348,9 +348,6 @@ function format_file(filename::AbstractString; overwrite::Bool = true, kwargs...
     end
 end # function format_file
 
-function format_text(text::AbstractString; indent = ' '^4, delim = ' ', newline = '\n')
-    object = parse(PWInput, text)
-    return inputstring(object; indent = indent, newline = newline, delim = delim)
-end # function format_text
+format_text(text::AbstractString) = inputstring(parse(PWInput, text))
 
 end
