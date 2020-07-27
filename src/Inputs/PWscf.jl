@@ -25,6 +25,9 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     AtomicPosition,
     AtomicPositionsCard,
     KPointsCard,
+    GammaPointCard,
+    MonkhorstPackGridCard,
+    SpecialKPointsCard,
     GammaPoint,
     MonkhorstPackGrid,
     SpecialKPoint,
@@ -41,9 +44,9 @@ export ControlNamelist,
     AtomicPosition,
     AtomicPositionsCard,
     KPointsCard,
-    GammaPoint,
-    MonkhorstPackGrid,
-    SpecialKPoint,
+    GammaPointCard,
+    MonkhorstPackGridCard,
+    SpecialKPointsCard,
     CellParametersCard,
     PWInput,
     format_text,
@@ -248,18 +251,18 @@ function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
         )
     end
 end # function Base.tryparse
-function Base.tryparse(::Type{KPointsCard{GammaPoint}}, str::AbstractString)
+function Base.tryparse(::Type{GammaPointCard}, str::AbstractString)
     m = match(K_POINTS_GAMMA_BLOCK, str)
     return m === nothing ? nothing : KPointsCard(GammaPoint())
 end # function Base.tryparse
-function Base.tryparse(::Type{KPointsCard{MonkhorstPackGrid}}, str::AbstractString)
+function Base.tryparse(::Type{MonkhorstPackGridCard}, str::AbstractString)
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
     if m !== nothing
         data = map(x -> parse(Int, FortranData(x)), m.captures)
         return KPointsCard(MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 end # function Base.tryparse
-function Base.tryparse(::Type{KPointsCard{Vector{SpecialKPoint}}}, str::AbstractString)
+function Base.tryparse(::Type{SpecialKPointsCard}, str::AbstractString)
     m = match(K_POINTS_SPECIAL_BLOCK, str)
     if m !== nothing
         option = m.captures[1] === nothing ? "tpiba" : m.captures[1]
@@ -276,8 +279,8 @@ function Base.tryparse(::Type{KPointsCard{Vector{SpecialKPoint}}}, str::Abstract
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
-    for T in (GammaPoint, MonkhorstPackGrid, Vector{SpecialKPoint})
-        x = tryparse(KPointsCard{T}, str)
+    for T in (GammaPointCard, MonkhorstPackGridCard, SpecialKPointsCard)
+        x = tryparse(T, str)
         if x !== nothing
             return x
         end
@@ -345,9 +348,6 @@ function format_file(filename::AbstractString; overwrite::Bool = true, kwargs...
     end
 end # function format_file
 
-function format_text(text::AbstractString; indent = ' '^4, delim = ' ', newline = '\n')
-    object = parse(PWInput, text)
-    return inputstring(object; indent = indent, newline = newline, delim = delim)
-end # function format_text
+format_text(text::AbstractString) = inputstring(parse(PWInput, text))
 
 end
