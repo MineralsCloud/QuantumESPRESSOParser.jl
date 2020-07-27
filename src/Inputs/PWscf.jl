@@ -153,7 +153,7 @@ const K_POINTS_GAMMA_BLOCK = r"""
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_SPECIES_ITEM = r"""
 ^ [ \t]* (?P<name>\S+) [ \t]+ (?P<mass>\S+) [ \t]+ (?P<pseudo>\S+)
-    [ \t]* $\R?
+    [ \t]* \R?
 """mx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_POSITIONS_ITEM = r"""
@@ -183,7 +183,7 @@ const ATOMIC_POSITIONS_ITEM = r"""
 """mx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_SPECIAL_ITEM = r"""
-^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* $\R?
+^ [ \t]* (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]+ (\S+) [ \t]* \R?
 """mx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const CELL_PARAMETERS_ITEM = r"""
