@@ -30,7 +30,7 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     SpecialPointsCard,
     GammaPoint,
     MonkhorstPackGrid,
-    SpecialKPoint,
+    SpecialPoint,
     CellParametersCard,
     PWInput
 
@@ -269,7 +269,7 @@ function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
         return KPointsCard(
             map(eachmatch(K_POINTS_SPECIAL_ITEM, m.captures[2])) do matched
                 # TODO: Match `nks`
-                SpecialKPoint(map(
+                SpecialPoint(map(
                     x -> parse(Float64, FortranData(x)),
                     matched.captures,
                 )...)
