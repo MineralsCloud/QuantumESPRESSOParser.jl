@@ -27,7 +27,7 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     KPointsCard,
     GammaPointCard,
     MonkhorstPackGridCard,
-    SpecialKPointsCard,
+    SpecialPointsCard,
     GammaPoint,
     MonkhorstPackGrid,
     SpecialKPoint,
@@ -46,7 +46,7 @@ export ControlNamelist,
     KPointsCard,
     GammaPointCard,
     MonkhorstPackGridCard,
-    SpecialKPointsCard,
+    SpecialPointsCard,
     CellParametersCard,
     PWInput,
     format_text,
@@ -262,7 +262,7 @@ function Base.tryparse(::Type{MonkhorstPackGridCard}, str::AbstractString)
         return KPointsCard(MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 end # function Base.tryparse
-function Base.tryparse(::Type{SpecialKPointsCard}, str::AbstractString)
+function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
     m = match(K_POINTS_SPECIAL_BLOCK, str)
     if m !== nothing
         option = m.captures[1] === nothing ? "tpiba" : m.captures[1]
@@ -279,7 +279,7 @@ function Base.tryparse(::Type{SpecialKPointsCard}, str::AbstractString)
     end
 end # function Base.tryparse
 function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
-    for T in (GammaPointCard, MonkhorstPackGridCard, SpecialKPointsCard)
+    for T in (GammaPointCard, MonkhorstPackGridCard, SpecialPointsCard)
         x = tryparse(T, str)
         if x !== nothing
             return x
