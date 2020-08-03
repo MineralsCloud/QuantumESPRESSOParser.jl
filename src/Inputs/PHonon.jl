@@ -3,7 +3,7 @@ module PHonon
 using Compat: only
 using QuantumESPRESSOBase.Inputs: Namelist, titleof
 using QuantumESPRESSOBase.Inputs.PHonon:
-    SpecialKPoint,
+    SpecialPoint,
     QPointsCard,
     PhInput,
     Q2rInput,
@@ -46,7 +46,7 @@ function Base.tryparse(::Type{QPointsCard}, str::AbstractString)
         captured = only(m.captures)
         data = map(eachmatch(Q_POINTS_SPECIAL_ITEM_REGEX, captured)) do matched
             # TODO: Match `nqs`
-            SpecialKPoint(map(x -> parse(Float64, FortranData(x)), matched.captures))
+            SpecialPoint(map(x -> parse(Float64, FortranData(x)), matched.captures))
         end
         return QPointsCard(data)
     end
