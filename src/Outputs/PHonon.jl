@@ -3,7 +3,7 @@ module PHonon
 using PyFortran90Namelists: Parser
 using ReadableRegex: RegexString, char_in, exactly, one_or_more, zero_or_more, capture
 
-export parse_frequency
+export parse_frequency, parse_dos
 
 const AD = "[0-9]"
 const NEWLINE = RegexString(raw"\R")
@@ -36,6 +36,12 @@ function parse_frequency(str::AbstractString)
     end
     @assert length(vec) == nks
     return vec
+end
+
+function parse_dos(str::AbstractString)
+    map(split(str, r"\R"; keepempty = false)) do line
+        x, dos = [parse(Float64, x) for x in split(line, " "; keepempty = false)]
+    end
 end
 
 end
