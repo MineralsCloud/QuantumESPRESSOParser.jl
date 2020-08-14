@@ -12,7 +12,7 @@ julia>
 module PWscf
 
 using Compat: only
-using PyFortran90Namelists: FortranData
+using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.Inputs: Card, titleof, inputstring
 using QuantumESPRESSOBase.Inputs.PWscf:
     ControlNamelist,
@@ -213,7 +213,7 @@ function Base.tryparse(::Type{AtomicSpeciesCard}, str::AbstractString)
             map(eachmatch(ATOMIC_SPECIES_ITEM, content)) do matched
                 captured = matched.captures
                 atom, mass, pseudopotential =
-                    captured[1], parse(Float64, FortranData(captured[2])), captured[3]
+                    captured[1], fparse(Float64, captured[2]), captured[3]
                 AtomicSpecies(atom, mass, pseudopotential)
             end,
         )
@@ -236,14 +236,10 @@ function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
                 # The `matched` cannot be a `nothing` since we have tested by the block regular expression
                 captured = matched.captures
                 # The `if_pos` field is optionally given by users. If they do not give, we provide the default values `1`.
-                if_pos =
-                    map(x -> isempty(x) ? 1 : parse(Int, FortranData(x)), captured[11:13])
+                if_pos = map(x -> isempty(x) ? 1 : fparse(Int, x), captured[11:13])
                 # The `atom` and `pos` fields are mandatory. So we do not need special treatment.
                 atom, pos = captured[1],
-                map(
-                    x -> parse(Float64, FortranData(x)),
-                    [captured[2], captured[5], captured[8]],
-                )
+                map(x -> fparse(Float64, x), [captured[2], captured[5], captured[8]])
                 AtomicPosition(atom, pos, if_pos)
             end,
             option,
@@ -257,7 +253,7 @@ end # function Base.tryparse
 function Base.tryparse(::Type{KMeshCard}, str::AbstractString)
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
     if m !== nothing
-        data = map(x -> parse(Int, FortranData(x)), m.captures)
+        data = map(x -> fparse(Int, x), m.captures)
         return KMeshCard(MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 end # function Base.tryparse
@@ -268,7 +264,7 @@ function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
         return SpecialPointsCard(
             map(eachmatch(K_POINTS_SPECIAL_ITEM, m.captures[2])) do matched
                 # TODO: Match `nks`
-                SpecialPoint(map(x -> parse(Float64, FortranData(x)), matched.captures)...)
+                SpecialPoint(map(x -> fparse(Float64, x), matched.captures)...)
             end,
             option,
         )
@@ -296,10 +292,8 @@ function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
         data = Matrix{Float64}(undef, 3, 3)
         for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
             captured = matched.captures
-            data[i, :] = map(
-                x -> parse(Float64, FortranData(x)),
-                [captured[1], captured[4], captured[7]],
-            )
+            data[i, :] =
+                map(x -> fparse(Float64, x), [captured[1], captured[4], captured[7]])
         end
         return CellParametersCard(data, option)
     end

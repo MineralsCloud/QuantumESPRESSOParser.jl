@@ -11,7 +11,7 @@ julia>
 """
 module Inputs
 
-using PyFortran90Namelists: FortranData, Parser
+using PyFortran90Namelists: Parser
 using QuantumESPRESSOBase.Inputs:
     Namelist, QuantumESPRESSOInputEntry, Input, titleof, inputstring
 
