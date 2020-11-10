@@ -11,9 +11,10 @@ julia>
 """
 module PWscf
 
+using AbInitioSoftwareBase.Inputs: inputstring, groupname
 using Compat: only
 using PyFortran90Namelists: fparse
-using QuantumESPRESSOBase.Inputs: Card, titleof, inputstring
+using QuantumESPRESSOBase.Inputs: Card
 using QuantumESPRESSOBase.Inputs.PWscf:
     ControlNamelist,
     SystemNamelist,
@@ -302,7 +303,7 @@ end # function Base.tryparse
 function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
     x = tryparse(T, str)
     if x === nothing
-        throw(Meta.ParseError("cannot find card `$(titleof(T))`!"))
+        throw(Meta.ParseError("cannot find card `$(groupname(T))`!"))
     else
         return x
     end
