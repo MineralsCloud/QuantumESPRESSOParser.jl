@@ -1,7 +1,8 @@
 module PHonon
 
+using AbInitioSoftwareBase.Inputs: Namelist, groupname
 using Compat: only
-using QuantumESPRESSOBase.Inputs: Namelist, titleof
+using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.Inputs.PHonon:
     SpecialPoint,
     QPointsCard,
@@ -13,8 +14,6 @@ using QuantumESPRESSOBase.Inputs.PHonon:
     Q2rNamelist,
     MatdynNamelist,
     DynmatNamelist
-
-using PyFortran90Namelists: fparse
 
 const Q_POINTS_SPECIAL_BLOCK_REGEX = r"""
 ^ [ \t]* qPointsSpecs [ \t]*$\R
@@ -102,7 +101,7 @@ function Base.parse(
 ) where {T<:Union{QPointsCard,PhInput,Q2rInput,DynmatInput,MatdynInput}}
     x = tryparse(T, str)
     if x === nothing
-        throw(Meta.ParseError("cannot find card `$(titleof(T))`!"))
+        throw(Meta.ParseError("cannot find card `$(groupname(T))`!"))
     else
         return x
     end
