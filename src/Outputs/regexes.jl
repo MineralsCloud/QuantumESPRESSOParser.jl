@@ -1,47 +1,54 @@
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
-const INTEGER = raw"([-+]?[0-9]+)"
-const FIXED_POINT_REAL = raw"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"
-const GENERAL_REAL = raw"([-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[eE][-+]?[0-9]+)?)"
-const EQUAL_SIGN = raw"\s*=\s*"
+const SIGN = char_in("-+")
+const _DIGIT = char_in('0':'9')
+const EQUAL = rs"\s*=\s*"
+# See https://github.com/jkrumbiegel/ReadableRegex.jl/blob/771869b/README.md
+const INTEGER = capture(look_for(maybe(SIGN) * one_or_more(_DIGIT), not_after = '.'))
+const REAL = capture(maybe(SIGN) * maybe(zero_or_more(_DIGIT) * '.') * one_or_more(_DIGIT))
+const EXP_REAL = capture(REAL * maybe(char_in("eE") * maybe(SIGN) * one_or_more(_DIGIT)))
 
 # This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
 const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>[0-9]+) processors)?"
 const READING_INPUT_FROM = r"(?:Reading input from \s*(.*|standard input))"
 const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L374-L375.
-const FFT_DIMENSIONS = Regex("Dense  grid:\\s*$INTEGER\\s+G-vectors\\s+FFT dimensions: \\(\\s*$INTEGER,\\s*$INTEGER,\\s*$INTEGER\\)")
+const FFT_DIMENSIONS = r"Dense  grid:(.*)G-vectors     FFT dimensions: \((.*)\)"
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
-const BRAVAIS_LATTICE_INDEX = Regex("bravais-lattice index$EQUAL_SIGN$INTEGER")
+const BRAVAIS_LATTICE_INDEX = "bravais-lattice index" * EQUAL * INTEGER
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
-const LATTICE_PARAMETER = Regex("lattice parameter \\(alat\\)$EQUAL_SIGN$FIXED_POINT_REAL")
+const LATTICE_PARAMETER = rs"lattice parameter \(alat\)" * EQUAL * REAL
 # 'unit-cell volume          = ',F12.4,' (a.u.)^3'
-const UNIT_CELL_VOLUME = Regex("unit-cell volume$EQUAL_SIGN$FIXED_POINT_REAL")
+const UNIT_CELL_VOLUME = "unit-cell volume" * EQUAL * REAL
 # 'number of atoms/cell      = ',I12
-const NUMBER_OF_ATOMS_PER_CELL = Regex("number of atoms\\/cell$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_ATOMS_PER_CELL = "number of atoms/cell" * EQUAL * INTEGER
 # 'number of atomic types    = ',I12
-const NUMBER_OF_ATOMIC_TYPES = Regex("number of atomic types$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_ATOMIC_TYPES = "number of atomic types" * EQUAL * INTEGER
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = Regex("number of electrons$EQUAL_SIGN$FIXED_POINT_REAL" *
-                                  "(?:\\(up:\\s*$FIXED_POINT_REAL, down:\\s*$FIXED_POINT_REAL\\))?")
+NUMBER_OF_ELECTRONS =
+    "number of electrons" *
+    EQUAL *
+    REAL *
+    maybe(rs"\(up:\s*" * REAL * rs", down:\s*" * REAL * ')')
 # 'number of Kohn-Sham states= ',I12
-const NUMBER_OF_KOHN_SHAM_STATES = Regex("number of Kohn-Sham states$EQUAL_SIGN$INTEGER")
+const NUMBER_OF_KOHN_SHAM_STATES = "number of Kohn-Sham states" * EQUAL * INTEGER
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
-const KINETIC_ENERGY_CUTOFF = Regex("kinetic-energy cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const KINETIC_ENERGY_CUTOFF = "kinetic-energy cutoff" * EQUAL * REAL * rs"\s+Ry"
 # 'charge density cutoff     = ',F12.4,'  Ry'
-const CHARGE_DENSITY_CUTOFF = Regex("charge density cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const CHARGE_DENSITY_CUTOFF = "charge density cutoff" * EQUAL * REAL * rs"\s+Ry"
 # 'cutoff for Fock operator  = ',F12.4,'  Ry'
-const CUTOFF_FOR_FOCK_OPERATOR = Regex("cutoff for Fock operator$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const CUTOFF_FOR_FOCK_OPERATOR = "cutoff for Fock operator" * EQUAL * REAL * rs"\s+Ry"
 # 'convergence threshold     = ',1PE12.1
-const CONVERGENCE_THRESHOLD = Regex("convergence threshold$EQUAL_SIGN$GENERAL_REAL")
+const CONVERGENCE_THRESHOLD = "convergence threshold" * EQUAL * EXP_REAL
 # 'mixing beta               = ',0PF12.4
-const MIXING_BETA = Regex("mixing beta$EQUAL_SIGN$FIXED_POINT_REAL")
+const MIXING_BETA = "mixing beta" * EQUAL * REAL
 # 'number of iterations used = ',I12,2X,A,' mixing'
-const NUMBER_OF_ITERATIONS_USED = Regex("number of iterations used$EQUAL_SIGN$INTEGER\\s+([-+\\w]+)\\s+mixing")
+const NUMBER_OF_ITERATIONS_USED =
+    "number of iterations used" * EQUAL * INTEGER * rs"\s+([-+\w]+)\s+mixing"
 const EXCHANGE_CORRELATION = r"Exchange-correlation\s*=\s*(.*)"
 # "nstep                     = ",I12
-const NSTEP = Regex("nstep$EQUAL_SIGN$INTEGER")
+const NSTEP = "nstep" * EQUAL * INTEGER
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/Modules/fft_base.f90#L70-L91.
 const FFT_BASE_INFO = r"""\s*(?<head>Parallelization info|G-vector sticks info)
 \s*--------------------
@@ -56,7 +63,11 @@ number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
 \s*Dense  grid)?"""m
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-const K_POINTS_ITEM = Regex("k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL")
+K_POINTS_ITEM =
+    rs"k\(.*\) = \(" *
+    exactly(3, look_for(INTEGER; before = zero_or_more(WHITESPACE))) *
+    rs", wk =\s*" *
+    REAL
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L47-L60.
 const CELL_PARAMETERS_BLOCK = r"""
 CELL_PARAMETERS \h+
@@ -127,18 +138,25 @@ const SELF_CONSISTENT_CALCULATION_BLOCK = r"(Self-consistent Calculation\X+?End 
 const ITERATION_BLOCK = r"(?<=iteration #)(.*?)(?=iteration #|End of self-consistent calculation)"s
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
-const ITERATION_HEAD = Regex("\\s*$INTEGER\\s+ecut=\\s*$FIXED_POINT_REAL\\s+Ry\\s+beta=\\s*$FIXED_POINT_REAL")
+const ITERATION_HEAD = INTEGER * rs"\s+ecut=\s*" * REAL * rs"\s+Ry\s+beta=\s*" * REAL
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L129-L130
 # and https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L65-L73.
-const C_BANDS = Regex(
-    """
-    (?<diag>Davidson diagonalization.*|CG style diagonalization|PPCG style diagonalization)
-    \\h*ethr =\\h*$GENERAL_REAL,  avg # of iterations =\\h*$FIXED_POINT_REAL""",
-    "m",
-)
+C_BANDS =
+    capture(
+        either(
+            rs"Davidson diagonalization.*",
+            "CG style diagonalization",
+            "PPCG style diagonalization",
+        );
+        as = "diag",
+    ) *
+    rs"\h*ethr =\h*" *
+    EXP_REAL *
+    rs",  avg # of iterations =\h*" *
+    REAL
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
 # '     total cpu time spent up to now is ',F10.1,' secs'
-const TOTAL_CPU_TIME = Regex("total cpu time spent up to now is\\s*$FIXED_POINT_REAL\\s* secs")
+const TOTAL_CPU_TIME = rs"total cpu time spent up to now is\s*" * REAL * rs"\s* secs"
 const KS_ENERGIES_BLOCK = r"""
 (Number\s+of\s+k-points\s+>=\s+100:\s+set\s+verbosity='high'\s+to\s+print\s+the\s+bands\.
 |
@@ -158,31 +176,50 @@ const KS_ENERGIES_BAND_ENERGIES = r"""
 \s*k\s+=\s*(?<k>.*)\s*band\s+energies\s+\(ev\):
 (?<band>(?:\s*[-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[eE][-+]?[0-9]+)?)+)"""
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L1257-L1261.
-const UNCONVERGED_ELECTRONS_ENERGY = Regex(
-    """
-    ^[^!]\\s+total energy\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
-    \\s*Harris-Foulkes estimate\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
-    \\s*estimated scf accuracy\\s+<\\s*$GENERAL_REAL\\s+Ry""",
-    "m",
-)
-const CONVERGED_ELECTRONS_ENERGY = Regex(
-    """
-    ^!\\h+total energy\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
-    \\s*Harris-Foulkes estimate\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
-    \\s*estimated scf accuracy\\s+<\\s*$GENERAL_REAL\\s+Ry
-    \\s*(?<ae>total all-electron energy =.*Ry)?\\s*(?<decomp>The total energy is the sum of the following terms:
-    \\s*one-electron contribution =.*Ry
-    \\s*hartree contribution      =.*Ry
-    \\s*xc contribution           =.*Ry
-    \\s* ewald contribution        =.*Ry)?\\s*(?<one>one-center paw contrib.*Ry
-    \\s*-> PAW hartree energy AE =.*Ry
-    \\s*-> PAW hartree energy PS =.*Ry
-    \\s*-> PAW xc energy AE      =.*Ry
-    \\s*-> PAW xc energy PS      =.*Ry
-    \\s*-> total E_H with PAW    =.*Ry
-    \\s*-> total E_XC with PAW   =.*Ry)?\\s*(?<smearing>smearing contrib.*Ry)?""",
-    "m",
-)
+# const UNCONVERGED_ELECTRONS_ENERGY = Regex(
+#     """
+#     ^[^!]\\s+total energy\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
+#     \\s*Harris-Foulkes estimate\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
+#     \\s*estimated scf accuracy\\s+<\\s*$GENERAL_REAL\\s+Ry""",
+#     "m",
+# )
+# const CONVERGED_ELECTRONS_ENERGY =
+#     rs"!\h+total energy\s+=\s*" *
+#     FIXED_POINT_REAL *
+#     "\\s+Ry" *
+#     maybe(rs"\s*Harris-Foulkes estimate\s+=\s*" * FIXED_POINT_REAL * "\\s+Ry") *
+#     maybe(rs"\s*estimated scf accuracy\s+<\s*" * GENERAL_REAL * rs"\\s+Ry") *
+#     rs"""
+#     \s*(?<ae>total all-electron energy =.*Ry)?\s*(?<decomp>The total energy is the sum of the following terms:
+#     \s*one-electron contribution =.*Ry
+#     \s*hartree contribution      =.*Ry
+#     \s*xc contribution           =.*Ry
+#     \s* ewald contribution        =.*Ry)?\s*(?<one>one-center paw contrib.*Ry
+#     \s*-> PAW hartree energy AE =.*Ry
+#     \s*-> PAW hartree energy PS =.*Ry
+#     \s*-> PAW xc energy AE      =.*Ry
+#     \s*-> PAW xc energy PS      =.*Ry
+#     \s*-> total E_H with PAW    =.*Ry
+#     \s*-> total E_XC with PAW   =.*Ry)?\s*(?<smearing>smearing contrib.*Ry)?
+#     """
+# const CONVERGED_ELECTRONS_ENERGY = Regex(
+#     """
+#     ^!\\h+total energy\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
+#     \\s*Harris-Foulkes estimate\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
+#     \\s*estimated scf accuracy\\s+<\\s*$GENERAL_REAL\\s+Ry
+#     \\s*(?<ae>total all-electron energy =.*Ry)?\\s*(?<decomp>The total energy is the sum of the following terms:
+#     \\s*one-electron contribution =.*Ry
+#     \\s*hartree contribution      =.*Ry
+#     \\s*xc contribution           =.*Ry
+#     \\s* ewald contribution        =.*Ry)?\\s*(?<one>one-center paw contrib.*Ry
+#     \\s*-> PAW hartree energy AE =.*Ry
+#     \\s*-> PAW hartree energy PS =.*Ry
+#     \\s*-> PAW xc energy AE      =.*Ry
+#     \\s*-> PAW xc energy PS      =.*Ry
+#     \\s*-> total E_H with PAW    =.*Ry
+#     \\s*-> total E_XC with PAW   =.*Ry)?\\s*(?<smearing>smearing contrib.*Ry)?""",
+#     "m",
+# )
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
 const SUMMARY_TIME_BLOCK = r"""
@@ -195,7 +232,14 @@ init_run\s+:.*
 \s*(?:stress\s+:.*)?     # This does not always exist.
 )
 """mx
-const TIME_ITEM = Regex("\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)")
+const TIME_ITEM =
+    rs"([\w0-9:]+)\s+:\s*" *
+    REAL *
+    rs"s\sCPU\s*" *
+    REAL *
+    rs"s\sWALL\s\(\s*" *
+    INTEGER *
+    rs"\scalls\)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"m
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.

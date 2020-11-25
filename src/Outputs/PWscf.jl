@@ -16,6 +16,19 @@ using Compat: only
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Parameters: @with_kw
 using QuantumESPRESSOBase.Inputs.PWscf
+using ReadableRegex:
+    DEC_DIGIT_NUMBER,
+    NON_SEPARATOR,
+    WHITESPACE,
+    maybe,
+    either,
+    char_in,
+    one_or_more,
+    zero_or_more,
+    exactly,
+    look_for,
+    capture,
+    @rs_str
 using VersionParsing: vparse
 
 using ..Outputs: SubroutineError
@@ -296,16 +309,17 @@ function parse_bands(str::AbstractString)
     m = match(KS_ENERGIES_BLOCK, str)
     if m !== nothing
         kpts, bands = Vector{Float64}[], Vector{Float64}[]
-        regex = match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
+        regex =
+            match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
             KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
             push!(
                 kpts,
-                map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])),
+                map(x -> parse(Float64, x[1]), eachmatch(Regex(EXP_REAL), m[:k])),
             )
             push!(
                 bands,
-                map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:band])),
+                map(x -> parse(Float64, x[1]), eachmatch(Regex(EXP_REAL), m[:band])),
             )
         end
         len, nbnd = length(kpts), length(bands[1])
@@ -321,7 +335,7 @@ function parse_all_electron_energy(str::AbstractString)
         ae = if any(==(nothing), (m, m[:ae]))
             nothing
         else
-            parse(Float64, match(Regex(FIXED_POINT_REAL), m[:ae])[1])
+            parse(Float64, match(Regex(REAL), m[:ae])[1])
         end
         push!(df, [i ae])
     end
@@ -340,7 +354,7 @@ function parse_energy_decomposition(str::AbstractString)
         data = if any(==(nothing), (m, m[:decomp]))
             ntuple(_ -> nothing, 4)
         else
-            map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:decomp]))
+            map(x -> parse(Float64, x[1]), eachmatch(Regex(REAL), m[:decomp]))
         end
         push!(df, [i data...])
     end
@@ -361,7 +375,7 @@ function parse_paw_contribution(str::AbstractString)
         data = if any(==(nothing), (m, m[:one]))
             ntuple(_ -> nothing, 6)
         else
-            map(x -> parse(Float64, x[1]), eachmatch(Regex(FIXED_POINT_REAL), m[:one]))
+            map(x -> parse(Float64, x[1]), eachmatch(Regex(REAL), m[:one]))
         end
         push!(df, [i data...])
     end
@@ -374,7 +388,7 @@ function parse_smearing_energy(str::AbstractString)
         smearing = if any(==(nothing), (m, m[:smearing]))
             nothing
         else
-            parse(Float64, match(Regex(FIXED_POINT_REAL), m[:smearing])[1])
+            parse(Float64, match(Regex(REAL), m[:smearing])[1])
         end
         push!(df, [i smearing])
     end
@@ -508,6 +522,7 @@ function Base.tryparse(::Type{Preamble}, str::AbstractString)
             ),
         )
             m = match(regex, body)
+            println(m)
             if m !== nothing
                 dict[field] = f(T, m[1])
             end
