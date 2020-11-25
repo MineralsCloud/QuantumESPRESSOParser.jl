@@ -11,7 +11,7 @@ julia>
 """
 module PWscf
 
-using Compat: only
+using Compat: only, @NamedTuple
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Parameters: @with_kw
@@ -35,6 +35,7 @@ using ..Outputs: SubroutineError
 
 export Diagonalization,
     Preamble,
+    FftDimensions,
     Davidson,
     ConjugateGradient,
     ProjectedPreconditionedConjugateGradient,
@@ -50,7 +51,6 @@ export Diagonalization,
     parse_smearing_energy,
     parse_version,
     parse_parallel_info,
-    parse_fft_dimensions,
     parse_iteration_head,
     parse_electrons_energies,
     parse_clock,
@@ -77,6 +77,13 @@ abstract type Diagonalization end
 struct Davidson <: Diagonalization end
 struct ConjugateGradient <: Diagonalization end
 struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
+
+const FftDimensions = @NamedTuple begin
+    ng::UInt
+    nr1::UInt
+    nr2::UInt
+    nr3::UInt
+end
 
 @with_kw struct Preamble
     ibrav::Int
@@ -406,11 +413,15 @@ function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
     return m[:kind], m[:num] === nothing ? 1 : parse(Int, m[:num])
 end # function parse_parallel_info
 
-function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
+function Base.tryparse(::Type{FftDimensions}, str::AbstractString)
     m = match(FFT_DIMENSIONS, str)
-    m === nothing && return
-    parsed = map(x -> parse(Int, x), m.captures)
-    return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
+    if m === nothing
+        return
+    else
+        ng = parse(Int, m.captures[1])
+        nr = map(x -> parse(Int, x), split(m.captures[2], ','))
+        return FftDimensions((ng, nr...))
+    end
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
