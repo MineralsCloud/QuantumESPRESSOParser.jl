@@ -55,6 +55,7 @@ const FFT_BASE_INFO = r"""\s*(?<head>Parallelization info|G-vector sticks info)
 \s*sticks:   dense  smooth     PW     G-vecs:    dense   smooth      PW
 (?<body>(?:\s*Min.*)?(?:\s*Max.*)?\s*Sum.*)"""m
 const SYM_OPS = r"\h*(No symmetry found|(?<n>\d+)\s*Sym\. Ops\..*found)"
+
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L341-L381.
 const K_POINTS_BLOCK = r"""
 number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
@@ -63,11 +64,8 @@ number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
 \s*Dense  grid)?"""m
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-const K_POINTS_ITEM =
-    rs"k\(.*\) = \(" *
-    exactly(3, look_for(INTEGER; before = zero_or_more(WHITESPACE))) *
-    rs", wk =\s*" *
-    REAL
+const K_POINTS_ITEM = rs"k\(.*\) = \((.*)\), wk =\s*" * REAL
+
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L47-L60.
 const CELL_PARAMETERS_BLOCK = r"""
 CELL_PARAMETERS \h+

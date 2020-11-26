@@ -86,8 +86,8 @@ const FftDimensions = @NamedTuple begin
 end
 
 const IrreducibleBrillouinZone = @NamedTuple begin
-    cartesian
-    crystal
+    cart::Maybe{SpecialPointsCard}
+    cryst::Maybe{SpecialPointsCard}
 end
 
 @with_kw struct Preamble
@@ -148,23 +148,26 @@ end # function parse_symmetries
 
 # Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
 function Base.tryparse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
-    m = match(K_POINTS_BLOCK, str)
-    if m === nothing
+    block = match(K_POINTS_BLOCK, str)
+    if block === nothing
         @info("The k-points info is not found!")
         return
     else
-        nk = parse(Int, m[:nk])
-        result = []
-        kinds = (:cart => "tpiba", :cryst => "crystal")
-        for (k, v) in kinds
-            if m[k] !== nothing
-                x = Matrix{Float64}(undef, nk, 4)
-                for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
-                    x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
+        result = map((:cart => "tpiba", :cryst => "crystal")) do (k, v)
+            if block[k] !== nothing
+                data = map(eachmatch(K_POINTS_ITEM, block[k])) do row
+                    map(
+                        Base.Fix1(parse, Float64),
+                        (
+                            split(row.captures[1], ' '; keepempty = false)...,
+                            row.captures[2],
+                        ),
+                    )
                 end
-                push!(result, SpecialPointsCard(x, v))
+                @assert length(data) == parse(Int, block[:nk])
+                SpecialPointsCard(data, v)
             else
-                push!(result, nothing)
+                nothing
             end
         end
         return IrreducibleBrillouinZone(result)
