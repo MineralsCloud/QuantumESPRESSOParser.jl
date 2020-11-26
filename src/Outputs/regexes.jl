@@ -61,7 +61,7 @@ number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
 \s*Dense  grid)?"""m
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-K_POINTS_ITEM =
+const K_POINTS_ITEM =
     rs"k\(.*\) = \(" *
     exactly(3, look_for(INTEGER; before = zero_or_more(WHITESPACE))) *
     rs", wk =\s*" *

@@ -36,12 +36,12 @@ using ..Outputs: SubroutineError
 export Diagonalization,
     Preamble,
     FftDimensions,
+    IrreducibleBrillouinZone,
     Davidson,
     ConjugateGradient,
     ProjectedPreconditionedConjugateGradient,
     parse_fft_base_info,
     parse_symmetries,
-    parse_ibz,
     parse_stress,
     parse_iteration_time,
     parse_bands,
@@ -83,6 +83,11 @@ const FftDimensions = @NamedTuple begin
     nr1::UInt
     nr2::UInt
     nr3::UInt
+end
+
+const IrreducibleBrillouinZone = @NamedTuple begin
+    cartesian
+    crystal
 end
 
 @with_kw struct Preamble
@@ -142,27 +147,28 @@ function parse_symmetries(str::AbstractString)
 end # function parse_symmetries
 
 # Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_ibz(str::AbstractString)::Maybe{Tuple}
+function Base.tryparse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
     m = match(K_POINTS_BLOCK, str)
     if m === nothing
         @info("The k-points info is not found!")
         return
-    end
-    nk = parse(Int, m[:nk])
-    result = []
-    kinds = (:cart => "tpiba", :cryst => "crystal")
-    for (k, v) in kinds
-        if m[k] !== nothing
-            x = Matrix{Float64}(undef, nk, 4)
-            for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
-                x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
+    else
+        nk = parse(Int, m[:nk])
+        result = []
+        kinds = (:cart => "tpiba", :cryst => "crystal")
+        for (k, v) in kinds
+            if m[k] !== nothing
+                x = Matrix{Float64}(undef, nk, 4)
+                for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
+                    x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
+                end
+                push!(result, SpecialPointsCard(x, v))
+            else
+                push!(result, nothing)
             end
-            push!(result, KPointsCard(v, x))
-        else
-            push!(result, nothing)
         end
+        return IrreducibleBrillouinZone(result)
     end
-    return Tuple(result)
 end # function parse_ibz
 
 function parse_stress(str::AbstractString)
