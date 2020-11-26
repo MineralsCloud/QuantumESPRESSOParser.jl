@@ -12,6 +12,7 @@ const READING_INPUT_FROM = r"(?:Reading input from \s*(.*|standard input))"
 const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L374-L375.
 const FFT_DIMENSIONS = r"Dense  grid:(.*)G-vectors     FFT dimensions: \((.*)\)"
+
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
@@ -47,6 +48,7 @@ const NUMBER_OF_ITERATIONS_USED =
 const EXCHANGE_CORRELATION = r"Exchange-correlation      =\h*(.*)"
 # "nstep                     = ",I12
 const NSTEP = rs"nstep                     =\h+" * INTEGER
+
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/Modules/fft_base.f90#L70-L91.
 const FFT_BASE_INFO = r"""\s*(?<head>Parallelization info|G-vector sticks info)
 \s*--------------------
@@ -139,16 +141,16 @@ const ITERATION_BLOCK = r"(?<=iteration #)(.*?)(?=iteration #|End of self-consis
 const ITERATION_HEAD = INTEGER * rs"\s+ecut=\s*" * REAL * rs"\s+Ry\s+beta=\s*" * REAL
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L129-L130
 # and https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L65-L73.
-C_BANDS =
+const C_BANDS =
     capture(
         either(
-            rs"Davidson diagonalization.*",
+            rs"Davidson diagonalization with overlap",
             "CG style diagonalization",
             "PPCG style diagonalization",
         );
         as = "diag",
     ) *
-    rs"\h*ethr =\h*" *
+    rs"\s*ethr =\h*" *
     EXP_REAL *
     rs",  avg # of iterations =\h*" *
     REAL
