@@ -1,7 +1,6 @@
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
 const SIGN = char_in("-+")
 const _DIGIT = char_in('0':'9')
-const EQUAL = rs"\s*=\s*"
 # See https://github.com/jkrumbiegel/ReadableRegex.jl/blob/771869b/README.md
 const INTEGER = capture(look_for(maybe(SIGN) * one_or_more(_DIGIT), not_after = '.'))
 const REAL = capture(maybe(SIGN) * maybe(zero_or_more(_DIGIT) * '.') * one_or_more(_DIGIT))
@@ -16,39 +15,38 @@ const FFT_DIMENSIONS = r"Dense  grid:(.*)G-vectors     FFT dimensions: \((.*)\)"
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
-const BRAVAIS_LATTICE_INDEX = "bravais-lattice index" * EQUAL * INTEGER
+const BRAVAIS_LATTICE_INDEX = rs"bravais-lattice index     =\h+" * INTEGER
 # 'lattice parameter (alat)  = ',F12.4,'  a.u.'
-const LATTICE_PARAMETER = rs"lattice parameter \(alat\)" * EQUAL * REAL
+const LATTICE_PARAMETER = rs"lattice parameter \(alat\)  =\h+" * REAL
 # 'unit-cell volume          = ',F12.4,' (a.u.)^3'
-const UNIT_CELL_VOLUME = "unit-cell volume" * EQUAL * REAL
+const UNIT_CELL_VOLUME = rs"unit-cell volume          =\h+" * REAL
 # 'number of atoms/cell      = ',I12
-const NUMBER_OF_ATOMS_PER_CELL = "number of atoms/cell" * EQUAL * INTEGER
+const NUMBER_OF_ATOMS_PER_CELL = rs"number of atoms/cell      =\h+" * INTEGER
 # 'number of atomic types    = ',I12
-const NUMBER_OF_ATOMIC_TYPES = "number of atomic types" * EQUAL * INTEGER
+const NUMBER_OF_ATOMIC_TYPES = rs"number of atomic types    =\h+" * INTEGER
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-NUMBER_OF_ELECTRONS =
-    "number of electrons" *
-    EQUAL *
+const NUMBER_OF_ELECTRONS =
+    rs"number of electrons       =\h+" *
     REAL *
     maybe(rs"\(up:\s*" * REAL * rs", down:\s*" * REAL * ')')
 # 'number of Kohn-Sham states= ',I12
-const NUMBER_OF_KOHN_SHAM_STATES = "number of Kohn-Sham states" * EQUAL * INTEGER
+const NUMBER_OF_KOHN_SHAM_STATES = rs"number of Kohn-Sham states=\h+" * INTEGER
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
-const KINETIC_ENERGY_CUTOFF = "kinetic-energy cutoff" * EQUAL * REAL * rs"\s+Ry"
+const KINETIC_ENERGY_CUTOFF = rs"kinetic-energy cutoff     =\h+" * REAL
 # 'charge density cutoff     = ',F12.4,'  Ry'
-const CHARGE_DENSITY_CUTOFF = "charge density cutoff" * EQUAL * REAL * rs"\s+Ry"
+const CHARGE_DENSITY_CUTOFF = rs"charge density cutoff     =\h+" * REAL
 # 'cutoff for Fock operator  = ',F12.4,'  Ry'
-const CUTOFF_FOR_FOCK_OPERATOR = "cutoff for Fock operator" * EQUAL * REAL * rs"\s+Ry"
+const CUTOFF_FOR_FOCK_OPERATOR = rs"cutoff for Fock operator  =\h+" * REAL
 # 'convergence threshold     = ',1PE12.1
-const CONVERGENCE_THRESHOLD = "convergence threshold" * EQUAL * EXP_REAL
+const CONVERGENCE_THRESHOLD = rs"convergence threshold     =\h+" * EXP_REAL
 # 'mixing beta               = ',0PF12.4
-const MIXING_BETA = "mixing beta" * EQUAL * REAL
+const MIXING_BETA = rs"mixing beta               =\h+" * REAL
 # 'number of iterations used = ',I12,2X,A,' mixing'
 const NUMBER_OF_ITERATIONS_USED =
-    "number of iterations used" * EQUAL * INTEGER * rs"\s+([-+\w]+)\s+mixing"
-const EXCHANGE_CORRELATION = r"Exchange-correlation\s*=\s*(.*)"
+    rs"number of iterations used =\h+" * INTEGER * rs"\s+([-+\w]+)\s+mixing"
+const EXCHANGE_CORRELATION = r"Exchange-correlation      =\h*(.*)"
 # "nstep                     = ",I12
-const NSTEP = "nstep" * EQUAL * INTEGER
+const NSTEP = rs"nstep                     =\h+" * INTEGER
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/Modules/fft_base.f90#L70-L91.
 const FFT_BASE_INFO = r"""\s*(?<head>Parallelization info|G-vector sticks info)
 \s*--------------------
