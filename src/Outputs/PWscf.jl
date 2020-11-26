@@ -102,7 +102,7 @@ end
     mixing_beta::Maybe{Float64} = nothing
     mixing_ndim::Maybe{Int} = nothing
     mixing_mode::Maybe{String} = nothing
-    xc::String
+    xc::Maybe{String} = nothing  # Now is deprecated
     nstep::Maybe{Int} = nothing
 end
 
@@ -533,7 +533,6 @@ function Base.tryparse(::Type{Preamble}, str::AbstractString)
             ),
         )
             m = match(regex, body)
-            println(m)
             if m !== nothing
                 dict[field] = f(T, m[1])
             end
