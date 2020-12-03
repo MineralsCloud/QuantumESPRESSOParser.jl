@@ -329,10 +329,7 @@ function parse_bands(str::AbstractString)
             match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
             KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
-            push!(
-                kpts,
-                map(x -> parse(Float64, x[1]), eachmatch(Regex(EXP_REAL), m[:k])),
-            )
+            push!(kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(EXP_REAL), m[:k])))
             push!(
                 bands,
                 map(x -> parse(Float64, x[1]), eachmatch(Regex(EXP_REAL), m[:band])),
