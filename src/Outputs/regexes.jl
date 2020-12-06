@@ -15,7 +15,7 @@ const PARALLEL_INFO =
         "Serial version",
     )) * maybe(rs", running on\s+" * INTEGER)
 const READING_INPUT_FROM = r"(?:Reading input from \s*(.*|standard input))"
-const PWSCF_VERSION = r"Program PWSCF v.(.*) starts"
+const PWSCF_VERSION = r"Program PWSCF v\.(.*) starts"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L374-L375.
 const FFT_DIMENSIONS = r"Dense  grid:(.*)G-vectors     FFT dimensions: \((.*)\)"
 
