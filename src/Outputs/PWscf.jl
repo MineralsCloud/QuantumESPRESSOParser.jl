@@ -29,7 +29,6 @@ using ReadableRegex:
     look_for,
     capture,
     @rs_str
-using VersionParsing: vparse
 
 using ..Outputs: SubroutineError
 
