@@ -38,6 +38,7 @@ export Diagonalization,
     FftDimensions,
     IrreducibleBrillouinZone,
     Davidson,
+    ParallelInfo,
     ConjugateGradient,
     ProjectedPreconditionedConjugateGradient,
     parse_fft_base_info,
@@ -50,7 +51,6 @@ export Diagonalization,
     parse_paw_contribution,
     parse_smearing_energy,
     parse_version,
-    parse_parallel_info,
     parse_iteration_head,
     parse_electrons_energies,
     parse_clock,
@@ -88,6 +88,11 @@ end
 const IrreducibleBrillouinZone = @NamedTuple begin
     cart::Maybe{SpecialPointsCard}
     cryst::Maybe{SpecialPointsCard}
+end
+
+const ParallelInfo = @NamedTuple begin
+    flavor::String
+    np::UInt
 end
 
 @with_kw struct Preamble
@@ -413,12 +418,6 @@ function parse_version(str::AbstractString)::Maybe{VersionNumber}
     m !== nothing ? vparse(m[:version]) : return
 end # function parse_version
 
-function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
-    m = match(PARALLEL_INFO, str)
-    m === nothing && return
-    return m[:kind], m[:num] === nothing ? 1 : parse(Int, m[:num])
-end # function parse_parallel_info
-
 function Base.tryparse(::Type{FftDimensions}, str::AbstractString)
     m = match(FFT_DIMENSIONS, str)
     if m === nothing
@@ -479,6 +478,15 @@ isoptimized(str::AbstractString) =
 isjobdone(str::AbstractString) = match(JOB_DONE, str) !== nothing
 
 # This is an internal function and should not be exported.
+function Base.tryparse(::Type{ParallelInfo}, str::AbstractString)
+    m = match(PARALLEL_INFO, str)
+    if m === nothing
+        return
+    else
+        np = m.captures[2] === nothing ? 1 : parse(Int, m.captures[2])
+        return ParallelInfo((m.captures[1], np))
+    end
+end
 function Base.tryparse(::Type{Preamble}, str::AbstractString)
     dict = Dict{Symbol,Any}()
     m = match(SUMMARY_BLOCK, str)

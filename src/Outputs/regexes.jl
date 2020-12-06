@@ -6,8 +6,14 @@ const INTEGER = capture(look_for(maybe(SIGN) * one_or_more(_DIGIT), not_after = 
 const REAL = capture(maybe(SIGN) * maybe(zero_or_more(_DIGIT) * '.') * one_or_more(_DIGIT))
 const EXP_REAL = capture(REAL * maybe(char_in("eE") * maybe(SIGN) * one_or_more(_DIGIT)))
 
-# This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L224.
-const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, running on\s*(?<num>[0-9]+) processors)?"
+# This format is from https://github.com/QEF/q-e/blob/4132a64/Modules/environment.f90#L215-L261.
+const PARALLEL_INFO =
+    capture(either(
+        "Parallel version (MPI & OpenMP)",
+        "Parallel version (MPI)",
+        "Serial multi-threaded version",
+        "Serial version",
+    )) * maybe(rs", running on\s+" * INTEGER)
 const READING_INPUT_FROM = r"(?:Reading input from \s*(.*|standard input))"
 const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L374-L375.
