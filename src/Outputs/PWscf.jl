@@ -415,7 +415,7 @@ end # function parse_smearing_energy
 
 function parse_version(str::AbstractString)::Maybe{VersionNumber}
     m = match(PWSCF_VERSION, str)
-    m !== nothing ? vparse(m[:version]) : return
+    return m === nothing ? nothing : VersionNumber(m[1])
 end # function parse_version
 
 function Base.tryparse(::Type{FftDimensions}, str::AbstractString)
