@@ -42,7 +42,7 @@ export Diagonalization,
     parse_electrons_energies,
     parse_clock,
     parse_input_name,
-    isrelaxed,
+    isoptimized,
     isjobdone,
     tryparsefirst,
     parsefirst,
@@ -442,7 +442,7 @@ function parse_input_name(str::AbstractString)
     return m === nothing ? nothing : only(m)
 end # function parse_input_name
 
-isrelaxed(str::AbstractString) =
+isoptimized(str::AbstractString) =
     match(FINAL_COORDINATES_BLOCK, str) === nothing ? false : true
 
 isjobdone(str::AbstractString) = match(JOB_DONE, str) !== nothing
