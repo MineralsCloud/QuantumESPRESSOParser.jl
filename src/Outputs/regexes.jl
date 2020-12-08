@@ -64,16 +64,16 @@ CELL_PARAMETERS \h+
 (?<data>
     (?: \s*
         (?:
-            [-+]?[0-9]*\.[0-9]{9} \s*  # Match element: `3F14.9`
+            [-+]?[0-9]*\.[0-9]+ \s*  # Match element
         ){3}  # I need exactly 3 elements per vector
     ){3}  # I need exactly 3 vectors
 )
 """x
 const CELL_PARAMETERS_ITEM = r"""
 \s*
-([-+]?[0-9]*\.[0-9]{9}) \s*  # x
-([-+]?[0-9]*\.[0-9]{9}) \s*  # y
-([-+]?[0-9]*\.[0-9]{9}) \s*  # z
+([-+]?[0-9]*\.[0-9]+) \s*  # x
+([-+]?[0-9]*\.[0-9]+) \s*  # y
+([-+]?[0-9]*\.[0-9]+) \s*  # z
 """x
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L64-L109.
 const ATOMIC_POSITIONS_BLOCK = r"""
@@ -84,7 +84,7 @@ ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
         \s*
         [A-Za-z]+[A-Za-z0-9]{0,2} \s+  # Atom spec
         (?:
-            [-+]?[0-9]*\.[0-9]{9} \s*  # Match element: `3F14.9`
+            [-+]?[0-9]*\.[0-9]+ \s*  # Match element
         ){3}                           # I need exactly 3 floats per vector.
         (?:
             [-+]?[0-9]+ \s*
@@ -95,9 +95,9 @@ ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
 const ATOMIC_POSITIONS_ITEM = r"""
 \s*
 ([A-Za-z]+[A-Za-z0-9]{0,2}) \s+  # Atom spec
-([-+]?[0-9]*\.[0-9]{9}) \s*  # x
-([-+]?[0-9]*\.[0-9]{9}) \s*  # y
-([-+]?[0-9]*\.[0-9]{9}) \s*  # z
+([-+]?[0-9]*\.[0-9]+) \s*  # x
+([-+]?[0-9]*\.[0-9]+) \s*  # y
+([-+]?[0-9]*\.[0-9]+) \s*  # z
 ([-+]?[0-9]+)? \s*            # if_pos(1)
 ([-+]?[0-9]+)? \s*            # if_pos(2)
 ([-+]?[0-9]+)? \s*            # if_pos(3)
