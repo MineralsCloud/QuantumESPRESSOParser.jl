@@ -11,7 +11,7 @@ julia>
 """
 module PWscf
 
-using AbInitioSoftwareBase.Inputs: inputstring, groupname
+using AbInitioSoftwareBase.Inputs: asstring, groupname
 using Compat: only
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.Inputs: Card
@@ -322,6 +322,6 @@ function format_file(filename::AbstractString; overwrite::Bool = true, kwargs...
     end
 end # function format_file
 
-format_text(text::AbstractString) = inputstring(parse(PWInput, text))
+format_text(text::AbstractString) = asstring(parse(PWInput, text))
 
 end
