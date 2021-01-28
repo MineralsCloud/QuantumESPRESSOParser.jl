@@ -84,12 +84,7 @@ CELL_PARAMETERS \h+
     ){3}  # I need exactly 3 vectors
 )
 """x
-const CELL_PARAMETERS_ITEM = r"""
-\s*
-([-+]?[0-9]*\.[0-9]+) \s*  # x
-([-+]?[0-9]*\.[0-9]+) \s*  # y
-([-+]?[0-9]*\.[0-9]+) \s*  # z
-"""x
+CELL_PARAMETERS_ITEM = REAL * SPACE_SEP * REAL * SPACE_SEP * REAL
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L64-L109.
 const ATOMIC_POSITIONS_BLOCK = r"""
 ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
@@ -107,16 +102,14 @@ ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
     )+
 )
 """x
-const ATOMIC_POSITIONS_ITEM = r"""
-\s*
-([A-Za-z]+[A-Za-z0-9]{0,2}) \s+  # Atom spec
-([-+]?[0-9]*\.[0-9]+) \s*  # x
-([-+]?[0-9]*\.[0-9]+) \s*  # y
-([-+]?[0-9]*\.[0-9]+) \s*  # z
-([-+]?[0-9]+)? \s*            # if_pos(1)
-([-+]?[0-9]+)? \s*            # if_pos(2)
-([-+]?[0-9]+)? \s*            # if_pos(3)
-"""x
+ATOMIC_POSITIONS_ITEM =
+    rs"([A-Za-z]+[A-Za-z0-9]{0,2})" *  # Atom spec
+    REAL *  # x
+    SPACE_SEP *
+    REAL *  # y
+    SPACE_SEP *
+    REAL *  # z
+    maybe(SPACE_SEP * INTEGER * SPACE_SEP * INTEGER * SPACE_SEP * INTEGER)  # if_pos(1-3)
 const FINAL_COORDINATES_BLOCK = r"""
 Begin final coordinates
 (\X+?)
@@ -187,43 +180,43 @@ UNCONVERGED_ELECTRONS_ENERGY = Regex(
     \\s*estimated scf accuracy\\s+<\\s*$EXP_REAL\\s+Ry""",
     "m",
 )
-CONVERGED_ELECTRONS_ENERGY =
-    rs"!\h+total energy\s+=\s*" *
-    REAL *
-    "\\s+Ry" *
-    maybe(rs"\s*Harris-Foulkes estimate\s+=\s*" * REAL * "\\s+Ry") *
-    maybe(rs"\s*estimated scf accuracy\s+<\s*" * EXP_REAL * rs"\\s+Ry") *
-    rs"""
-    \s*(?<ae>total all-electron energy =.*Ry)?\s*(?<decomp>The total energy is the sum of the following terms:
-    \s*one-electron contribution =.*Ry
-    \s*hartree contribution      =.*Ry
-    \s*xc contribution           =.*Ry
-    \s* ewald contribution        =.*Ry)?\s*(?<one>one-center paw contrib.*Ry
-    \s*-> PAW hartree energy AE =.*Ry
-    \s*-> PAW hartree energy PS =.*Ry
-    \s*-> PAW xc energy AE      =.*Ry
-    \s*-> PAW xc energy PS      =.*Ry
-    \s*-> total E_H with PAW    =.*Ry
-    \s*-> total E_XC with PAW   =.*Ry)?\s*(?<smearing>smearing contrib.*Ry)?
-    """
-CONVERGED_ELECTRONS_ENERGY = Regex(
-    """
-    ^!\\h+total energy\\s+=\\s*$REAL\\s+Ry
-    \\s*Harris-Foulkes estimate\\s+=\\s*$REAL\\s+Ry
-    \\s*estimated scf accuracy\\s+<\\s*$EXP_REAL\\s+Ry
-    \\s*(?<ae>total all-electron energy =.*Ry)?\\s*(?<decomp>The total energy is the sum of the following terms:
-    \\s*one-electron contribution =.*Ry
-    \\s*hartree contribution      =.*Ry
-    \\s*xc contribution           =.*Ry
-    \\s* ewald contribution        =.*Ry)?\\s*(?<one>one-center paw contrib.*Ry
-    \\s*-> PAW hartree energy AE =.*Ry
-    \\s*-> PAW hartree energy PS =.*Ry
-    \\s*-> PAW xc energy AE      =.*Ry
-    \\s*-> PAW xc energy PS      =.*Ry
-    \\s*-> total E_H with PAW    =.*Ry
-    \\s*-> total E_XC with PAW   =.*Ry)?\\s*(?<smearing>smearing contrib.*Ry)?""",
-    "m",
-)
+# CONVERGED_ELECTRONS_ENERGY =
+#     rs"!\h+total energy\s+=\s*" *
+#     REAL *
+#     "\\s+Ry" *
+#     maybe(rs"\s*Harris-Foulkes estimate\s+=\s*" * REAL * "\\s+Ry") *
+#     maybe(rs"\s*estimated scf accuracy\s+<\s*" * EXP_REAL * rs"\\s+Ry") *
+#     rs"""
+#     \s*(?<ae>total all-electron energy =.*Ry)?\s*(?<decomp>The total energy is the sum of the following terms:
+#     \s*one-electron contribution =.*Ry
+#     \s*hartree contribution      =.*Ry
+#     \s*xc contribution           =.*Ry
+#     \s* ewald contribution        =.*Ry)?\s*(?<one>one-center paw contrib.*Ry
+#     \s*-> PAW hartree energy AE =.*Ry
+#     \s*-> PAW hartree energy PS =.*Ry
+#     \s*-> PAW xc energy AE      =.*Ry
+#     \s*-> PAW xc energy PS      =.*Ry
+#     \s*-> total E_H with PAW    =.*Ry
+#     \s*-> total E_XC with PAW   =.*Ry)?\s*(?<smearing>smearing contrib.*Ry)?
+#     """
+# CONVERGED_ELECTRONS_ENERGY = Regex(
+#     """
+#     ^!\\h+total energy\\s+=\\s*$REAL\\s+Ry
+#     \\s*Harris-Foulkes estimate\\s+=\\s*$REAL\\s+Ry
+#     \\s*estimated scf accuracy\\s+<\\s*$EXP_REAL\\s+Ry
+#     \\s*(?<ae>total all-electron energy =.*Ry)?\\s*(?<decomp>The total energy is the sum of the following terms:
+#     \\s*one-electron contribution =.*Ry
+#     \\s*hartree contribution      =.*Ry
+#     \\s*xc contribution           =.*Ry
+#     \\s* ewald contribution        =.*Ry)?\\s*(?<one>one-center paw contrib.*Ry
+#     \\s*-> PAW hartree energy AE =.*Ry
+#     \\s*-> PAW hartree energy PS =.*Ry
+#     \\s*-> PAW xc energy AE      =.*Ry
+#     \\s*-> PAW xc energy PS      =.*Ry
+#     \\s*-> total E_H with PAW    =.*Ry
+#     \\s*-> total E_XC with PAW   =.*Ry)?\\s*(?<smearing>smearing contrib.*Ry)?""",
+#     "m",
+# )
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
 const SUMMARY_TIME_BLOCK = r"""
