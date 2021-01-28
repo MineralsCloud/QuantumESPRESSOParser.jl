@@ -19,6 +19,7 @@ using QuantumESPRESSOBase.Inputs.PWscf
 using ReadableRegex:
     DEC_DIGIT_NUMBER,
     NON_SEPARATOR,
+    SPACE_SEP,
     WHITESPACE,
     maybe,
     either,
@@ -36,8 +37,8 @@ export Diagonalization,
     Preamble,
     FftDimensions,
     IrreducibleBrillouinZone,
-    Davidson,
     ParallelInfo,
+    # Davidson,
     ConjugateGradient,
     ProjectedPreconditionedConjugateGradient,
     parse_fft_base_info,
@@ -482,8 +483,8 @@ function Base.tryparse(::Type{ParallelInfo}, str::AbstractString)
     if m === nothing
         return
     else
-        np = m.captures[2] === nothing ? 1 : parse(Int, m.captures[2])
-        return ParallelInfo((m.captures[1], np))
+        np = m[2] === nothing ? 1 : parse(Int, m[2])
+        return ParallelInfo((m[1], np))
     end
 end
 function Base.tryparse(::Type{Preamble}, str::AbstractString)
