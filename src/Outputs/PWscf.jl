@@ -231,7 +231,7 @@ function _parse_nonconverged_energy(str::AbstractString)
     ɛ, hf, δ = nothing, nothing, nothing  # Initialization
     m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
     if m !== nothing
-        ɛ, hf, δ = map(x -> parse(Float64, x), m.captures)
+        ɛ, hf, δ = map(x -> x === nothing ? x : parse(Float64, x), m.captures)
     end  # Keep them `nothing` if `m` is `nothing`
     return ɛ, hf, δ
 end # function _parse_nonconverged_energy
@@ -254,7 +254,7 @@ function _parse_electrons_energies(str::AbstractString, ::Val{:converged})
     )
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
         data = if m !== nothing
-            map(x -> parse(Float64, x), m.captures[1:3])
+            map(x -> x === nothing ? x : parse(Float64, x), m.captures[1:3])
         else
             ntuple(_ -> nothing, 3)
         end  # Keep them `nothing` if `m` is `nothing`
