@@ -160,8 +160,7 @@ const KS_ENERGIES_BAND_ENERGIES = r"""
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L1257-L1261.
 const UNCONVERGED_ELECTRONS_ENERGY = Regex(
     """
-    ^[^!]\\s+total energy\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
-    \\s*Harris-Foulkes estimate\\s+=\\s*$FIXED_POINT_REAL\\s+Ry
+    ^[^!]\\s+total energy\\s+=\\s*$FIXED_POINT_REAL\\s+Ry(\\s*Harris-Foulkes estimate\\s+=\\s*$FIXED_POINT_REAL\\s+Ry)?
     \\s*estimated scf accuracy\\s+<\\s*$GENERAL_REAL\\s+Ry""",
     "m",
 )
