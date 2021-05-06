@@ -6,7 +6,7 @@ using Test
 
 using QuantumESPRESSOBase.Inputs.PWscf
 
-using QuantumESPRESSOParsers.Inputs
+using QuantumESPRESSOParser.Inputs
 
 @testset "Parse empty strings" begin
     @test_throws Meta.ParseError parse(ControlNamelist, " ")
@@ -29,7 +29,7 @@ using Test
 
 using QuantumESPRESSOBase.Inputs.CP
 
-using QuantumESPRESSOParsers.Inputs
+using QuantumESPRESSOParser.Inputs
 
 @testset "Parse CP input" begin
     # This data is from https://github.com/QEF/q-e/blob/master/CPV/examples/example01/run_example.
