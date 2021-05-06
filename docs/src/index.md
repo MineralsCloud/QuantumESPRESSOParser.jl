@@ -1,12 +1,12 @@
 ```@meta
-CurrentModule = QuantumESPRESSOParsers
+CurrentModule = QuantumESPRESSOParser
 ```
 
-# QuantumESPRESSOParsers
+# QuantumESPRESSOParser
 
 ```@index
 ```
 
 ```@autodocs
-Modules = [QuantumESPRESSOParsers]
+Modules = [QuantumESPRESSOParser]
 ```

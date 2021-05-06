@@ -1,14 +1,14 @@
-using QuantumESPRESSOParsers
+using QuantumESPRESSOParser
 using Documenter
 
 makedocs(;
-    modules=[QuantumESPRESSOParsers],
+    modules=[QuantumESPRESSOParser],
     authors="Qi Zhang <singularitti@outlook.com>",
-    repo="https://github.com/MineralsCloud/QuantumESPRESSOParsers.jl/blob/{commit}{path}#L{line}",
-    sitename="QuantumESPRESSOParsers.jl",
+    repo="https://github.com/MineralsCloud/QuantumESPRESSOParser.jl/blob/{commit}{path}#L{line}",
+    sitename="QuantumESPRESSOParser.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
-        canonical="https://MineralsCloud.github.io/QuantumESPRESSOParsers.jl",
+        canonical="https://MineralsCloud.github.io/QuantumESPRESSOParser.jl",
         assets=String[],
     ),
     pages=[
@@ -17,5 +17,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/MineralsCloud/QuantumESPRESSOParsers.jl",
+    repo="github.com/MineralsCloud/QuantumESPRESSOParser.jl",
 )
