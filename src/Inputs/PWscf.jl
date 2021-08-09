@@ -290,20 +290,21 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
 end # function Base.parse
 function Base.parse(::Type{PWInput}, str::AbstractString)
     args = []
-    for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
-        x = tryparse(T, str)  # Optional cards
-        if x !== nothing
-            push!(args, x)
-        end
-    end
-    for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)  # Must-have cards, or else error
-        push!(args, parse(T, str))
-    end
     for T in
         (ControlNamelist, SystemNamelist, ElectronsNamelist, IonsNamelist, CellNamelist)
         x = tryparse(T, str)
         push!(args, x === nothing ? T() : x)
     end
+    for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)  # Must-have cards, or else error
+        push!(args, parse(T, str))
+    end
+    for T in (CellParametersCard,)
+        x = tryparse(T, str)  # Optional cards
+        push!(args, x)
+    end
+    push!(args, nothing)
+    push!(args, nothing)
+    push!(args, nothing)
     return PWInput(args...)
 end # function Base.parse
 
