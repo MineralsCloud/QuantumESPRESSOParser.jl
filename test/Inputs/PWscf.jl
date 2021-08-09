@@ -1,5 +1,3 @@
-module PWscf
-
 using Test
 
 using QuantumESPRESSOBase.Inputs.PWscf
