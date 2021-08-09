@@ -202,3 +202,28 @@ end
         ],
     )
 end
+
+@testset "Test parsing a `PWInput`: cobalt relaxation" begin
+    # From https://github.com/QEF/q-e/blob/121edf5/PW/examples/example02/run_example#L83-L112
+    str = read("data/co.rx.in", String)
+    pw = parse(PWInput, str)
+    @test pw.control == ControlNamelist(;
+        calculation = "relax",
+        pseudo_dir = "pseudo/",
+        outdir = "./",
+        prefix = "CO",
+    )
+    @test pw.system ==
+          SystemNamelist(; ibrav = 0, nat = 2, ntyp = 2, ecutwfc = 24, ecutrho = 144)
+    @test pw.electrons == ElectronsNamelist(; conv_thr = 1e-7)
+    @test pw.ions == IonsNamelist()
+    @test pw.atomic_species == AtomicSpeciesCard([
+        AtomicSpecies("O", 1, "O.pz-rrkjus.UPF"),
+        AtomicSpecies("C", 1.0, "C.pz-rrkjus.UPF"),
+    ])
+    @test pw.atomic_positions == AtomicPositionsCard(
+        [AtomicPosition("C", [2.256, 0.0, 0.0]), AtomicPosition("O", [0, 0, 0], [0, 0, 0])],
+        "bohr",
+    )
+    @test pw.k_points == GammaPointCard()
+end
