@@ -13,6 +13,7 @@ module PWscf
 
 using AbInitioSoftwareBase.Inputs: asstring, groupname
 using Compat: only
+using Crystallography: ReciprocalPoint
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.Inputs: Card
 using QuantumESPRESSOBase.Inputs.PWscf:
@@ -30,7 +31,6 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     KMeshCard,
     SpecialPointsCard,
     MonkhorstPackGrid,
-    SpecialPoint,
     CellParametersCard,
     PWInput
 
@@ -248,7 +248,7 @@ function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
         return SpecialPointsCard(
             map(eachmatch(K_POINTS_SPECIAL_ITEM, m.captures[2])) do matched
                 # TODO: Match `nks`
-                SpecialPoint(map(x -> fparse(Float64, x), matched.captures)...)
+                ReciprocalPoint(map(x -> fparse(Float64, x), matched.captures)...)
             end,
             option,
         )
