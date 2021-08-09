@@ -128,7 +128,7 @@ const K_POINTS_AUTOMATIC_BLOCK = r"""
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_GAMMA_BLOCK = r"""
-^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* \R+
+^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* \R*
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_SPECIES_ITEM = r"""
