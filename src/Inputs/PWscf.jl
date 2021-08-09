@@ -13,7 +13,7 @@ module PWscf
 
 using AbInitioSoftwareBase.Inputs: asstring, groupname
 using Compat: only
-using Crystallography: ReciprocalPoint
+using Crystallography: ReciprocalPoint, MonkhorstPackGrid
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.Inputs: Card
 using QuantumESPRESSOBase.Inputs.PWscf:
@@ -30,7 +30,6 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     GammaPointCard,
     KMeshCard,
     SpecialPointsCard,
-    MonkhorstPackGrid,
     CellParametersCard,
     PWInput
 

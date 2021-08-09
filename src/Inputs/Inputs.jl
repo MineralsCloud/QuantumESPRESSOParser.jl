@@ -11,7 +11,7 @@ julia>
 """
 module Inputs
 
-using AbInitioSoftwareBase.Inputs: Input, InputEntry, Namelist, asstring, groupname
+using AbInitioSoftwareBase.Inputs: Namelist, groupname
 using PyFortran90Namelists: Parser
 
 struct InvalidInput
