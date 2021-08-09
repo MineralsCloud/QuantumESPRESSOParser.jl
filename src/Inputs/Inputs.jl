@@ -11,7 +11,7 @@ julia>
 """
 module Inputs
 
-using AbInitioSoftwareBase.Inputs: Input, InputEntry, Namelist, asstring, groupname
+using AbInitioSoftwareBase.Inputs: Namelist, groupname
 using PyFortran90Namelists: Parser
 
 struct InvalidInput
@@ -36,6 +36,6 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
 end # function Base.parse
 
 include("PWscf.jl")
-include("PHonon.jl")
+# include("PHonon.jl")
 
 end

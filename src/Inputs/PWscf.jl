@@ -13,6 +13,7 @@ module PWscf
 
 using AbInitioSoftwareBase.Inputs: asstring, groupname
 using Compat: only
+using Crystallography: ReciprocalPoint, MonkhorstPackGrid
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.Inputs: Card
 using QuantumESPRESSOBase.Inputs.PWscf:
@@ -29,12 +30,8 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     GammaPointCard,
     KMeshCard,
     SpecialPointsCard,
-    MonkhorstPackGrid,
-    SpecialPoint,
     CellParametersCard,
     PWInput
-
-export format_text, format_file
 
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_POSITIONS_BLOCK = r"""
@@ -248,7 +245,7 @@ function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
         return SpecialPointsCard(
             map(eachmatch(K_POINTS_SPECIAL_ITEM, m.captures[2])) do matched
                 # TODO: Match `nks`
-                SpecialPoint(map(x -> fparse(Float64, x), matched.captures)...)
+                ReciprocalPoint(map(x -> fparse(Float64, x), matched.captures)...)
             end,
             option,
         )
