@@ -116,7 +116,7 @@ const K_POINTS_SPECIAL_BLOCK = r"""
 ^ [ \t]* \S+ [ \t]* \R+  # nks
 (?P<block>
  (?:
-  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* \R+
+  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* \R*
  )+
 )
 """imx
