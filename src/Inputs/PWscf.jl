@@ -34,8 +34,6 @@ using QuantumESPRESSOBase.Inputs.PWscf:
     CellParametersCard,
     PWInput
 
-export format_text, format_file
-
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_POSITIONS_BLOCK = r"""
 ^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
