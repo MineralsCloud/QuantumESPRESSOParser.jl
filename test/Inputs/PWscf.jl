@@ -1,5 +1,6 @@
 using Test
 
+using Crystallography
 using QuantumESPRESSOBase.Inputs.PWscf
 using QuantumESPRESSOParser.Inputs
 
@@ -226,4 +227,58 @@ end
         "bohr",
     )
     @test pw.k_points == GammaPointCard()
+end
+
+@testset "Test parsing a `PWInput`: FeO" begin
+    # From https://github.com/QEF/q-e/blob/121edf5/PW/examples/example08/run_example#L84-L124
+    str = read("data/feo_LDA.in", String)
+    pw = parse(PWInput, str)
+    @test pw.control == ControlNamelist(;
+        calculation = "scf",
+        restart_mode = "from_scratch",
+        prefix = "feo_af",
+        pseudo_dir = "pseudo/",
+        outdir = "./",
+        tstress = true,
+        tprnfor = true,
+    )
+    @test pw.system == SystemNamelist(;
+        ibrav = 0,
+        celldm = [8.19],
+        nat = 4,
+        ntyp = 3,
+        ecutwfc = 30.0,
+        ecutrho = 240,
+        nbnd = 20,
+        starting_magnetization = [0, 0.5, -0.5],
+        occupations = "smearing",
+        smearing = "mv",
+        degauss = 0.01,
+        nspin = 2,
+        # lda_plus_u = true,
+        # Hubbard_U = [nothing, 1e-8, 1e-8],
+    )
+    @test pw.electrons ==
+          ElectronsNamelist(; conv_thr = 1e-6, mixing_beta = 0.3, mixing_fixed_ns = 0)
+    @test pw.ions == IonsNamelist()
+    @test pw.cell_parameters == CellParametersCard([
+        0.50 0.50 1.00
+        0.50 1.00 0.50
+        1.00 0.50 0.50
+    ])
+    @test pw.atomic_species == AtomicSpeciesCard([
+        AtomicSpecies("O1", 1, "O.pz-rrkjus.UPF"),
+        AtomicSpecies("Fe1", 1.0, "Fe.pz-nd-rrkjus.UPF"),
+        AtomicSpecies("Fe2", 1.0, "Fe.pz-nd-rrkjus.UPF"),
+    ])
+    @test pw.atomic_positions == AtomicPositionsCard(
+        [
+            AtomicPosition("O1", [1, 1, 1] / 4),
+            AtomicPosition("O1", [3, 3, 3] / 4),
+            AtomicPosition("Fe1", [0, 0, 0]),
+            AtomicPosition("Fe2", [0.5, 0.5, 0.5]),
+        ],
+        "crystal",
+    )
+    @test pw.k_points == KMeshCard(MonkhorstPackGrid([2, 2, 2], [0, 0, 0]))
 end
