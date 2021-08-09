@@ -116,7 +116,7 @@ const K_POINTS_SPECIAL_BLOCK = r"""
 ^ [ \t]* \S+ [ \t]* \R+  # nks
 (?P<block>
  (?:
-  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* \R+
+  ^ [ \t]* \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]+ \S+ [ \t]* \R*
  )+
 )
 """imx
@@ -128,7 +128,7 @@ const K_POINTS_AUTOMATIC_BLOCK = r"""
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/develop/qe_tools/parsers/pwinputparser.py
 const K_POINTS_GAMMA_BLOCK = r"""
-^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* \R+
+^ [ \t]* K_POINTS [ \t]* [{(]? [ \t]* gamma [ \t]* [)}]? [ \t]* \R*
 """imx
 # This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
 const ATOMIC_SPECIES_ITEM = r"""
@@ -290,20 +290,21 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
 end # function Base.parse
 function Base.parse(::Type{PWInput}, str::AbstractString)
     args = []
-    for T in (CellParametersCard,)  # ConstraintsCard, OccupationsCard, AtomicForcesCard
-        x = tryparse(T, str)  # Optional cards
-        if x !== nothing
-            push!(args, x)
-        end
-    end
-    for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)  # Must-have cards, or else error
-        push!(args, parse(T, str))
-    end
     for T in
         (ControlNamelist, SystemNamelist, ElectronsNamelist, IonsNamelist, CellNamelist)
         x = tryparse(T, str)
         push!(args, x === nothing ? T() : x)
     end
+    for T in (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard)  # Must-have cards, or else error
+        push!(args, parse(T, str))
+    end
+    for T in (CellParametersCard,)
+        x = tryparse(T, str)  # Optional cards
+        push!(args, x)
+    end
+    push!(args, nothing)
+    push!(args, nothing)
+    push!(args, nothing)
     return PWInput(args...)
 end # function Base.parse
 
