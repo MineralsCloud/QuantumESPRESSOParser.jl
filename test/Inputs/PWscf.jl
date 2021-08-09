@@ -11,7 +11,7 @@ using QuantumESPRESSOParser.Inputs
     @test_throws Meta.ParseError parse(ControlNamelist, " ")
 end
 
-@testset "Parse `Si`" begin
+@testset "Test parsing a `PWInput`: silicon" begin
     # From https://github.com/QEF/q-e/blob/121edf5/PW/examples/example01/run_example#L81-L116
     str = read("data/si.scf.cg.in", String)
     pw = parse(PWInput, str)
@@ -23,8 +23,8 @@ end
         outdir = "./",
     )
     @test pw.system ==
-          SystemNamelist(ibrav = 2, celldm = [10.20], nat = 2, ntyp = 1, ecutwfc = 18)
-    @test pw.electrons == ElectronsNamelist(diagonalization = "cg", conv_thr = 1e-8)
+          SystemNamelist(; ibrav = 2, celldm = [10.20], nat = 2, ntyp = 1, ecutwfc = 18)
+    @test pw.electrons == ElectronsNamelist(; diagonalization = "cg", conv_thr = 1e-8)
     @test pw.ions == IonsNamelist()
     @test pw.cell == CellNamelist()
     @test pw.atomic_species ==
