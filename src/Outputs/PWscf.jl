@@ -350,6 +350,7 @@ end # function parse_energy_decomposition
 function parse_paw_contribution(str::AbstractString)
     df = DataFrame(
         step = Int[],
+        one_electron = Maybe{Float64}[],
         hartree_ae = Maybe{Float64}[],
         hartree_ps = Maybe{Float64}[],
         xc_ae = Maybe{Float64}[],
