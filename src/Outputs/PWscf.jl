@@ -296,7 +296,8 @@ function parse_bands(str::AbstractString)
     m = match(KS_ENERGIES_BLOCK, str)
     if m !== nothing
         kpts, bands = Vector{Float64}[], Vector{Float64}[]
-        regex = match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
+        regex =
+            match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
             KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
             push!(
