@@ -1,10 +1,12 @@
 using QuantumESPRESSOParser
 using Documenter
 
+DocMeta.setdocmeta!(QuantumESPRESSOParser, :DocTestSetup, :(using QuantumESPRESSOParser); recursive=true)
+
 makedocs(;
     modules=[QuantumESPRESSOParser],
     authors="Qi Zhang <singularitti@outlook.com>",
-    repo="https://github.com/MineralsCloud/QuantumESPRESSOParser.jl/blob/{commit}{path}#L{line}",
+    repo="https://github.com/MineralsCloud/QuantumESPRESSOParser.jl/blob/{commit}{path}#{line}",
     sitename="QuantumESPRESSOParser.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
