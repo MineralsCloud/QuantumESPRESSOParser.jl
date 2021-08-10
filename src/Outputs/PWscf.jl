@@ -137,7 +137,7 @@ function parse_ibz(str::AbstractString)::Maybe{Tuple}
             for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
                 x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
             end
-            push!(result, KPointsCard(v, x))
+            push!(result, SpecialPointsCard(x, v))
         else
             push!(result, nothing)
         end
@@ -296,7 +296,8 @@ function parse_bands(str::AbstractString)
     m = match(KS_ENERGIES_BLOCK, str)
     if m !== nothing
         kpts, bands = Vector{Float64}[], Vector{Float64}[]
-        regex = match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
+        regex =
+            match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
             KS_ENERGIES_BANDS
         for m in eachmatch(regex, str)
             push!(
@@ -350,6 +351,7 @@ end # function parse_energy_decomposition
 function parse_paw_contribution(str::AbstractString)
     df = DataFrame(
         step = Int[],
+        one_electron = Maybe{Float64}[],
         hartree_ae = Maybe{Float64}[],
         hartree_ps = Maybe{Float64}[],
         xc_ae = Maybe{Float64}[],
