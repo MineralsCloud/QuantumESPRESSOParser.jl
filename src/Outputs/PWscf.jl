@@ -137,7 +137,7 @@ function parse_ibz(str::AbstractString)::Maybe{Tuple}
             for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
                 x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
             end
-            push!(result, KPointsCard(v, x))
+            push!(result, SpecialPointsCard(x, v))
         else
             push!(result, nothing)
         end
