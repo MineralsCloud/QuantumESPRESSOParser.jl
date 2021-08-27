@@ -2,9 +2,10 @@ module PHonon
 
 using AbInitioSoftwareBase.Inputs: Namelist, groupname
 using Compat: only
+using Crystallography: ReciprocalPoint
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.Inputs.PHonon:
-    SpecialPoint,
+    ReciprocalPoint,
     QPointsCard,
     PhInput,
     Q2rInput,
@@ -45,7 +46,7 @@ function Base.tryparse(::Type{QPointsCard}, str::AbstractString)
         captured = only(m.captures)
         data = map(eachmatch(Q_POINTS_SPECIAL_ITEM_REGEX, captured)) do matched
             # TODO: Match `nqs`
-            SpecialPoint(map(x -> fparse(Float64, x), matched.captures))
+            ReciprocalPoint(map(x -> fparse(Float64, x), matched.captures))
         end
         return QPointsCard(data)
     end

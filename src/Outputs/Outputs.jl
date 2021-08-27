@@ -20,6 +20,6 @@ struct SubroutineError
 end
 
 include("PWscf.jl")
-# include("PHonon.jl")
+include("PHonon.jl")
 
 end
