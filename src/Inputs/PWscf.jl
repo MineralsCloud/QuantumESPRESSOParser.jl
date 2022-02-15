@@ -11,7 +11,7 @@ julia>
 """
 module PWscf
 
-using AbInitioSoftwareBase.Inputs: asstring, groupname
+using AbInitioSoftwareBase.Inputs: groupname
 using Compat: only
 using Crystallography: ReciprocalPoint, MonkhorstPackGrid
 using PyFortran90Namelists: fparse
