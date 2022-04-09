@@ -1,14 +1,3 @@
-"""
-# module Inputs
-
-
-
-# Examples
-
-```jldoctest
-julia>
-```
-"""
 module Inputs
 
 using AbInitioSoftwareBase.Inputs: Namelist, groupname

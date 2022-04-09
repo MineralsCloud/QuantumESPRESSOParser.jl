@@ -1,14 +1,3 @@
-"""
-# module Outputs
-
-
-
-# Examples
-
-```jldoctest
-julia>
-```
-"""
 module Outputs
 
 export SubroutineError

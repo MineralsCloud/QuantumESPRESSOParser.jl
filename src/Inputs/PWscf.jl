@@ -1,14 +1,3 @@
-"""
-# module PWscf
-
-
-
-# Examples
-
-```jldoctest
-julia>
-```
-"""
 module PWscf
 
 using AbInitioSoftwareBase.Inputs: groupname
