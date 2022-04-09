@@ -6,7 +6,7 @@ using QuantumESPRESSOBase.Inputs.PWscf
 using QuantumESPRESSOParser.Outputs.PWscf
 
 @testset "Parse scf Al output" begin
-    url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/example01/reference/al.scf.ppcg.out"
+    url = "https://raw.githubusercontent.com/QEF/q-e/2afe9ad/PW/examples/example01/reference/al.scf.ppcg.out"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -294,7 +294,7 @@ using QuantumESPRESSOParser.Outputs.PWscf
 end
 
 @testset "Parse scf Si output" begin
-    url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/example01/reference/si.scf.cg.out"
+    url = "https://raw.githubusercontent.com/QEF/q-e/c2f5fd3/PW/examples/example01/reference/si.scf.cg.out"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -467,7 +467,7 @@ end
 end
 
 @testset "Parse scf NaCl output" begin
-    url = "https://raw.githubusercontent.com/atztogo/phonopy/master/example/NaCl-pwscf/NaCl-001.out"
+    url = "https://raw.githubusercontent.com/phonopy/phonopy/d0cb626/example/NaCl-QE/NaCl-001.out"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -610,7 +610,7 @@ end
 end
 
 @testset "Parse scf SiO2 output" begin
-    url = "https://raw.githubusercontent.com/maxhutch/deprecated-quantum-espresso/master/XSpectra/examples/reference/SiO2.scf.out"
+    url = "https://raw.githubusercontent.com/maxhutch/deprecated-quantum-espresso/8be70f4/XSpectra/examples/reference/SiO2.scf.out"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -774,7 +774,7 @@ end
 end
 
 @testset "Parse vc-relax As output" begin
-    url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/VCSexample/reference/As.vcs00.out"
+    url = "https://raw.githubusercontent.com/QEF/q-e/c2f5fd3/PW/examples/VCSexample/reference/As.vcs00.out"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -1650,7 +1650,7 @@ end
 end
 
 @testset "Parse vc-relax graphene output" begin
-    url = "https://raw.githubusercontent.com/QEF/q-e/7d5cebcf1250114756b88c6064ebe82e6f8fd835/PW/examples/ESM_example/reference/graphene_bc1_vc-relax.out"
+    url = "https://raw.githubusercontent.com/QEF/q-e/946a1f8/PW/examples/ESM_example/reference/graphene_bc1_vc-relax.out"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -3506,7 +3506,7 @@ end
 end
 
 @testset "Parse relax CO output" begin
-    url = "https://raw.githubusercontent.com/maxhutch/deprecated-quantum-espresso/master/PW/tests/relax-damped.ref"
+    url = "https://raw.githubusercontent.com/maxhutch/deprecated-quantum-espresso/23d3261/PW/tests/relax-damped.ref"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -3718,7 +3718,7 @@ end
 end
 
 @testset "Parse relax H2O output" begin
-    url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/cluster_example/reference/h2o.out-12"
+    url = "https://raw.githubusercontent.com/QEF/q-e/82204b6/PW/examples/cluster_example/reference/h2o.out-12"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -3898,7 +3898,7 @@ end
 end
 
 @testset "Parse relax NH4 output" begin
-    url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/cluster_example/reference/nh4%2B.out-12"
+    url = "https://raw.githubusercontent.com/QEF/q-e/82204b6/PW/examples/cluster_example/reference/nh4%2B.out-12"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -4066,7 +4066,7 @@ end
 end
 
 @testset "Parse relax MoS output" begin
-    url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/gatefield/reference/single_%2B0.10.out"
+    url = "https://raw.githubusercontent.com/QEF/q-e/7be27df/PW/examples/gatefield/reference/single_%2B0.10.out"
     str = open(download(url), "r") do io
         read(io, String)
     end
@@ -4340,7 +4340,7 @@ end
 end
 
 @testset "Parse relax Al output" begin
-    url = "https://raw.githubusercontent.com/QEF/q-e/master/PW/examples/ESM_example/reference/Al001_bc3_v00.out"
+    url = "https://raw.githubusercontent.com/QEF/q-e/946a1f8/PW/examples/ESM_example/reference/Al001_bc3_v00.out"
     str = open(download(url), "r") do io
         read(io, String)
     end
