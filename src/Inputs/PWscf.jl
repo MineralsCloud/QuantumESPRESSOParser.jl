@@ -60,7 +60,7 @@ const ATOMIC_POSITIONS_BLOCK = r"""
             |                                   # OR
             \s*                                 # A line only containing white space
          )
-        \R                                      # line break at the end
+        \R*                                     # line break at the end
     )+                                          # A positions block should be one or more lines
 )
 """imx
