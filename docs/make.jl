@@ -5,12 +5,13 @@ DocMeta.setdocmeta!(QuantumESPRESSOParser, :DocTestSetup, :(using QuantumESPRESS
 
 makedocs(;
     modules=[QuantumESPRESSOParser],
-    authors="Reno <singularitti@outlook.com>",
+    authors="singularitti <singularitti@outlook.com> and contributors",
     repo="https://github.com/MineralsCloud/QuantumESPRESSOParser.jl/blob/{commit}{path}#{line}",
     sitename="QuantumESPRESSOParser.jl",
     format=Documenter.HTML(;
         prettyurls=get(ENV, "CI", "false") == "true",
         canonical="https://MineralsCloud.github.io/QuantumESPRESSOParser.jl",
+        edit_link="main",
         assets=String[],
     ),
     pages=[
@@ -20,4 +21,5 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/MineralsCloud/QuantumESPRESSOParser.jl",
+    devbranch="main",
 )
