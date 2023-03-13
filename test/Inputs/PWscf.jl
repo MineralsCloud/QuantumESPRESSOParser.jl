@@ -1,8 +1,8 @@
 using Test
 
 using Crystallography
-using QuantumESPRESSOBase.Inputs.PWscf
-using QuantumESPRESSOParser.Inputs
+using QuantumESPRESSOBase.PWscf
+using QuantumESPRESSOParser
 
 @testset "Parse empty strings" begin
     @test_throws Meta.ParseError parse(ControlNamelist, " ")

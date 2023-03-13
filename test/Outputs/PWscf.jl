@@ -1,7 +1,7 @@
 using Test
 
 using DataFrames
-using QuantumESPRESSOBase.Inputs.PWscf
+using QuantumESPRESSOBase.PWscf
 
 using QuantumESPRESSOParser.Outputs.PWscf
 

@@ -1,5 +1,5 @@
 using AbInitioSoftwareBase.Inputs: Namelist, groupname
-using QuantumESPRESSOBase.Inputs: QuantumESPRESSOInput
+using QuantumESPRESSOBase: QuantumESPRESSOInput
 using PyFortran90Namelists: Parser
 
 struct InvalidInput

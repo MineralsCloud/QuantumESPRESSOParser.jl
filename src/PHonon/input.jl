@@ -3,7 +3,7 @@ using AbInitioSoftwareBase.Inputs: Namelist, groupname
 using Compat: only
 using Crystallography: ReciprocalPoint
 using PyFortran90Namelists: fparse
-using QuantumESPRESSOBase.Inputs.PHonon:
+using QuantumESPRESSOBase.PHonon:
     ReciprocalPoint,
     QPointsCard,
     PhInput,
