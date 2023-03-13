@@ -1,5 +1,3 @@
-module PWscf
-
 using Compat: only
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
@@ -636,5 +634,3 @@ function parsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m === nothing && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
     return tryparse_internal(T, m.match)
 end # function parsefinal
-
-end
