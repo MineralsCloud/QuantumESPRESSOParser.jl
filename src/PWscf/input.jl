@@ -1,5 +1,3 @@
-module PWscf
-
 using AbInitioSoftwareBase.Inputs: groupname
 using Compat: only
 using Crystallography: ReciprocalPoint, MonkhorstPackGrid
@@ -296,5 +294,3 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
     push!(args, nothing)
     return PWInput(args...)
 end # function Base.parse
-
-end
