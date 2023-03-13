@@ -1,13 +1,15 @@
-module PWscf
-
 using Compat: only
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using Parameters: @with_kw
-using QuantumESPRESSOBase.Inputs.PWscf
+using QuantumESPRESSOBase.PWscf
 using VersionParsing: vparse
 
-using ..Outputs: SubroutineError
+struct SubroutineError
+    name::String
+    cerr::String
+    msg::String
+end
 
 export Diagonalization,
     Preamble,
@@ -86,17 +88,16 @@ rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is
 return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
 function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
-    df =
-        DataFrame(kind = String[], stats = String[], dense = Int[], smooth = Int[], PW = [])
+    df = DataFrame(; kind=String[], stats=String[], dense=Int[], smooth=Int[], PW=[])
     m = match(FFT_BASE_INFO, str)
     if m === nothing
         @info("The FFT base info is not found!")
-        return
+        return nothing
     end
     body = m[:body]
     for line in split(body, r"\R+")  # Don’t want empty lines
         # "Min",4X,2I8,I7,12X,2I9,I8
-        sp = split(line, " ", keepempty = false)  # Don't want empty strings
+        sp = split(line, " "; keepempty=false)  # Don't want empty strings
         numbers = map(x -> parse(Int, x), sp[2:7])
         push!(df, ["sticks" sp[1] numbers[1:3]...])
         push!(df, ["gvecs" sp[1] numbers[4:6]...])
@@ -106,8 +107,8 @@ end # function parse_fft_base_info
 
 function parse_symmetries(str::AbstractString)
     m = match(SYM_OPS, str)
-    m === nothing && return
-    num_sym_ops = isempty(m[:n]) ? 0 : parse(Int, m[:n])
+    m === nothing && return nothing
+    return num_sym_ops = isempty(m[:n]) ? 0 : parse(Int, m[:n])
 end # function parse_symmetries
 
 # Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
@@ -115,7 +116,7 @@ function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if m === nothing
         @info("The k-points info is not found!")
-        return
+        return nothing
     end
     nk = parse(Int, m[:nk])
     result = []
@@ -143,7 +144,7 @@ function parse_stress(str::AbstractString)
 
         stress_atomic, stress_kbar = ntuple(_ -> Matrix{Float64}(undef, 3, 3), 2)
         for (i, line) in enumerate(split(content, r"\R+"))
-            tmp = map(x -> parse(Float64, x), split(line, " ", keepempty = false))
+            tmp = map(x -> parse(Float64, x), split(line, " "; keepempty=false))
             stress_atomic[i, :], stress_kbar[i, :] = tmp[1:3], tmp[4:6]
         end
         push!(atomic_stresses, stress_atomic)
@@ -164,11 +165,11 @@ function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString
 end # function _iterationwise
 
 function parse_iteration_head(str::AbstractString)
-    df = DataFrame(
-        step = Int[],  # Step number
-        iteration = Int[],  # Iteration number
-        ecut = Float64[],  # Cutoff energy
-        β = Float64[],  # Mixing beta
+    df = DataFrame(;
+        step=Int[],  # Step number
+        iteration=Int[],  # Iteration number
+        ecut=Float64[],  # Cutoff energy
+        β=Float64[],  # Mixing beta
     )
     return _iterationwise!(_parse_iteration_head, df, str)
 end # function parse_iteration_head
@@ -179,7 +180,7 @@ function _parse_iteration_head(str::AbstractString)
 end # function _parse_iteration_head
 
 function parse_iteration_time(str::AbstractString)
-    df = DataFrame(step = Int[], iteration = Int[], time = Float64[])
+    df = DataFrame(; step=Int[], iteration=Int[], time=Float64[])
     return _iterationwise!(_parse_iteration_time, df, str)
 end # function parse_iteration_time
 # This is a helper function and should not be exported.
@@ -188,12 +189,12 @@ function _parse_iteration_time(str::AbstractString)
 end # function _parse_iteration_time
 
 function parse_diagonalization(str::AbstractString)
-    df = DataFrame(
-        step = Int[],
-        iteration = Int[],
-        diag = Diagonalization[],  # Diagonalization style
-        ethr = Float64[],  # Energy threshold
-        avg = Float64[],  # Average # of iterations
+    df = DataFrame(;
+        step=Int[],
+        iteration=Int[],
+        diag=Diagonalization[],  # Diagonalization style
+        ethr=Float64[],  # Energy threshold
+        avg=Float64[],  # Average # of iterations
     )
     return _iterationwise!(_parse_diagonalization, df, str)
 end # function parse_diagonalization
@@ -225,21 +226,21 @@ function _parse_nonconverged_energy(str::AbstractString)
     return ɛ, hf, δ
 end # function _parse_nonconverged_energy
 function _parse_electrons_energies(str::AbstractString, ::Val{:nonconverged})
-    df = DataFrame(
-        step = Int[],
-        iteration = Int[],
-        ɛ = Maybe{Float64}[],  # Total energy
-        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
-        δ = Maybe{Float64}[],  # Estimated scf accuracy
+    df = DataFrame(;
+        step=Int[],
+        iteration=Int[],
+        ɛ=Maybe{Float64}[],  # Total energy
+        hf=Maybe{Float64}[],  # Harris-Foulkes estimate
+        δ=Maybe{Float64}[],  # Estimated scf accuracy
     )
     return _iterationwise!(_parse_nonconverged_energy, df, str)
 end # function _parse_electrons_energies
 function _parse_electrons_energies(str::AbstractString, ::Val{:converged})
-    df = DataFrame(
-        step = Int[],
-        ɛ = Maybe{Float64}[],  # Total energy
-        hf = Maybe{Float64}[],  # Harris-Foulkes estimate
-        δ = Maybe{Float64}[],  # Estimated scf accuracy
+    df = DataFrame(;
+        step=Int[],
+        ɛ=Maybe{Float64}[],  # Total energy
+        hf=Maybe{Float64}[],  # Harris-Foulkes estimate
+        δ=Maybe{Float64}[],  # Estimated scf accuracy
     )
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
         data = if m !== nothing
@@ -258,11 +259,11 @@ function _parse_electrons_energies(str::AbstractString, ::Val{:combined})
     m = 1  # Initial step number
     for (i, n) in enumerate(nonconverged.step)
         if n != m
-            @assert(all(==(nothing), nonconverged[i-1, 3:5]))
+            @assert(all(==(nothing), nonconverged[i - 1, 3:5]))
             # nonconverged[i - 1, 3:5] = converged[n, 2:4]  # Converged energies do not have `iteration` column
-            nonconverged[i-1, 3] = converged[n, 2]
-            nonconverged[i-1, 4] = converged[n, 3]
-            nonconverged[i-1, 5] = converged[n, 4]
+            nonconverged[i - 1, 3] = converged[n, 2]
+            nonconverged[i - 1, 4] = converged[n, 3]
+            nonconverged[i - 1, 5] = converged[n, 4]
         end
         m = n  # Save the last step number
     end
@@ -280,18 +281,20 @@ end # function parse_electrons_energies
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_bands(str::AbstractString)
-    str == "Number of k-points >= 100: set verbosity='high' to print the bands." && return
+    str == "Number of k-points >= 100: set verbosity='high' to print the bands." &&
+        return nothing
     kpts, bands = nothing, nothing  # Initialization
     m = match(KS_ENERGIES_BLOCK, str)
     if m !== nothing
         kpts, bands = Vector{Float64}[], Vector{Float64}[]
-        regex =
-            match(KS_ENERGIES_BANDS, str) === nothing ? KS_ENERGIES_BAND_ENERGIES :
+        regex = if match(KS_ENERGIES_BANDS, str) === nothing
+            KS_ENERGIES_BAND_ENERGIES
+        else
             KS_ENERGIES_BANDS
+        end
         for m in eachmatch(regex, str)
             push!(
-                kpts,
-                map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k])),
+                kpts, map(x -> parse(Float64, x[1]), eachmatch(Regex(GENERAL_REAL), m[:k]))
             )
             push!(
                 bands,
@@ -299,14 +302,14 @@ function parse_bands(str::AbstractString)
             )
         end
         len, nbnd = length(kpts), length(bands[1])
-        kpts, bands = reshape(Iterators.flatten(kpts) |> collect, len, 3),
-        reshape(Iterators.flatten(bands) |> collect, len, nbnd)
+        kpts, bands = reshape(collect(Iterators.flatten(kpts)), len, 3),
+        reshape(collect(Iterators.flatten(bands)), len, nbnd)
     end  # Keep them `nothing` if `m` is `nothing`
     return kpts, bands
 end # function parse_bands
 
 function parse_all_electron_energy(str::AbstractString)
-    df = DataFrame(step = Int[], ae = Maybe{Float64}[])
+    df = DataFrame(; step=Int[], ae=Maybe{Float64}[])
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
         ae = if any(==(nothing), (m, m[:ae]))
             nothing
@@ -319,12 +322,12 @@ function parse_all_electron_energy(str::AbstractString)
 end # function parse_all_electron_energy
 
 function parse_energy_decomposition(str::AbstractString)
-    df = DataFrame(
-        step = Int[],
-        onelectron = Maybe{Float64}[],
-        hartree = Maybe{Float64}[],
-        xc = Maybe{Float64}[],
-        ewald = Maybe{Float64}[],
+    df = DataFrame(;
+        step=Int[],
+        onelectron=Maybe{Float64}[],
+        hartree=Maybe{Float64}[],
+        xc=Maybe{Float64}[],
+        ewald=Maybe{Float64}[],
     )
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
         data = if any(==(nothing), (m, m[:decomp]))
@@ -338,15 +341,15 @@ function parse_energy_decomposition(str::AbstractString)
 end # function parse_energy_decomposition
 
 function parse_paw_contribution(str::AbstractString)
-    df = DataFrame(
-        step = Int[],
-        one_electron = Maybe{Float64}[],
-        hartree_ae = Maybe{Float64}[],
-        hartree_ps = Maybe{Float64}[],
-        xc_ae = Maybe{Float64}[],
-        xc_ps = Maybe{Float64}[],
-        eh = Maybe{Float64}[],
-        exc = Maybe{Float64}[],
+    df = DataFrame(;
+        step=Int[],
+        one_electron=Maybe{Float64}[],
+        hartree_ae=Maybe{Float64}[],
+        hartree_ps=Maybe{Float64}[],
+        xc_ae=Maybe{Float64}[],
+        xc_ps=Maybe{Float64}[],
+        eh=Maybe{Float64}[],
+        exc=Maybe{Float64}[],
     )
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
         data = if any(==(nothing), (m, m[:one]))
@@ -360,7 +363,7 @@ function parse_paw_contribution(str::AbstractString)
 end # function parse_paw_contribution
 
 function parse_smearing_energy(str::AbstractString)
-    df = DataFrame(step = Int[], smearing = Maybe{Float64}[])
+    df = DataFrame(; step=Int[], smearing=Maybe{Float64}[])
     for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
         smearing = if any(==(nothing), (m, m[:smearing]))
             nothing
@@ -374,33 +377,29 @@ end # function parse_smearing_energy
 
 function parse_version(str::AbstractString)::Maybe{VersionNumber}
     m = match(PWSCF_VERSION, str)
-    m !== nothing ? vparse(m[:version]) : return
+    m !== nothing ? vparse(m[:version]) : return nothing
 end # function parse_version
 
 function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
     m = match(PARALLEL_INFO, str)
-    m === nothing && return
+    m === nothing && return nothing
     return m[:kind], m[:num] === nothing ? 1 : parse(Int, m[:num])
 end # function parse_parallel_info
 
 function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
     m = match(FFT_DIMENSIONS, str)
-    m === nothing && return
+    m === nothing && return nothing
     parsed = map(x -> parse(Int, x), m.captures)
     return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
 end # function parse_fft_dimensions
 
 function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     m = match(TIME_BLOCK, str)
-    m === nothing && return
+    m === nothing && return nothing
     content = only(m.captures)
 
-    info = DataFrame(
-        subroutine = String[],
-        item = String[],
-        CPU = Float64[],
-        wall = Float64[],
-        calls = Int[],
+    info = DataFrame(;
+        subroutine=String[], item=String[], CPU=Float64[], wall=Float64[], calls=Int[]
     )
     for regex in [
         SUMMARY_TIME_BLOCK
@@ -565,21 +564,19 @@ end # function tryparse_internal
 const AtomicStructure = Union{CellParametersCard,AtomicPositionsCard}
 
 function Base.parse(
-    ::Type{T},
-    str::AbstractString,
+    ::Type{T}, str::AbstractString
 ) where {T<:Union{Preamble,SubroutineError}}
     x = tryparse(T, str)
-    x === nothing ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
+    return x === nothing ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function Base.parse
 
 function _parse(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     x = tryparse(T, str)
-    x === nothing ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
+    return x === nothing ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
 end # function _parse
 
 const REGEXOF = (
-    CellParametersCard = CELL_PARAMETERS_BLOCK,
-    AtomicPositionsCard = ATOMIC_POSITIONS_BLOCK,
+    CellParametersCard=CELL_PARAMETERS_BLOCK, AtomicPositionsCard=ATOMIC_POSITIONS_BLOCK
 )
 
 tryparsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
@@ -610,14 +607,11 @@ tryparselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
 parselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = parseall(T, str)[end]
 
 function _parsenext_internal(
-    ::Type{T},
-    str::AbstractString,
-    start::Integer,
-    raise::Bool,
+    ::Type{T}, str::AbstractString, start::Integer, raise::Bool
 ) where {T}
     x = findnext(REGEXOF(T), str, start)
     if x === nothing
-        raise ? throw(Meta.ParseError("Nothing found for next!")) : return
+        raise ? throw(Meta.ParseError("Nothing found for next!")) : return nothing
     end
     return tryparse_internal(T, str[x])
 end # function parsenext
@@ -628,9 +622,9 @@ parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
 
 function tryparsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m = match(FINAL_COORDINATES_BLOCK, str)
-    m === nothing && return
+    m === nothing && return nothing
     m = match(REGEXOF[nameof(T)], m.match)
-    m === nothing && return
+    m === nothing && return nothing
     return tryparse_internal(T, m.match)
 end # function parsefinal
 function parsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
@@ -640,5 +634,3 @@ function parsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m === nothing && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
     return tryparse_internal(T, m.match)
 end # function parsefinal
-
-end

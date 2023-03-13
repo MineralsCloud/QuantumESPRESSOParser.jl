@@ -1,6 +1,7 @@
 module QuantumESPRESSOParser
 
-include("Inputs/Inputs.jl")
-include("Outputs/Outputs.jl")
+include("input.jl")
+include("PWscf/PWscf.jl")
+include("PHonon/PHonon.jl")
 
-end # module
+end

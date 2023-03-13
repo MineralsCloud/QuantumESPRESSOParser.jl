@@ -1,10 +1,9 @@
-module PHonon
 
 using AbInitioSoftwareBase.Inputs: Namelist, groupname
 using Compat: only
 using Crystallography: ReciprocalPoint
 using PyFortran90Namelists: fparse
-using QuantumESPRESSOBase.Inputs.PHonon:
+using QuantumESPRESSOBase.PHonon:
     ReciprocalPoint,
     QPointsCard,
     PhInput,
@@ -41,7 +40,7 @@ function Base.tryparse(::Type{QPointsCard}, str::AbstractString)
     m = match(Q_POINTS_SPECIAL_BLOCK_REGEX, str)
     if m === nothing
         @info "no q-points are provided."
-        return
+        return nothing
     else
         captured = only(m.captures)
         data = map(eachmatch(Q_POINTS_SPECIAL_ITEM_REGEX, captured)) do matched
@@ -64,7 +63,7 @@ function Base.tryparse(::Type{PhInput}, str::AbstractString)
         push!(args, tryparse(T, str))
     end
     if all(x === nothing for x in args)
-        return
+        return nothing
     else
         return PhInput(title_line, args[1], args[2])
     end
@@ -74,7 +73,7 @@ function Base.tryparse(::Type{Q2rInput}, str::AbstractString)
     if x !== nothing
         return Q2rInput(parse(Q2rNamelist, str))
     else
-        return
+        return nothing
     end
 end # function Base.tryparse
 function Base.parse(::Type{MatdynInput}, str::AbstractString)
@@ -83,7 +82,7 @@ function Base.parse(::Type{MatdynInput}, str::AbstractString)
         push!(args, tryparse(T, str))
     end
     if all(x === nothing for x in args)
-        return
+        return nothing
     else
         return MatdynInput(args[1], args[2])
     end
@@ -92,13 +91,12 @@ function Base.tryparse(::Type{DynmatInput}, str::AbstractString)
     if parse(DynmatNamelist, str)
         return DynmatInput(parse(DynmatNamelist, str))
     else
-        return
+        return nothing
     end
 end # function Base.tryparse
 
 function Base.parse(
-    ::Type{T},
-    str::AbstractString,
+    ::Type{T}, str::AbstractString
 ) where {T<:Union{QPointsCard,PhInput,Q2rInput,DynmatInput,MatdynInput}}
     x = tryparse(T, str)
     if x === nothing
@@ -107,5 +105,3 @@ function Base.parse(
         return x
     end
 end # function Base.parse
-
-end

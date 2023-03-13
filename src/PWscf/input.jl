@@ -1,11 +1,9 @@
-module PWscf
-
 using AbInitioSoftwareBase.Inputs: groupname
 using Compat: only
 using Crystallography: ReciprocalPoint, MonkhorstPackGrid
 using PyFortran90Namelists: fparse
-using QuantumESPRESSOBase.Inputs: Card
-using QuantumESPRESSOBase.Inputs.PWscf:
+using QuantumESPRESSOBase: Card
+using QuantumESPRESSOBase.PWscf:
     ControlNamelist,
     SystemNamelist,
     ElectronsNamelist,
@@ -296,5 +294,3 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
     push!(args, nothing)
     return PWInput(args...)
 end # function Base.parse
-
-end

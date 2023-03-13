@@ -1,7 +1,5 @@
-module Inputs
-
 using AbInitioSoftwareBase.Inputs: Namelist, groupname
-using QuantumESPRESSOBase.Inputs: QuantumESPRESSOInput
+using QuantumESPRESSOBase: QuantumESPRESSOInput
 using PyFortran90Namelists: Parser
 
 struct InvalidInput
@@ -25,9 +23,6 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Namelist}
     end
 end # function Base.parse
 
-include("PWscf.jl")
-include("PHonon.jl")
-
 # Idea from https://github.com/JuliaData/CSV.jl/blob/c3af297/src/CSV.jl#L64-L69
 function Base.read(io::IO, ::Type{T}) where {T<:QuantumESPRESSOInput}
     str = read(io, String)
@@ -36,6 +31,4 @@ end
 function Base.read(filename::AbstractString, ::Type{T}) where {T<:QuantumESPRESSOInput}
     str = read(filename, String)
     return parse(T, str)
-end
-
 end
