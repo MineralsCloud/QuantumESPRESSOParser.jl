@@ -14,7 +14,7 @@ end
 
 @testset "Test parsing a `PWInput`: silicon" begin
     # From https://github.com/QEF/q-e/blob/121edf5/PW/examples/example01/run_example#L81-L116
-    str = read("data/si.scf.cg.in", String)
+    str = read("../data/si.scf.cg.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
         prefix = "silicon",
@@ -53,7 +53,7 @@ end
 
 @testset "Test parsing a `PWInput`: silicon bands" begin
     # From https://github.com/QEF/q-e/blob/121edf5/PW/examples/example01/run_example#L125-L172
-    str = read("data/si.band.cg.in", String)
+    str = read("../data/si.band.cg.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
         calculation = "bands",
@@ -112,7 +112,7 @@ end
 
 @testset "Test parsing a `PWInput`: aluminium" begin
     # From https://github.com/QEF/q-e/blob/121edf5/PW/examples/example01/run_example#L186-L268
-    str = read("data/al.scf.david.in", String)
+    str = read("../data/al.scf.david.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
         calculation = "scf",
@@ -206,7 +206,7 @@ end
 
 @testset "Test parsing a `PWInput`: cobalt relaxation" begin
     # From https://github.com/QEF/q-e/blob/121edf5/PW/examples/example02/run_example#L83-L112
-    str = read("data/co.rx.in", String)
+    str = read("../data/co.rx.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
         calculation = "relax",
@@ -231,7 +231,7 @@ end
 
 @testset "Test parsing a `PWInput`: FeO" begin
     # From https://github.com/QEF/q-e/blob/121edf5/PW/examples/example08/run_example#L84-L124
-    str = read("data/feo_LDA.in", String)
+    str = read("../data/feo_LDA.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
         calculation = "scf",

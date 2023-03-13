@@ -2,8 +2,7 @@ using Test
 
 using DataFrames
 using QuantumESPRESSOBase.PWscf
-
-using QuantumESPRESSOParser.Outputs.PWscf
+using QuantumESPRESSOParser.PWscf
 
 @testset "Parse scf Al output" begin
     url = "https://raw.githubusercontent.com/QEF/q-e/2afe9ad/PW/examples/example01/reference/al.scf.ppcg.out"
