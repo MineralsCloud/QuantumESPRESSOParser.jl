@@ -1,5 +1,3 @@
-module Inputs
-
 using AbInitioSoftwareBase.Inputs: Namelist, groupname
 using QuantumESPRESSOBase.Inputs: QuantumESPRESSOInput
 using PyFortran90Namelists: Parser
@@ -36,6 +34,4 @@ end
 function Base.read(filename::AbstractString, ::Type{T}) where {T<:QuantumESPRESSOInput}
     str = read(filename, String)
     return parse(T, str)
-end
-
 end
