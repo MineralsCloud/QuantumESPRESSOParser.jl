@@ -49,7 +49,7 @@ function Base.tryparse(::Type{QPointsCard}, str::AbstractString)
         end
         return QPointsCard(data)
     end
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{PhInput}, str::AbstractString)
     title_line = ""
     for line in split(str, r"\r\n|\r|\n")
@@ -67,7 +67,7 @@ function Base.tryparse(::Type{PhInput}, str::AbstractString)
     else
         return PhInput(title_line, args[1], args[2])
     end
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{Q2rInput}, str::AbstractString)
     x = parse(Q2rNamelist, str)
     if x !== nothing
@@ -75,7 +75,7 @@ function Base.tryparse(::Type{Q2rInput}, str::AbstractString)
     else
         return nothing
     end
-end # function Base.tryparse
+end
 function Base.parse(::Type{MatdynInput}, str::AbstractString)
     args = []
     for T in (MatdynNamelist, QPointsCard)
@@ -86,14 +86,14 @@ function Base.parse(::Type{MatdynInput}, str::AbstractString)
     else
         return MatdynInput(args[1], args[2])
     end
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{DynmatInput}, str::AbstractString)
     if parse(DynmatNamelist, str)
         return DynmatInput(parse(DynmatNamelist, str))
     else
         return nothing
     end
-end # function Base.tryparse
+end
 
 function Base.parse(
     ::Type{T}, str::AbstractString
@@ -104,4 +104,4 @@ function Base.parse(
     else
         return x
     end
-end # function Base.parse
+end

@@ -180,13 +180,14 @@ function Base.tryparse(::Type{AtomicSpeciesCard}, str::AbstractString)
         return AtomicSpeciesCard(
             map(eachmatch(ATOMIC_SPECIES_ITEM, content)) do matched
                 captured = matched.captures
-                atom, mass, pseudopotential =
-                    captured[1], fparse(Float64, captured[2]), captured[3]
+                atom, mass, pseudopotential = captured[1],
+                fparse(Float64, captured[2]),
+                captured[3]
                 AtomicSpecies(atom, mass, pseudopotential)
             end,
         )
     end
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
@@ -213,18 +214,18 @@ function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
             option,
         )
     end
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{GammaPointCard}, str::AbstractString)
     m = match(K_POINTS_GAMMA_BLOCK, str)
     return m === nothing ? nothing : GammaPointCard()
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{KMeshCard}, str::AbstractString)
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
     if m !== nothing
         data = map(x -> fparse(Int, x), m.captures)
         return KMeshCard(MonkhorstPackGrid(data[1:3], data[4:6]))
     end
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
     m = match(K_POINTS_SPECIAL_BLOCK, str)
     if m !== nothing
@@ -237,7 +238,7 @@ function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
             option,
         )
     end
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
     for T in (GammaPointCard, KMeshCard, SpecialPointsCard)
         x = tryparse(T, str)
@@ -245,7 +246,7 @@ function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
             return x
         end
     end
-end # function Base.tryparse
+end
 function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
@@ -260,12 +261,13 @@ function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
         data = Matrix{Float64}(undef, 3, 3)
         for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, content))
             captured = matched.captures
-            data[i, :] =
-                map(x -> fparse(Float64, x), [captured[1], captured[4], captured[7]])
+            data[i, :] = map(
+                x -> fparse(Float64, x), [captured[1], captured[4], captured[7]]
+            )
         end
         return CellParametersCard(data, option)
     end
-end # function Base.tryparse
+end
 
 function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
     x = tryparse(T, str)
@@ -274,7 +276,7 @@ function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
     else
         return x
     end
-end # function Base.parse
+end
 function Base.parse(::Type{PWInput}, str::AbstractString)
     args = []
     for T in
@@ -293,4 +295,4 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
     push!(args, nothing)
     push!(args, nothing)
     return PWInput(args...)
-end # function Base.parse
+end

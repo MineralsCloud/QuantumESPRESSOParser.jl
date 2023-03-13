@@ -15,27 +15,27 @@ using QuantumESPRESSOParser.PWscf
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 1,
-              alat = 7.5,
-              omega = 105.4688,
-              nat = 1,
-              ntyp = 1,
-              nelec = 3.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 6,
-              ecutwfc = 15.0,
-              ecutrho = 60.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-6,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA PZ NOGX NOGC ( 1  1  0  0 0 0)",
-              nstep = nothing,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=1,
+            alat=7.5,
+            omega=105.4688,
+            nat=1,
+            ntyp=1,
+            nelec=3.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=6,
+            ecutwfc=15.0,
+            ecutrho=60.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-6,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA PZ NOGX NOGC ( 1  1  0  0 0 0)",
+            nstep=nothing,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -62,10 +62,9 @@ using QuantumESPRESSOParser.PWscf
                 SpecialPoint([0.0625, 0.0625, 0.8125], 0.0234375),
                 SpecialPoint([0.0625, 0.0625, 0.9375], 0.0234375),
                 SpecialPoint([0.0625, 0.1875, 0.1875], 0.0234375),
-                SpecialPoint(
-                    [0.0625, 0.1875, 0.3125],
-                    0.046875,
-                )…SpecialPoint([0.3125, 0.3125, 0.3125], 0.0078125),
+                SpecialPoint([0.0625, 0.1875, 0.3125], 0.046875) … SpecialPoint(
+                    [0.3125, 0.3125, 0.3125], 0.0078125
+                ),
                 SpecialPoint([0.3125, 0.3125, 0.4375], 0.0234375),
                 SpecialPoint([0.3125, 0.3125, 0.5625], 0.0234375),
                 SpecialPoint([0.3125, 0.3125, 0.6875], 0.0234375),
@@ -126,7 +125,7 @@ using QuantumESPRESSOParser.PWscf
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 4)
 
-    @test parse_fft_dimensions(str) == (869, (nr1 = 15, nr2 = 15, nr3 = 15))
+    @test parse_fft_dimensions(str) == (869, (nr1=15, nr2=15, nr3=15))
 
     @test parse_bands(str) == (
         [
@@ -303,27 +302,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 2,
-              alat = 10.2,
-              omega = 265.302,
-              nat = 2,
-              ntyp = 1,
-              nelec = 8.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 4,
-              ecutwfc = 18.0,
-              ecutrho = 72.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-8,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-              nstep = nothing,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=2,
+            alat=10.2,
+            omega=265.302,
+            nat=2,
+            ntyp=1,
+            nelec=8.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=4,
+            ecutwfc=18.0,
+            ecutrho=72.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-8,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+            nstep=nothing,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -338,7 +337,7 @@ end
     )
 
     @test parse_ibz(str) == (
-        cart = [
+        cart=[
             0.125 0.125 0.125 0.0625
             0.125 0.125 0.375 0.1875
             0.125 0.125 0.625 0.1875
@@ -350,7 +349,7 @@ end
             0.375 0.375 0.375 0.0625
             0.375 0.375 0.625 0.1875
         ],
-        cryst = nothing,
+        cryst=nothing,
     )
 
     @test parse_stress(str) == (
@@ -400,7 +399,7 @@ end
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 4)
 
-    @test parse_fft_dimensions(str) == (2733, (nr1 = 20, nr2 = 20, nr3 = 20))
+    @test parse_fft_dimensions(str) == (2733, (nr1=20, nr2=20, nr3=20))
 
     @test parse_bands(str) == (
         [
@@ -476,27 +475,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 64,
-              alat = 21.5062,
-              omega = 9947.007,
-              nat = 64,
-              ntyp = 2,
-              nelec = 512.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 256,
-              ecutwfc = 70.0,
-              ecutrho = 280.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-9,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA  PW   PBX  PBC ( 1  4  3  4 0 0)",
-              nstep = nothing,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=64,
+            alat=21.5062,
+            omega=9947.007,
+            nat=64,
+            ntyp=2,
+            nelec=512.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=256,
+            ecutwfc=70.0,
+            ecutrho=280.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-9,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA  PW   PBX  PBC ( 1  4  3  4 0 0)",
+            nstep=nothing,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -510,7 +509,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (cart = [0.25 0.25 0.25 2.0], cryst = nothing)
+    @test parse_ibz(str) == (cart=[0.25 0.25 0.25 2.0], cryst=nothing)
 
     @test parse_stress(str) == (
         [0.63],
@@ -563,7 +562,7 @@ end
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 16)
 
-    @test parse_fft_dimensions(str) == (786247, (nr1 = 120, nr2 = 120, nr3 = 120))
+    @test parse_fft_dimensions(str) == (786247, (nr1=120, nr2=120, nr3=120))
 
     @test parse_bands(str) == (
         [0.25 0.25 0.25],
@@ -619,27 +618,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 9,
-              alat = 9.2863,
-              omega = 762.9417,
-              nat = 9,
-              ntyp = 3,
-              nelec = 48.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 30,
-              ecutwfc = 20.0,
-              ecutrho = 150.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-9,
-              mixing_beta = 0.3,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
-              nstep = nothing,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=9,
+            alat=9.2863,
+            omega=762.9417,
+            nat=9,
+            ntyp=3,
+            nelec=48.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=30,
+            ecutwfc=20.0,
+            ecutrho=150.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-9,
+            mixing_beta=0.3,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
+            nstep=nothing,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -650,7 +649,7 @@ end
     )
 
     @test parse_ibz(str) == (
-        cart = [
+        cart=[
             0.0 0.0 0.0 0.25
             0.0 0.0 -0.4545041 0.25
             0.0 -0.5773503 0.0 0.25
@@ -658,7 +657,7 @@ end
             0.5 -0.2886751 0.0 0.5
             0.5 -0.2886751 -0.4545041 0.5
         ],
-        cryst = [
+        cryst=[
             0.0 0.0 0.0 0.25
             0.0 0.0 -0.5 0.25
             0.0 -0.5 0.0 0.25
@@ -707,7 +706,7 @@ end
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 1)
 
-    @test parse_fft_dimensions(str) == (23595, (nr1 = 40, nr2 = 40, nr3 = 40))
+    @test parse_fft_dimensions(str) == (23595, (nr1=40, nr2=40, nr3=40))
 
     @test parse_bands(str) == (
         [
@@ -783,27 +782,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 2,
-              alat = 7.0103,
-              omega = 245.3705,
-              nat = 2,
-              ntyp = 1,
-              nelec = 10.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 9,
-              ecutwfc = 25.0,
-              ecutrho = 100.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-7,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-              nstep = 55,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=2,
+            alat=7.0103,
+            omega=245.3705,
+            nat=2,
+            ntyp=1,
+            nelec=10.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=9,
+            ecutwfc=25.0,
+            ecutrho=100.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-7,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+            nstep=55,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -818,7 +817,7 @@ end
     )
 
     @test parse_ibz(str) == (
-        cart = [
+        cart=[
             0.0 0.0 0.1534638 0.0625
             -0.1436461 -0.2488023 0.2557731 0.1875
             0.2872922 0.4976046 -0.0511547 0.1875
@@ -830,7 +829,7 @@ end
             0.0 0.0 0.4603915 0.0625
             0.4309383 0.746407 0.1534638 0.1875
         ],
-        cryst = nothing,
+        cryst=nothing,
     )
 
     @test parse_stress(str) == (
@@ -1215,13 +1214,13 @@ end
     )
 
     @test parse_electrons_energies(str, :converged) ==
-          (-25.4401674, -25.44016741, 2.0e-8, nothing, nothing, nothing, nothing)
+        (-25.4401674, -25.44016741, 2.0e-8, nothing, nothing, nothing, nothing)
 
     @test parse_version(str) == "6.0"
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 2)
 
-    @test parse_fft_dimensions(str) == (4159, (nr1 = 24, nr2 = 24, nr3 = 24))
+    @test parse_fft_dimensions(str) == (4159, (nr1=24, nr2=24, nr3=24))
 
     @test parse_bands(str) == (
         [
@@ -1659,27 +1658,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 2,
-              alat = 5.0,
-              omega = 675.0316,
-              nat = 2,
-              ntyp = 1,
-              nelec = 8.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 8,
-              ecutwfc = 36.0,
-              ecutrho = 144.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-8,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-              nstep = 50,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=2,
+            alat=5.0,
+            omega=675.0316,
+            nat=2,
+            ntyp=1,
+            nelec=8.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=8,
+            ecutwfc=36.0,
+            ecutrho=144.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-8,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+            nstep=50,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -1694,7 +1693,7 @@ end
     )
 
     @test parse_ibz(str) == (
-        cart = [
+        cart=[
             0.0 0.0 0.0 0.0138889
             0.0 0.0933154 0.0 0.0277778
             0.0 0.1866307 0.0 0.0277778
@@ -1770,7 +1769,7 @@ end
             -0.5 0.2146254 0.0 0.0277778
             -0.5 -0.8118437 0.0 0.0138889
         ],
-        cryst = nothing,
+        cryst=nothing,
     )
 
     @test parse_stress(str) == (
@@ -1973,7 +1972,7 @@ end
 
     @test parse_parallel_info(str) == ("Parallel version (MPI & OpenMP)", 1)
 
-    @test parse_fft_dimensions(str) == (19689, (nr1 = 20, nr2 = 20, nr3 = 120))
+    @test parse_fft_dimensions(str) == (19689, (nr1=20, nr2=20, nr3=120))
 
     @test parse_bands(str) == (
         [
@@ -3515,27 +3514,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 2,
-              alat = 12.0,
-              omega = 1728.0,
-              nat = 2,
-              ntyp = 2,
-              nelec = 10.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 5,
-              ecutwfc = 24.0,
-              ecutrho = 144.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-6,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
-              nstep = 50,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=2,
+            alat=12.0,
+            omega=1728.0,
+            nat=2,
+            ntyp=2,
+            nelec=10.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=5,
+            ecutwfc=24.0,
+            ecutrho=144.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-6,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA  PZ   NOGX NOGC ( 1  1  0  0 0 0)",
+            nstep=50,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -3545,7 +3544,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (cart = [0.0 0.0 0.0 2.0], cryst = nothing)
+    @test parse_ibz(str) == (cart=[0.0 0.0 0.0 2.0], cryst=nothing)
 
     @test all(isempty, parse_stress(str))
 
@@ -3636,13 +3635,13 @@ end
     )
 
     @test parse_electrons_energies(str, :converged) ==
-          (-43.09625738, -43.0962577, 3.9e-7, nothing, nothing, nothing, nothing)
+        (-43.09625738, -43.0962577, 3.9e-7, nothing, nothing, nothing, nothing)
 
     @test parse_version(str) == "5.2.1"
 
     @test parse_parallel_info(str) == ("Serial version", 1)
 
-    @test parse_fft_dimensions(str) == (25271, (nr1 = 45, nr2 = 45, nr3 = 45))
+    @test parse_fft_dimensions(str) == (25271, (nr1=45, nr2=45, nr3=45))
 
     @test parse_bands(str) == (
         [
@@ -3727,27 +3726,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 3,
-              alat = 12.0,
-              omega = 1728.0,
-              nat = 3,
-              ntyp = 2,
-              nelec = 8.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 8,
-              ecutwfc = 30.0,
-              ecutrho = 120.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-7,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA PW PBX PBC ( 1  4  3  4 0 0)",
-              nstep = 50,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=3,
+            alat=12.0,
+            omega=1728.0,
+            nat=3,
+            ntyp=2,
+            nelec=8.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=8,
+            ecutwfc=30.0,
+            ecutrho=120.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-7,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA PW PBX PBC ( 1  4  3  4 0 0)",
+            nstep=50,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -3757,7 +3756,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (cart = [0.0 0.0 0.0 2.0], cryst = nothing)
+    @test parse_ibz(str) == (cart=[0.0 0.0 0.0 2.0], cryst=nothing)
 
     @test all(isempty, parse_stress(str))
 
@@ -3833,7 +3832,7 @@ end
 
     @test parse_parallel_info(str) == ("Serial version", 1)
 
-    @test parse_fft_dimensions(str) == (19201, (nr1 = 45, nr2 = 45, nr3 = 45))
+    @test parse_fft_dimensions(str) == (19201, (nr1=45, nr2=45, nr3=45))
 
     @test parse_bands(str) == (
         [
@@ -3907,27 +3906,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 5,
-              alat = 12.0,
-              omega = 1728.0,
-              nat = 5,
-              ntyp = 2,
-              nelec = 8.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 8,
-              ecutwfc = 30.0,
-              ecutrho = 120.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-7,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA PW PBX PBC ( 1  4  3  4 0 0)",
-              nstep = 50,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=5,
+            alat=12.0,
+            omega=1728.0,
+            nat=5,
+            ntyp=2,
+            nelec=8.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=8,
+            ecutwfc=30.0,
+            ecutrho=120.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-7,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA PW PBX PBC ( 1  4  3  4 0 0)",
+            nstep=50,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -3937,7 +3936,7 @@ end
         [:kind, :stats, :dense, :smooth, :PW],
     )
 
-    @test parse_ibz(str) == (cart = [0.0 0.0 0.0 2.0], cryst = nothing)
+    @test parse_ibz(str) == (cart=[0.0 0.0 0.0 2.0], cryst=nothing)
 
     @test all(isempty, parse_stress(str))
 
@@ -4005,7 +4004,7 @@ end
 
     @test parse_parallel_info(str) == ("Serial version", 1)
 
-    @test parse_fft_dimensions(str) == (19201, (nr1 = 45, nr2 = 45, nr3 = 45))
+    @test parse_fft_dimensions(str) == (19201, (nr1=45, nr2=45, nr3=45))
 
     @test parse_bands(str) == (
         [
@@ -4075,27 +4074,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 3,
-              alat = 5.9716,
-              omega = 2213.0132,
-              nat = 3,
-              ntyp = 2,
-              nelec = 25.9,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 17,
-              ecutwfc = 50.0,
-              ecutrho = 410.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-9,
-              mixing_beta = 0.7,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "LDA ( 1  1  0  0 0 0)",
-              nstep = 300,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=3,
+            alat=5.9716,
+            omega=2213.0132,
+            nat=3,
+            ntyp=2,
+            nelec=25.9,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=17,
+            ecutwfc=50.0,
+            ecutrho=410.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-9,
+            mixing_beta=0.7,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="LDA ( 1  1  0  0 0 0)",
+            nstep=300,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -4110,7 +4109,7 @@ end
     )
 
     @test parse_ibz(str) == (
-        cart = [
+        cart=[
             0.0 0.0 0.0 0.0078125
             0.0 0.0721688 0.0 0.046875
             0.0 0.1443376 0.0 0.046875
@@ -4142,7 +4141,7 @@ end
             0.25 0.5773503 0.0 0.046875
             0.3125 0.5412659 0.0 0.046875
         ],
-        cryst = [
+        cryst=[
             0.0 0.0 0.0 0.0078125
             0.0 0.0625 0.0 0.046875
             0.0 0.125 0.0 0.046875
@@ -4220,7 +4219,7 @@ end
 
     @test parse_parallel_info(str) == ("Parallel version (MPI)", 4)
 
-    @test parse_fft_dimensions(str) == (310487, (nr1 = 40, nr2 = 40, nr3 = 480))
+    @test parse_fft_dimensions(str) == (310487, (nr1=40, nr2=40, nr3=480))
 
     @test parse_bands(str) == (
         [
@@ -4349,27 +4348,27 @@ end
     @test_throws Meta.ParseError parse(SubroutineError, str)
 
     @test tryparse(Preamble, str) ==
-          parse(Preamble, str) ==
-          Preamble(
-              ibrav = 4,
-              alat = 10.8223,
-              omega = 2655.9321,
-              nat = 4,
-              ntyp = 1,
-              nelec = 12.0,
-              nelup = nothing,
-              neldw = nothing,
-              nbnd = 10,
-              ecutwfc = 20.0,
-              ecutrho = 80.0,
-              ecutfock = nothing,
-              conv_thr = 1.0e-6,
-              mixing_beta = 0.3,
-              mixing_ndim = 8,
-              mixing_mode = "plain",
-              xc = "SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
-              nstep = 50,
-          )
+        parse(Preamble, str) ==
+        Preamble(;
+            ibrav=4,
+            alat=10.8223,
+            omega=2655.9321,
+            nat=4,
+            ntyp=1,
+            nelec=12.0,
+            nelup=nothing,
+            neldw=nothing,
+            nbnd=10,
+            ecutwfc=20.0,
+            ecutrho=80.0,
+            ecutfock=nothing,
+            conv_thr=1.0e-6,
+            mixing_beta=0.3,
+            mixing_ndim=8,
+            mixing_mode="plain",
+            xc="SLA  PW   PBE  PBE ( 1  4  3  4 0 0)",
+            nstep=50,
+        )
 
     @test parse_fft_base_info(str) == DataFrame(
         [
@@ -4384,7 +4383,7 @@ end
     )
 
     @test parse_ibz(str) == (
-        cart = [
+        cart=[
             0.0833333 0.0833333 0.0 0.1111111
             0.0833333 0.25 0.0 0.1111111
             0.0833333 0.4166667 0.0 0.1111111
@@ -4404,7 +4403,7 @@ end
             0.4166667 -0.25 0.0 0.1111111
             0.4166667 -0.0833333 0.0 0.1111111
         ],
-        cryst = nothing,
+        cryst=nothing,
     )
 
     @test all(isempty, parse_stress(str))
@@ -4445,7 +4444,7 @@ end
 
     @test parse_parallel_info(str) == ("Parallel version (MPI & OpenMP)", 1)
 
-    @test parse_fft_dimensions(str) == (32157, (nr1 = 32, nr2 = 32, nr3 = 72))
+    @test parse_fft_dimensions(str) == (32157, (nr1=32, nr2=32, nr3=72))
 
     @test parse_bands(str) == (
         [

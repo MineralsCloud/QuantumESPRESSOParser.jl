@@ -17,22 +17,16 @@ end
     str = read("../data/si.scf.cg.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
-        prefix = "silicon",
-        tstress = true,
-        tprnfor = true,
-        pseudo_dir = "pseudo/",
-        outdir = "./",
+        prefix="silicon", tstress=true, tprnfor=true, pseudo_dir="pseudo/", outdir="./"
     )
-    @test pw.system ==
-          SystemNamelist(; ibrav = 2, celldm = [10.20], nat = 2, ntyp = 1, ecutwfc = 18)
-    @test pw.electrons == ElectronsNamelist(; diagonalization = "cg", conv_thr = 1e-8)
+    @test pw.system == SystemNamelist(; ibrav=2, celldm=[10.20], nat=2, ntyp=1, ecutwfc=18)
+    @test pw.electrons == ElectronsNamelist(; diagonalization="cg", conv_thr=1e-8)
     @test pw.ions == IonsNamelist()
     @test pw.cell == CellNamelist()
     @test pw.atomic_species ==
-          AtomicSpeciesCard([AtomicSpecies("Si", 28.086, "Si.pz-vbc.UPF")])
+        AtomicSpeciesCard([AtomicSpecies("Si", 28.086, "Si.pz-vbc.UPF")])
     @test pw.atomic_positions == AtomicPositionsCard([
-        AtomicPosition("Si", [0.0, 0.0, 0.0]),
-        AtomicPosition("Si", [0.25, 0.25, 0.25]),
+        AtomicPosition("Si", [0.0, 0.0, 0.0]), AtomicPosition("Si", [0.25, 0.25, 0.25])
     ])
     @test pw.k_points == SpecialPointsCard(
         [
@@ -56,25 +50,15 @@ end
     str = read("../data/si.band.cg.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
-        calculation = "bands",
-        pseudo_dir = "pseudo/",
-        outdir = "./",
-        prefix = "silicon",
+        calculation="bands", pseudo_dir="pseudo/", outdir="./", prefix="silicon"
     )
-    @test pw.system == SystemNamelist(;
-        ibrav = 2,
-        celldm = [10.2],
-        nat = 2,
-        ntyp = 1,
-        ecutwfc = 18.0,
-        nbnd = 8,
-    )
-    @test pw.electrons == ElectronsNamelist(; diagonalization = "cg")
+    @test pw.system ==
+        SystemNamelist(; ibrav=2, celldm=[10.2], nat=2, ntyp=1, ecutwfc=18.0, nbnd=8)
+    @test pw.electrons == ElectronsNamelist(; diagonalization="cg")
     @test pw.atomic_species ==
-          AtomicSpeciesCard([AtomicSpecies("Si", 28.086, "Si.pz-vbc.UPF")])
+        AtomicSpeciesCard([AtomicSpecies("Si", 28.086, "Si.pz-vbc.UPF")])
     @test pw.atomic_positions == AtomicPositionsCard([
-        AtomicPosition("Si", [0.0, 0.0, 0.0]),
-        AtomicPosition("Si", [0.25, 0.25, 0.25]),
+        AtomicPosition("Si", [0.0, 0.0, 0.0]), AtomicPosition("Si", [0.25, 0.25, 0.25])
     ])
     @test pw.k_points == SpecialPointsCard(
         [
@@ -115,29 +99,29 @@ end
     str = read("../data/al.scf.david.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
-        calculation = "scf",
-        restart_mode = "from_scratch",
-        pseudo_dir = "pseudo/",
-        outdir = "./",
-        prefix = "al",
-        tprnfor = true,
-        tstress = true,
+        calculation="scf",
+        restart_mode="from_scratch",
+        pseudo_dir="pseudo/",
+        outdir="./",
+        prefix="al",
+        tprnfor=true,
+        tstress=true,
     )
     @test pw.system == SystemNamelist(;
-        ibrav = 2,
-        celldm = [7.50],
-        nat = 1,
-        ntyp = 1,
-        ecutwfc = 15.0,
-        occupations = "smearing",
-        smearing = "marzari-vanderbilt",
-        degauss = 0.05,
+        ibrav=2,
+        celldm=[7.50],
+        nat=1,
+        ntyp=1,
+        ecutwfc=15.0,
+        occupations="smearing",
+        smearing="marzari-vanderbilt",
+        degauss=0.05,
     )
     @test pw.electrons == ElectronsNamelist()
     @test pw.atomic_species ==
-          AtomicSpeciesCard([AtomicSpecies("Al", 26.98, "Al.pz-vbc.UPF")])
+        AtomicSpeciesCard([AtomicSpecies("Al", 26.98, "Al.pz-vbc.UPF")])
     @test pw.atomic_positions ==
-          AtomicPositionsCard([AtomicPosition("Al", [0.0, 0.0, 0.0])])
+        AtomicPositionsCard([AtomicPosition("Al", [0.0, 0.0, 0.0])])
     @test pw.k_points == SpecialPointsCard(
         [
             0.0625000 0.0625000 0.0625000 1.00
@@ -209,18 +193,13 @@ end
     str = read("../data/co.rx.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
-        calculation = "relax",
-        pseudo_dir = "pseudo/",
-        outdir = "./",
-        prefix = "CO",
+        calculation="relax", pseudo_dir="pseudo/", outdir="./", prefix="CO"
     )
-    @test pw.system ==
-          SystemNamelist(; ibrav = 0, nat = 2, ntyp = 2, ecutwfc = 24, ecutrho = 144)
-    @test pw.electrons == ElectronsNamelist(; conv_thr = 1e-7)
+    @test pw.system == SystemNamelist(; ibrav=0, nat=2, ntyp=2, ecutwfc=24, ecutrho=144)
+    @test pw.electrons == ElectronsNamelist(; conv_thr=1e-7)
     @test pw.ions == IonsNamelist()
     @test pw.atomic_species == AtomicSpeciesCard([
-        AtomicSpecies("O", 1, "O.pz-rrkjus.UPF"),
-        AtomicSpecies("C", 1.0, "C.pz-rrkjus.UPF"),
+        AtomicSpecies("O", 1, "O.pz-rrkjus.UPF"), AtomicSpecies("C", 1.0, "C.pz-rrkjus.UPF")
     ])
     @test pw.atomic_positions == AtomicPositionsCard(
         [AtomicPosition("C", [2.256, 0.0, 0.0]), AtomicPosition("O", [0, 0, 0], [0, 0, 0])],
@@ -234,32 +213,32 @@ end
     str = read("../data/feo_LDA.in", String)
     pw = parse(PWInput, str)
     @test pw.control == ControlNamelist(;
-        calculation = "scf",
-        restart_mode = "from_scratch",
-        prefix = "feo_af",
-        pseudo_dir = "pseudo/",
-        outdir = "./",
-        tstress = true,
-        tprnfor = true,
+        calculation="scf",
+        restart_mode="from_scratch",
+        prefix="feo_af",
+        pseudo_dir="pseudo/",
+        outdir="./",
+        tstress=true,
+        tprnfor=true,
     )
     @test pw.system == SystemNamelist(;
-        ibrav = 0,
-        celldm = [8.19],
-        nat = 4,
-        ntyp = 3,
-        ecutwfc = 30.0,
-        ecutrho = 240,
-        nbnd = 20,
-        starting_magnetization = [0, 0.5, -0.5],
-        occupations = "smearing",
-        smearing = "mv",
-        degauss = 0.01,
-        nspin = 2,
+        ibrav=0,
+        celldm=[8.19],
+        nat=4,
+        ntyp=3,
+        ecutwfc=30.0,
+        ecutrho=240,
+        nbnd=20,
+        starting_magnetization=[0, 0.5, -0.5],
+        occupations="smearing",
+        smearing="mv",
+        degauss=0.01,
+        nspin=2,
         # lda_plus_u = true,
         # Hubbard_U = [nothing, 1e-8, 1e-8],
     )
     @test pw.electrons ==
-          ElectronsNamelist(; conv_thr = 1e-6, mixing_beta = 0.3, mixing_fixed_ns = 0)
+        ElectronsNamelist(; conv_thr=1e-6, mixing_beta=0.3, mixing_fixed_ns=0)
     @test pw.ions == IonsNamelist()
     @test pw.cell_parameters == CellParametersCard([
         0.50 0.50 1.00

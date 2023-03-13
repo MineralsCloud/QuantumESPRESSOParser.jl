@@ -9,7 +9,9 @@ const PARALLEL_INFO = r"(?<kind>(?:Parallel version [^,]*|Serial version))(?:, r
 const READING_INPUT_FROM = r"(?:Reading input from \s*(.*|standard input))"
 const PWSCF_VERSION = r"Program PWSCF v\.(?<version>[0-9]\.[0-9]+\.?[0-9]?)"
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L374-L375.
-const FFT_DIMENSIONS = Regex("Dense  grid:\\s*$INTEGER\\s+G-vectors\\s+FFT dimensions: \\(\\s*$INTEGER,\\s*$INTEGER,\\s*$INTEGER\\)")
+const FFT_DIMENSIONS = Regex(
+    "Dense  grid:\\s*$INTEGER\\s+G-vectors\\s+FFT dimensions: \\(\\s*$INTEGER,\\s*$INTEGER,\\s*$INTEGER\\)",
+)
 # The following format is from https://github.com/QEF/q-e/blob/7357cdb/PW/src/summary.f90#L100-L119.
 const SUMMARY_BLOCK = r"(bravais-lattice index\X+?)\s*celldm"  # Match between "bravais-lattice index" & the 1st of the "celldm"s, `+?` means un-greedy matching (required)
 # 'bravais-lattice index     = ',I12
@@ -23,22 +25,32 @@ const NUMBER_OF_ATOMS_PER_CELL = Regex("number of atoms\\/cell$EQUAL_SIGN$INTEGE
 # 'number of atomic types    = ',I12
 const NUMBER_OF_ATOMIC_TYPES = Regex("number of atomic types$EQUAL_SIGN$INTEGER")
 # 'number of electrons       = ',F12.2,' (up:',f7.2,', down:',f7.2,')'
-const NUMBER_OF_ELECTRONS = Regex("number of electrons$EQUAL_SIGN$FIXED_POINT_REAL" *
-                                  "(?:\\(up:\\s*$FIXED_POINT_REAL, down:\\s*$FIXED_POINT_REAL\\))?")
+const NUMBER_OF_ELECTRONS = Regex(
+    "number of electrons$EQUAL_SIGN$FIXED_POINT_REAL" *
+    "(?:\\(up:\\s*$FIXED_POINT_REAL, down:\\s*$FIXED_POINT_REAL\\))?",
+)
 # 'number of Kohn-Sham states= ',I12
 const NUMBER_OF_KOHN_SHAM_STATES = Regex("number of Kohn-Sham states$EQUAL_SIGN$INTEGER")
 # 'kinetic-energy cutoff     = ',F12.4,'  Ry'
-const KINETIC_ENERGY_CUTOFF = Regex("kinetic-energy cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const KINETIC_ENERGY_CUTOFF = Regex(
+    "kinetic-energy cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry"
+)
 # 'charge density cutoff     = ',F12.4,'  Ry'
-const CHARGE_DENSITY_CUTOFF = Regex("charge density cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const CHARGE_DENSITY_CUTOFF = Regex(
+    "charge density cutoff$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry"
+)
 # 'cutoff for Fock operator  = ',F12.4,'  Ry'
-const CUTOFF_FOR_FOCK_OPERATOR = Regex("cutoff for Fock operator$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry")
+const CUTOFF_FOR_FOCK_OPERATOR = Regex(
+    "cutoff for Fock operator$EQUAL_SIGN$FIXED_POINT_REAL\\s+Ry"
+)
 # 'convergence threshold     = ',1PE12.1
 const CONVERGENCE_THRESHOLD = Regex("convergence threshold$EQUAL_SIGN$GENERAL_REAL")
 # 'mixing beta               = ',0PF12.4
 const MIXING_BETA = Regex("mixing beta$EQUAL_SIGN$FIXED_POINT_REAL")
 # 'number of iterations used = ',I12,2X,A,' mixing'
-const NUMBER_OF_ITERATIONS_USED = Regex("number of iterations used$EQUAL_SIGN$INTEGER\\s+([-+\\w]+)\\s+mixing")
+const NUMBER_OF_ITERATIONS_USED = Regex(
+    "number of iterations used$EQUAL_SIGN$INTEGER\\s+([-+\\w]+)\\s+mixing"
+)
 const EXCHANGE_CORRELATION = r"Exchange-correlation\s*=\s*(.*)"
 # "nstep                     = ",I12
 const NSTEP = Regex("nstep$EQUAL_SIGN$INTEGER")
@@ -56,7 +68,9 @@ number of k points=\s*(?<nk>[0-9]+)\h*(?<metainfo>.*)
 \s*Dense  grid)?"""m
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/summary.f90#L353-L354.
 # '(8x,"k(",i5,") = (",3f12.7,"), wk =",f12.7)'
-const K_POINTS_ITEM = Regex("k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL")
+const K_POINTS_ITEM = Regex(
+    "k\\(.*\\) = \\(\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*$FIXED_POINT_REAL\\s*\\), wk =\\s*$FIXED_POINT_REAL",
+)
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L47-L60.
 const CELL_PARAMETERS_BLOCK = r"""
 CELL_PARAMETERS \h+
@@ -127,7 +141,9 @@ const SELF_CONSISTENT_CALCULATION_BLOCK = r"(Self-consistent Calculation\X+?End 
 const ITERATION_BLOCK = r"(?<=iteration #)(.*?)(?=iteration #|End of self-consistent calculation)"s
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
-const ITERATION_HEAD = Regex("\\s*$INTEGER\\s+ecut=\\s*$FIXED_POINT_REAL\\s+Ry\\s+beta=\\s*$FIXED_POINT_REAL")
+const ITERATION_HEAD = Regex(
+    "\\s*$INTEGER\\s+ecut=\\s*$FIXED_POINT_REAL\\s+Ry\\s+beta=\\s*$FIXED_POINT_REAL"
+)
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L129-L130
 # and https://github.com/QEF/q-e/blob/4132a64/PW/src/c_bands.f90#L65-L73.
 const C_BANDS = Regex(
@@ -138,7 +154,9 @@ const C_BANDS = Regex(
 )
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L917-L918.
 # '     total cpu time spent up to now is ',F10.1,' secs'
-const TOTAL_CPU_TIME = Regex("total cpu time spent up to now is\\s*$FIXED_POINT_REAL\\s* secs")
+const TOTAL_CPU_TIME = Regex(
+    "total cpu time spent up to now is\\s*$FIXED_POINT_REAL\\s* secs"
+)
 const KS_ENERGIES_BLOCK = r"""
 (Number\s+of\s+k-points\s+>=\s+100:\s+set\s+verbosity='high'\s+to\s+print\s+the\s+bands\.
 |
@@ -193,7 +211,9 @@ init_run\s+:.*
 \s*(?:stress\s+:.*)?     # This does not always exist.
 )
 """mx
-const TIME_ITEM = Regex("\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)")
+const TIME_ITEM = Regex(
+    "\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)",
+)
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
 const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"m
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
