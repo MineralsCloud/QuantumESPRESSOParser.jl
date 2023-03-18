@@ -90,7 +90,7 @@ const CELL_PARAMETERS_ITEM_OUTPUT = r"""
 ([-+]?[0-9]*\.[0-9]+) \s*  # z
 """x
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L64-L109.
-const ATOMIC_POSITIONS_BLOCK = r"""
+const ATOMIC_POSITIONS_BLOCK_OUTPUT = r"""
 ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
 \( (?<option>\w+) \)                   # Option of the card
 (?<data>
@@ -106,7 +106,7 @@ ATOMIC_POSITIONS \h*                   # Atomic positions start with that string
     )+
 )
 """x
-const ATOMIC_POSITIONS_ITEM = r"""
+const ATOMIC_POSITIONS_ITEM_OUTPUT = r"""
 \s*
 ([A-Za-z]+[A-Za-z0-9]{0,2}) \s+  # Atom spec
 ([-+]?[0-9]*\.[0-9]+) \s*  # x
