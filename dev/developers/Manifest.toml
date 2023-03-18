@@ -351,7 +351,7 @@ version = "0.10.0"
 
 [[deps.QuantumESPRESSOParser]]
 deps = ["AbInitioSoftwareBase", "Compat", "Crystallography", "DataFrames", "Parameters", "PyFortran90Namelists", "QuantumESPRESSOBase", "ReadableRegex", "VersionParsing"]
-git-tree-sha1 = "89468facc8e4a40b0ebcc56a20b98af41013c0e6"
+git-tree-sha1 = "ed3bd79f8b4883953ff6d4013455f09f0198586b"
 repo-rev = "main"
 repo-url = "https://github.com/MineralsCloud/QuantumESPRESSOParser.jl"
 uuid = "a780ab42-b33a-11e9-16c1-a92d75b2a626"
