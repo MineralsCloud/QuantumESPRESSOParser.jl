@@ -530,10 +530,10 @@ function Base.tryparse(::Type{SubroutineError}, str::AbstractString)
 end # function Base.tryparse
 
 function tryparse_internal(::Type{CellParametersCard}, str::AbstractString)
-    m = match(CELL_PARAMETERS_BLOCK, str)
+    m = match(CELL_PARAMETERS_BLOCK_OUTPUT, str)
     return if m !== nothing
         body, data = m[:data], Matrix{Float64}(undef, 3, 3)  # Initialization
-        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
+        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_OUTPUT, body))
             data[i, :] = map(x -> parse(Float64, x), matched.captures)
         end
         if m[:option] == "alat"
