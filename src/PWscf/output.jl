@@ -593,7 +593,7 @@ function tryparseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     end
 end # function parseall
 function parseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
-    return map(eachmatch(REGEXOF(T), str)) do x
+    return map(eachmatch(REGEXOF[nameof(T)], str)) do x
         try
             tryparse_internal(T, x.match)
         catch
@@ -609,7 +609,7 @@ parselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = parseall(
 function _parsenext_internal(
     ::Type{T}, str::AbstractString, start::Integer, raise::Bool
 ) where {T}
-    x = findnext(REGEXOF(T), str, start)
+    x = findnext(REGEXOF[nameof(T)], str, start)
     if x === nothing
         raise ? throw(Meta.ParseError("Nothing found for next!")) : return nothing
     end
