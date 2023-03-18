@@ -530,10 +530,10 @@ function Base.tryparse(::Type{SubroutineError}, str::AbstractString)
 end # function Base.tryparse
 
 function tryparse_internal(::Type{CellParametersCard}, str::AbstractString)
-    m = match(CELL_PARAMETERS_BLOCK, str)
+    m = match(CELL_PARAMETERS_BLOCK_OUTPUT, str)
     return if m !== nothing
         body, data = m[:data], Matrix{Float64}(undef, 3, 3)  # Initialization
-        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM, body))
+        for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_OUTPUT, body))
             data[i, :] = map(x -> parse(Float64, x), matched.captures)
         end
         if m[:option] == "alat"
@@ -546,12 +546,12 @@ function tryparse_internal(::Type{CellParametersCard}, str::AbstractString)
 end # function tryparse_internal
 function tryparse_internal(::Type{AtomicPositionsCard}, str::AbstractString)
     atomic_positions = AtomicPositionsCard[]
-    m = match(ATOMIC_POSITIONS_BLOCK, str)
+    m = match(ATOMIC_POSITIONS_BLOCK_OUTPUT, str)
     return if m !== nothing
         option = string(m[1])
         body = m[2]
         data = AtomicPosition[]
-        for matched in eachmatch(ATOMIC_POSITIONS_ITEM, body)
+        for matched in eachmatch(ATOMIC_POSITIONS_ITEM_OUTPUT, body)
             captured = matched.captures
             if_pos = map(x -> x === nothing ? 1 : parse(Int, x), captured[5:7])
             atom, pos = captured[1], map(x -> parse(Float64, x), captured[2:4])
@@ -576,7 +576,8 @@ function _parse(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
 end # function _parse
 
 const REGEXOF = (
-    CellParametersCard=CELL_PARAMETERS_BLOCK, AtomicPositionsCard=ATOMIC_POSITIONS_BLOCK
+    CellParametersCard=CELL_PARAMETERS_BLOCK_OUTPUT,
+    AtomicPositionsCard=ATOMIC_POSITIONS_BLOCK_OUTPUT,
 )
 
 tryparsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
