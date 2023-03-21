@@ -1,7 +1,7 @@
 name = "QuantumESPRESSOParser"
 uuid = "a780ab42-b33a-11e9-16c1-a92d75b2a626"
 authors = ["Qi Zhang <singularitti@outlook.com>"]
-version = "0.3.12"
+version = "0.3.13"
 
 [deps]
 AbInitioSoftwareBase = "df5135bc-470e-46c6-b451-292e27ca5b84"
