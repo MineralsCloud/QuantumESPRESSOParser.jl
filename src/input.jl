@@ -1,4 +1,4 @@
-using AbInitioSoftwareBase.Inputs: Namelist, groupname
+using AbInitioSoftwareBase: Namelist, groupname
 using QuantumESPRESSOBase: QuantumESPRESSOInput
 using PyFortran90Namelists: Parser
 

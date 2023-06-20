@@ -1,5 +1,5 @@
 
-using AbInitioSoftwareBase.Inputs: Namelist, groupname
+using AbInitioSoftwareBase: Namelist, groupname
 using Compat: only
 using Crystallography: ReciprocalPoint
 using PyFortran90Namelists: fparse
