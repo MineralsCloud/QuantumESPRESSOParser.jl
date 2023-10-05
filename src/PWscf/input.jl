@@ -1,5 +1,4 @@
 using AbInitioSoftwareBase: groupname
-using Compat: only
 using Crystallography: ReciprocalPoint, MonkhorstPackGrid
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase: Card
