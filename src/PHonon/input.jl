@@ -1,6 +1,5 @@
 
 using AbInitioSoftwareBase: Namelist, groupname
-using Crystallography: ReciprocalPoint
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.PHonon:
     ReciprocalPoint,

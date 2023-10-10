@@ -1,5 +1,5 @@
 using AbInitioSoftwareBase: groupname
-using Crystallography: ReciprocalPoint, MonkhorstPackGrid
+using CrystallographyBase: MonkhorstPackGrid
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase: Card
 using QuantumESPRESSOBase.PWscf:
