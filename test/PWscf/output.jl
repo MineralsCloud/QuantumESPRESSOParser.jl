@@ -52,7 +52,7 @@ using QuantumESPRESSOParser.PWscf
     @test parse_ibz(str) == (
         KPointsCard(
             "tpiba",
-            SpecialPoint[
+            [
                 SpecialPoint([0.0625, 0.0625, 0.0625], 0.0078125),
                 SpecialPoint([0.0625, 0.0625, 0.1875], 0.0234375),
                 SpecialPoint([0.0625, 0.0625, 0.3125], 0.0234375),
@@ -62,9 +62,8 @@ using QuantumESPRESSOParser.PWscf
                 SpecialPoint([0.0625, 0.0625, 0.8125], 0.0234375),
                 SpecialPoint([0.0625, 0.0625, 0.9375], 0.0234375),
                 SpecialPoint([0.0625, 0.1875, 0.1875], 0.0234375),
-                SpecialPoint([0.0625, 0.1875, 0.3125], 0.046875) … SpecialPoint(
-                    [0.3125, 0.3125, 0.3125], 0.0078125
-                ),
+                SpecialPoint([0.0625, 0.1875, 0.3125], 0.046875) …
+                SpecialPoint([0.3125, 0.3125, 0.3125], 0.0078125),
                 SpecialPoint([0.3125, 0.3125, 0.4375], 0.0234375),
                 SpecialPoint([0.3125, 0.3125, 0.5625], 0.0234375),
                 SpecialPoint([0.3125, 0.3125, 0.6875], 0.0234375),

@@ -233,7 +233,7 @@ function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
         return SpecialPointsCard(
             map(eachmatch(K_POINTS_SPECIAL_ITEM, m.captures[2])) do matched
                 # TODO: Match `nks`
-                ReciprocalPoint(map(x -> fparse(Float64, x), matched.captures)...)
+                SpecialPoint(map(x -> fparse(Float64, x), matched.captures)...)
             end,
             option,
         )
