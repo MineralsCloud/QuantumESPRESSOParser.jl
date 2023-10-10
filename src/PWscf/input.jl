@@ -1,7 +1,8 @@
 using AbInitioSoftwareBase: groupname
 using CrystallographyBase: MonkhorstPackGrid
 using PyFortran90Namelists: fparse
-using QuantumESPRESSOBase: Card
+using AbInitioSoftwareBase: Card
+using QuantumESPRESSOBase: SpecialPoint
 using QuantumESPRESSOBase.PWscf:
     ControlNamelist,
     SystemNamelist,

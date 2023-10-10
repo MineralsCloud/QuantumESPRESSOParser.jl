@@ -2,7 +2,7 @@
 using AbInitioSoftwareBase: Namelist, groupname
 using PyFortran90Namelists: fparse
 using QuantumESPRESSOBase.PHonon:
-    ReciprocalPoint,
+    SpecialPoint,
     QPointsCard,
     PhInput,
     Q2rInput,
