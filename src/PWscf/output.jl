@@ -119,7 +119,7 @@ function parse_ibz(str::AbstractString)::Maybe{Tuple}
     end
     nk = parse(Int, m[:nk])
     result = []
-    kinds = (:cart => "tpiba", :cryst => "crystal")
+    kinds = (:cart => :tpiba, :cryst => :crystal)
     for (k, v) in kinds
         if m[k] !== nothing
             x = Matrix{Float64}(undef, nk, 4)
@@ -535,9 +535,9 @@ function tryparse_internal(::Type{CellParametersCard}, str::AbstractString)
         for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_OUTPUT, body))
             data[i, :] = map(x -> parse(Float64, x), matched.captures)
         end
-        if m[:option] == "alat"
+        if m[:option] == :alat
             alat = parse(Float64, m[:alat])
-            CellParametersCard(alat * data, "bohr")
+            CellParametersCard(alat * data, :bohr)
         else
             CellParametersCard(data, m[:option])
         end

@@ -192,12 +192,12 @@ function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     if m !== nothing
-        if string(m.captures[1]) === nothing
+        if m.captures[1] === nothing
             @warn "Not specifying units is DEPRECATED and will no longer be allowed in the future!"
             @info "No option is specified, 'alat' is assumed."
-            option = "alat"
+            option = :alat
         else
-            option = string(m.captures[1])
+            option = Symbol(m.captures[1])
         end
         content = m.captures[2]
         return AtomicPositionsCard(
@@ -251,11 +251,11 @@ function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     if m !== nothing
-        option = string(m[:option])
+        option = Symbol(m[:option])
         if isempty(option)
             @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
             @info "'bohr' is assumed."
-            option = "bohr"
+            option = :bohr
         end
         content = m[:data]
         data = Matrix{Float64}(undef, 3, 3)
