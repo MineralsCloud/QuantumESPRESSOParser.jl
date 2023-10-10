@@ -203,7 +203,7 @@ end
     ])
     @test pw.atomic_positions == AtomicPositionsCard(
         [AtomicPosition("C", [2.256, 0.0, 0.0]), AtomicPosition("O", [0, 0, 0], [0, 0, 0])],
-        "bohr",
+        :bohr,
     )
     @test pw.k_points == GammaPointCard()
 end
@@ -257,7 +257,7 @@ end
             AtomicPosition("Fe1", [0, 0, 0]),
             AtomicPosition("Fe2", [0.5, 0.5, 0.5]),
         ],
-        "crystal",
+        :crystal,
     )
     @test pw.k_points == KMeshCard(MonkhorstPackGrid([2, 2, 2], [0, 0, 0]))
 end
