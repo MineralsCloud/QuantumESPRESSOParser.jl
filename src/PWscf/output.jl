@@ -535,19 +535,19 @@ function tryparse_internal(::Type{CellParametersCard}, str::AbstractString)
         for (i, matched) in enumerate(eachmatch(CELL_PARAMETERS_ITEM_OUTPUT, body))
             data[i, :] = map(x -> parse(Float64, x), matched.captures)
         end
-        if m[:option] == :alat
+        option = Symbol(m[:option])
+        if option == :alat
             alat = parse(Float64, m[:alat])
             CellParametersCard(alat * data, :bohr)
         else
-            CellParametersCard(data, m[:option])
+            CellParametersCard(data, option)
         end
     end
 end # function tryparse_internal
 function tryparse_internal(::Type{AtomicPositionsCard}, str::AbstractString)
-    atomic_positions = AtomicPositionsCard[]
     m = match(ATOMIC_POSITIONS_BLOCK_OUTPUT, str)
     return if m !== nothing
-        option = string(m[1])
+        option = Symbol(m[1])
         body = m[2]
         data = AtomicPosition[]
         for matched in eachmatch(ATOMIC_POSITIONS_ITEM_OUTPUT, body)
