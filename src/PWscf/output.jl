@@ -1,7 +1,9 @@
-# using Dates: DateTime, DateFormat
+using Dates: Hour, Minute, Millisecond
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using QuantumESPRESSOBase.PWscf
 using VersionParsing: vparse
+
+export TimedItem
 
 struct SubroutineError
     name::String
@@ -424,6 +426,13 @@ function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
     # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
     return info
 end # function parse_clock
+
+struct TimedItem
+    name::String
+    cpu::Millisecond
+    wall::Millisecond
+    calls::Maybe{UInt64}
+end
 
 function parse_input_name(str::AbstractString)
     m = match(READING_INPUT_FROM, str)
