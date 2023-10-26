@@ -11,6 +11,10 @@ struct SubroutineError
     msg::String
 end
 
+struct ParseError <: Exception
+    msg::String
+end
+
 export Diagonalization,
     Preamble,
     Davidson,
@@ -457,7 +461,7 @@ function parsetime(str::AbstractString)
         seconds = parse(Float64, seconds[1])
         return Millisecond(1000seconds)
     else
-        throw(ArgumentError("invalid time format!"))
+        throw(ParseError("unrecognized time format!"))
     end
 end
 
