@@ -1,6 +1,5 @@
 # using Dates: DateTime, DateFormat
 using DataFrames: AbstractDataFrame, DataFrame, groupby
-using Parameters: @with_kw
 using QuantumESPRESSOBase.PWscf
 using VersionParsing: vparse
 
@@ -55,7 +54,7 @@ struct Davidson <: Diagonalization end
 struct ConjugateGradient <: Diagonalization end
 struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
 
-@with_kw struct Preamble
+Base.@kwdef struct Preamble
     ibrav::Int
     alat::Float64
     omega::Float64
