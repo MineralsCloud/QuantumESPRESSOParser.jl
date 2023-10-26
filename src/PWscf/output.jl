@@ -35,7 +35,6 @@ export Diagonalization,
     parse_fft_dimensions,
     parse_iteration_head,
     parse_electrons_energies,
-    parse_clock,
     parse_input_name,
     isoptimized,
     isjobdone,
@@ -396,40 +395,6 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
     parsed = map(x -> parse(Int, x), m.captures)
     return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
 end # function parse_fft_dimensions
-
-function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
-    m = match(TIME_BLOCK, str)
-    m === nothing && return nothing
-    content = only(m.captures)
-
-    info = DataFrame(;
-        subroutine=String[], item=String[], CPU=Float64[], wall=Float64[], calls=Int[]
-    )
-    for regex in [
-        SUMMARY_TIME_BLOCK
-        INIT_RUN_TIME_BLOCK
-        ELECTRONS_TIME_BLOCK
-        C_BANDS_TIME_BLOCK
-        SUM_BAND_TIME_BLOCK
-        EGTERG_TIME_BLOCK
-        H_PSI_TIME_BLOCK
-        GENERAL_ROUTINES_TIME_BLOCK
-        PARALLEL_ROUTINES_TIME_BLOCK
-    ]
-        block = match(regex, content)
-        if block !== nothing
-            for m in eachmatch(TIME_ITEM, block[:body])
-                push!(
-                    info,
-                    [block[:head] m[1] map(x -> parse(Float64, x), m.captures[2:4])...],
-                )
-            end
-        end
-    end
-    # m = match(TERMINATED_DATE, content)
-    # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
-    return info
-end # function parse_clock
 
 struct TimedItem
     name::String
