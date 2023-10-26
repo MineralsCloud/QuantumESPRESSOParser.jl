@@ -1,11 +1,17 @@
-# using Dates: DateTime, DateFormat
+using Dates: Hour, Minute, Millisecond
 using DataFrames: AbstractDataFrame, DataFrame, groupby
 using QuantumESPRESSOBase.PWscf
 using VersionParsing: vparse
 
+export TimedItem
+
 struct SubroutineError
     name::String
     cerr::String
+    msg::String
+end
+
+struct ParseError <: Exception
     msg::String
 end
 
@@ -29,7 +35,6 @@ export Diagonalization,
     parse_fft_dimensions,
     parse_iteration_head,
     parse_electrons_energies,
-    parse_clock,
     parse_input_name,
     isoptimized,
     isjobdone,
@@ -391,39 +396,39 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
     return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
 end # function parse_fft_dimensions
 
-function parse_clock(str::AbstractString)::Maybe{AbstractDataFrame}
-    m = match(TIME_BLOCK, str)
-    m === nothing && return nothing
-    content = only(m.captures)
+struct TimedItem
+    name::String
+    cpu::Millisecond
+    wall::Millisecond
+    calls::Maybe{UInt64}
+end
 
-    info = DataFrame(;
-        subroutine=String[], item=String[], CPU=Float64[], wall=Float64[], calls=Int[]
-    )
-    for regex in [
-        SUMMARY_TIME_BLOCK
-        INIT_RUN_TIME_BLOCK
-        ELECTRONS_TIME_BLOCK
-        C_BANDS_TIME_BLOCK
-        SUM_BAND_TIME_BLOCK
-        EGTERG_TIME_BLOCK
-        H_PSI_TIME_BLOCK
-        GENERAL_ROUTINES_TIME_BLOCK
-        PARALLEL_ROUTINES_TIME_BLOCK
-    ]
-        block = match(regex, content)
-        if block !== nothing
-            for m in eachmatch(TIME_ITEM, block[:body])
-                push!(
-                    info,
-                    [block[:head] m[1] map(x -> parse(Float64, x), m.captures[2:4])...],
-                )
-            end
-        end
+function Base.parse(::Type{TimedItem}, str::AbstractString)
+    matched = match(TIMED_ITEM, str)
+    if isnothing(matched)
+        nothing
+    else
+        name, cpu, wall = matched[1], parsetime(matched[2]), parsetime(matched[3])
+        return TimedItem(
+            name, cpu, wall, isnothing(matched[4]) ? nothing : parse(UInt64, matched[5])
+        )
     end
-    # m = match(TERMINATED_DATE, content)
-    # info["terminated date"] = parse(DateTime, m.captures[1], DateFormat("H:M:S"))
-    return info
-end # function parse_clock
+end
+
+function parsetime(str::AbstractString)
+    compound = match(r"(\d+)h\s*(\d+)m", str)
+    seconds = match(r"(\d+\.\d{2})s", str)
+    if isnothing(seconds) && !isnothing(compound)
+        hours = parse(UInt64, compound[1])
+        minutes = parse(UInt64, compound[2])
+        return convert(Millisecond, Hour(hours) + Minute(minutes))
+    elseif isnothing(compound) && !isnothing(seconds)
+        seconds = parse(Float64, seconds[1])
+        return Millisecond(1000seconds)
+    else
+        throw(ParseError("unrecognized time format!"))
+    end
+end
 
 function parse_input_name(str::AbstractString)
     m = match(READING_INPUT_FROM, str)
