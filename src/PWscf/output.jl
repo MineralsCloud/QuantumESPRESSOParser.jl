@@ -434,6 +434,35 @@ struct TimedItem
     calls::Maybe{UInt64}
 end
 
+function Base.parse(::Type{TimedItem}, str::AbstractString)
+    matched = match(TIME_ROW, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return TimedItem(
+            matched[1],
+            parsetime(matched[2]),
+            parsetime(matched[3]),
+            parse(UInt64, matched[4]),
+        )
+    end
+end
+
+function parsetime(str::AbstractString)
+    compound = match(r"(\d+)h\s*(\d+)m", str)
+    seconds = match(r"(\d+\.\d{2})s", str)
+    if isnothing(seconds) && !isnothing(compound)
+        hours = parse(UInt64, compound[1])
+        minutes = parse(UInt64, compound[2])
+        return convert(Millisecond, Hour(hours) + Minute(minutes))
+    elseif isnothing(compound) && !isnothing(seconds)
+        seconds = parse(Float64, seconds[1])
+        return Millisecond(1000seconds)
+    else
+        throw(ArgumentError("invalid time format!"))
+    end
+end
+
 function parse_input_name(str::AbstractString)
     m = match(READING_INPUT_FROM, str)
     return m === nothing ? nothing : only(m)
