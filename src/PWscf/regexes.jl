@@ -200,31 +200,14 @@ const CONVERGED_ELECTRONS_ENERGY = Regex(
     "m",
 )
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L29-L33.
-const SUMMARY_TIME_BLOCK = r"""
-(?<head>)
-(?<body>
-init_run\s+:.*
-\s*electrons\s+:.*
-\s*(?:update_pot\s+.*)?  # This does not always exist.
-\s*(?:forces\s+:.*)?     # This does not always exist.
-\s*(?:stress\s+:.*)?     # This does not always exist.
-)
-"""mx
-const TIME_ITEM = Regex(
-    "\\s*([\\w0-9:]+)\\s+:\\s*$(FIXED_POINT_REAL)s\\sCPU\\s*$(FIXED_POINT_REAL)s\\sWALL\\s\\(\\s*$INTEGER\\scalls\\)",
-)
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L35-L36.
-const INIT_RUN_TIME_BLOCK = r"Called by (?<head>init_run):(?<body>\X+?)^\s*$"m
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L53-L54.
-const ELECTRONS_TIME_BLOCK = r"Called by (?<head>electrons):(?<body>\X+?)^\s*$"m
-# This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/print_clock_pw.f90#L78-L79.
-const C_BANDS_TIME_BLOCK = r"Called by (?<head>c_bands):(?<body>\X+?)^\s*$"m
-const SUM_BAND_TIME_BLOCK = r"Called by (?<head>sum_band):(?<body>\X+?)^\s*$"m
-const EGTERG_TIME_BLOCK = r"Called by (?<head>\*egterg):(?<body>\X+?)^\s*$"m
-const H_PSI_TIME_BLOCK = r"Called by (?<head>h_psi):(?<body>\X+?)^\s*$"m
-const GENERAL_ROUTINES_TIME_BLOCK = r"(?<head>General routines)(?<body>\X+?)^\s*$"m
-const PARALLEL_ROUTINES_TIME_BLOCK = r"(?<head>Parallel routines)(?<body>\X+?)^\s*$"m
+const TIME_FORMAT = r"(\d+h\s*\d+m|\d+\.\d{2}s)"
+const TIMED_ITEM =
+    r"([\w:]+)\s*:\s*" *
+    TIME_FORMAT *
+    r"\s*CPU\s*" *
+    TIME_FORMAT *
+    r"\s*WALL" *
+    r"\s*\(\s*(\d+)\s*calls\)?$"m  # `?$` matches the last row
 const TERMINATED_DATE = r"This run was terminated on:(.+)"  # TODO: Date
 const JOB_DONE = r"JOB DONE\."
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/UtilXlib/error_handler.f90#L48-L68.

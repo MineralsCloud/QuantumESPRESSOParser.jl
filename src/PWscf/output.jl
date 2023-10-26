@@ -435,7 +435,7 @@ struct TimedItem
 end
 
 function Base.parse(::Type{TimedItem}, str::AbstractString)
-    matched = match(TIME_ROW, str)
+    matched = match(TIMED_ITEM, str)
     if isnothing(matched)
         return nothing
     else
