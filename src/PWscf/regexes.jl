@@ -207,7 +207,8 @@ const TIMED_ITEM =
     r"\s*CPU\s*" *
     TIME_FORMAT *
     r"\s*WALL" *
-    r"\s*\(\s*(\d+)\s*calls\)?$"m  # `?$` matches the last row
+    r"(\s*\(\s*(\d+)\s*calls\))?" *
+    r"$"  # Match the last row
 const TERMINATED_DATE = r"This run was terminated on:(.+)"  # TODO: Date
 const JOB_DONE = r"JOB DONE\."
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/UtilXlib/error_handler.f90#L48-L68.

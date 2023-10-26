@@ -437,13 +437,11 @@ end
 function Base.parse(::Type{TimedItem}, str::AbstractString)
     matched = match(TIMED_ITEM, str)
     if isnothing(matched)
-        return nothing
+        nothing
     else
+        name, cpu, wall = matched[1], parsetime(matched[2]), parsetime(matched[3])
         return TimedItem(
-            matched[1],
-            parsetime(matched[2]),
-            parsetime(matched[3]),
-            parse(UInt64, matched[4]),
+            name, cpu, wall, isnothing(matched[4]) ? nothing : parse(UInt64, matched[5])
         )
     end
 end
