@@ -59,7 +59,9 @@ struct Davidson <: Diagonalization end
 struct ConjugateGradient <: Diagonalization end
 struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
 
-Base.@kwdef struct Preamble
+abstract type PWOutputParameter end
+
+Base.@kwdef struct Preamble <: PWOutputParameter
     ibrav::Int
     alat::Float64
     omega::Float64
@@ -396,7 +398,7 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
     return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
 end # function parse_fft_dimensions
 
-struct TimedItem
+struct TimedItem <: PWOutputParameter
     name::String
     cpu::Millisecond
     wall::Millisecond
