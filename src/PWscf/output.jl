@@ -134,7 +134,7 @@ function Base.tryparse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
     cartesian, crystal = map((:cartesian, :crystal)) do key
         if !isnothing(matched[key])
             points = map(eachmatch(K_POINTS_ITEM, matched[key])) do matched
-                SpecialPoint(Base.Fix1(parse, Float64), matched.captures[begin:end])
+                SpecialPoint(map(Base.Fix1(parse, Float64), matched.captures[begin:end])...)
             end
             @assert length(points) == nk
             points
