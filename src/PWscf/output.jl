@@ -116,8 +116,12 @@ function parse_symmetries(str::AbstractString)
     return num_sym_ops = isempty(m[:n]) ? 0 : parse(Int, m[:n])
 end # function parse_symmetries
 
+struct IrreducibleBrillouinZone <: PWOutputParameter
+    cartesian::Maybe{Vector{SpecialPoint}}
+    crystal::Maybe{Vector{SpecialPoint}}
+end
+
 # Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_ibz(str::AbstractString)::Maybe{Tuple}
     m = match(K_POINTS_BLOCK, str)
     if m === nothing
         @info("The k-points info is not found!")
