@@ -31,7 +31,6 @@ export Diagonalization,
     parse_version,
     parse_parallel_info,
     parse_fft_dimensions,
-    parse_iteration_head,
     parse_electrons_energies,
     parse_input_name,
     isoptimized,
@@ -182,20 +181,23 @@ function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString
     return df
 end # function _iterationwise
 
-function parse_iteration_head(str::AbstractString)
-    df = DataFrame(;
-        step=Int[],  # Step number
-        iteration=Int[],  # Iteration number
-        ecut=Float64[],  # Cutoff energy
-        β=Float64[],  # Mixing beta
-    )
-    return _iterationwise!(_parse_iteration_head, df, str)
-end # function parse_iteration_head
-# This is a helper function and should not be exported.
-function _parse_iteration_head(str::AbstractString)
-    head = match(ITERATION_HEAD, str)
-    return map(x -> parse(Float64, x), head.captures[2:3])
-end # function _parse_iteration_head
+struct IterationHead <: PWOutputParameter
+    ecutwfc::Float64
+    mixing_beta::Float64
+end
+
+function Base.parse(::Type{IterationHead}, str::AbstractString)
+    obj = tryparse(IterationHead, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{IterationHead}, str::AbstractString)
+    matched = match(ITERATION_HEAD, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return IterationHead(parse(Float64, matched[3]), parse(Float64, matched[4]))
+    end
+end
 
 function parse_iteration_time(str::AbstractString)
     df = DataFrame(; step=Int[], iteration=Int[], time=Float64[])
