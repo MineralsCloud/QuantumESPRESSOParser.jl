@@ -190,8 +190,9 @@ function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString
 end # function _iterationwise
 
 struct IterationHead <: PWOutputParameter
-    ecutwfc::Float64
-    mixing_beta::Float64
+    number::Int64
+    ecut::Float64
+    beta::Float64
 end
 
 function Base.parse(::Type{IterationHead}, str::AbstractString)
@@ -203,7 +204,9 @@ function Base.tryparse(::Type{IterationHead}, str::AbstractString)
     if isnothing(matched)
         return nothing
     else
-        return IterationHead(parse(Float64, matched[3]), parse(Float64, matched[4]))
+        return IterationHead(
+            parse(Int64, matched[1]), parse(Float64, matched[2]), parse(Float64, matched[3])
+        )
     end
 end
 
