@@ -81,6 +81,13 @@ Base.@kwdef struct Preamble <: PWOutputParameter
     nstep::Maybe{Int} = nothing
 end
 
+struct FFTGrid <: PWOutputParameter
+    type::String
+    dense::Int64
+    smooth::Int64
+    PW::Int64
+end
+
 """
     parse_fft_base_info(str::AbstractString)
 
@@ -91,23 +98,23 @@ rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is
 "G-vector sticks info" and only the "Sum" row is printed. If no information is found,
 return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
-function parse_fft_base_info(str::AbstractString)::Maybe{AbstractDataFrame}
-    df = DataFrame(; kind=String[], stats=String[], dense=Int[], smooth=Int[], PW=[])
-    m = match(FFT_BASE_INFO, str)
-    if m === nothing
+function parse_fft_base_info(str::AbstractString)
+    matched = match(FFT_BASE_INFO, str)
+    if isnothing(matched)
         @info("The FFT base info is not found!")
         return nothing
     end
-    body = m[:body]
+    body = matched[:body]
+    data = FFTGrid[]
     for line in split(body, r"\R+")  # Don’t want empty lines
         # "Min",4X,2I8,I7,12X,2I9,I8
-        sp = split(line, " "; keepempty=false)  # Don't want empty strings
-        numbers = map(x -> parse(Int, x), sp[2:7])
-        push!(df, ["sticks" sp[1] numbers[1:3]...])
-        push!(df, ["gvecs" sp[1] numbers[4:6]...])
+        splitted = split(line, " "; keepempty=false)  # Don't want empty strings
+        values = map(Base.Fix1(parse, Int64), splitted[2:7])
+        push!(data, FFTGrid("sticks", values[1:3]...))
+        push!(data, FFTGrid("G-vecs", values[4:6]...))
     end
-    return df
-end # function parse_fft_base_info
+    return data
+end
 
 function parse_symmetries(str::AbstractString)
     m = match(SYM_OPS, str)
