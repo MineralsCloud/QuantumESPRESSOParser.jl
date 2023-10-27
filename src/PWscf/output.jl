@@ -34,6 +34,7 @@ export Diagonalization,
     parse_input_name,
     isoptimized,
     isjobdone,
+    eachiteration,
     tryparsefirst,
     parsefirst,
     tryparseall,
@@ -163,6 +164,8 @@ function parse_stress(str::AbstractString)
     end
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
+
+eachiteration(str::AbstractString) = eachmatch(ITERATION_BLOCK, str)
 
 function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString)
     # Loop relax steps
