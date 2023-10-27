@@ -22,7 +22,6 @@ export Diagonalization,
     ProjectedPreconditionedConjugateGradient,
     parse_symmetries,
     parse_stress,
-    parse_iteration_time,
     parse_bands,
     parse_all_electron_energy,
     parse_energy_decomposition,
@@ -199,14 +198,22 @@ function Base.tryparse(::Type{IterationHead}, str::AbstractString)
     end
 end
 
-function parse_iteration_time(str::AbstractString)
-    df = DataFrame(; step=Int[], iteration=Int[], time=Float64[])
-    return _iterationwise!(_parse_iteration_time, df, str)
-end # function parse_iteration_time
-# This is a helper function and should not be exported.
-function _parse_iteration_time(str::AbstractString)
-    return parse(Float64, match(TOTAL_CPU_TIME, str)[1])
-end # function _parse_iteration_time
+struct IterationTime <: PWOutputParameter
+    time::Float64
+end
+
+function Base.parse(::Type{IterationTime}, str::AbstractString)
+    obj = tryparse(IterationTime, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{IterationTime}, str::AbstractString)
+    matched = match(TOTAL_CPU_TIME, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return IterationTime(parse(Float64, matched[1]))
+    end
+end
 
 function parse_diagonalization(str::AbstractString)
     df = DataFrame(;
