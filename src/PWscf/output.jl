@@ -22,7 +22,6 @@ export Diagonalization,
     ProjectedPreconditionedConjugateGradient,
     parse_fft_base_info,
     parse_symmetries,
-    parse_ibz,
     parse_stress,
     parse_iteration_time,
     parse_bands,
@@ -121,8 +120,11 @@ struct IrreducibleBrillouinZone <: PWOutputParameter
     crystal::Maybe{Vector{SpecialPoint}}
 end
 
-# Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_ibz(str::AbstractString)
+function Base.parse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
+    obj = tryparse(IrreducibleBrillouinZone, str)
+    isnothing(obj) ? throw(ParseError("cannot find IBZ!")) : return obj
+end
+function Base.tryparse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
     matched = match(K_POINTS_BLOCK, str)
     if isnothing(matched)
         @info("The k-points info is not found!")
