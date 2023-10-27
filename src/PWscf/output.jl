@@ -50,11 +50,6 @@ include("regexes.jl")
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
 
-abstract type Diagonalization end
-struct Davidson <: Diagonalization end
-struct ConjugateGradient <: Diagonalization end
-struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
-
 abstract type PWOutputParameter end
 
 Base.@kwdef struct Preamble <: PWOutputParameter
@@ -215,34 +210,39 @@ function Base.tryparse(::Type{IterationTime}, str::AbstractString)
     end
 end
 
-function parse_diagonalization(str::AbstractString)
-    df = DataFrame(;
-        step=Int[],
-        iteration=Int[],
-        diag=Diagonalization[],  # Diagonalization style
-        ethr=Float64[],  # Energy threshold
-        avg=Float64[],  # Average # of iterations
-    )
-    return _iterationwise!(_parse_diagonalization, df, str)
-end # function parse_diagonalization
-# This is a helper function and should not be exported.
-function _parse_diagonalization(str::AbstractString)
-    solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
-    m = match(C_BANDS, str)
-    if m !== nothing
-        solver = if m[:diag] == "Davidson diagonalization with overlap"
+abstract type DiagonalizationSolver end
+struct Davidson <: DiagonalizationSolver end
+struct ConjugateGradient <: DiagonalizationSolver end
+struct ProjectedPreconditionedConjugateGradient <: DiagonalizationSolver end
+
+struct Diagonalization <: PWOutputParameter
+    solver::DiagonalizationSolver
+    ethr::Float64
+    avg_iter::Float64
+end
+
+function Base.parse(::Type{Diagonalization}, str::AbstractString)
+    obj = tryparse(Diagonalization, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
+    matched = match(C_BANDS, str)
+    if !isnothing(matched)
+        return nothing
+    else
+        solver = if matched[:diag] == "Davidson diagonalization with overlap"
             Davidson()
-        elseif m[:diag] == "CG style diagonalization"
+        elseif matched[:diag] == "CG style diagonalization"
             ConjugateGradient()
-        elseif m[:diag] == "PPCG style diagonalization"
+        elseif matched[:diag] == "PPCG style diagonalization"
             ProjectedPreconditionedConjugateGradient()
         else
-            error("unknown diagonalization style!")
+            throw(ParseError("unknown diagonalization style!"))
         end
-        ethr, avg_iter = map(x -> parse(Float64, x), m.captures[2:end])
-    end  # Keep them `nothing` if `m` is `nothing`
-    return solver, ethr, avg_iter
-end # function _parse_diagonalization
+        ethr, avg_iter = map(Base.Fix1(parse, parse), matched.captures[2:end])
+        return Diagonalization(solver, ethr, avg_iter)
+    end
+end
 
 function _parse_nonconverged_energy(str::AbstractString)
     ɛ, hf, δ = nothing, nothing, nothing  # Initialization
