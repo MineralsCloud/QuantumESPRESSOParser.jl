@@ -433,7 +433,7 @@ function parsetime(str::AbstractString)
         return convert(Millisecond, Hour(hours) + Minute(minutes))
     elseif isnothing(compound) && !isnothing(seconds)
         seconds = parse(Float64, seconds[1])
-        return Millisecond(1000seconds)
+        return Millisecond(round(Int64, 1000seconds))  # 1000 times a floating point number may not be an integer
     else
         throw(ParseError("unrecognized time format!"))
     end
