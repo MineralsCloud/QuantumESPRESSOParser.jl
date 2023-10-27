@@ -130,7 +130,7 @@ function Base.tryparse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
         @info("The k-points info is not found!")
         return nothing
     end
-    nk = parse(UInt64, matched[:nk])
+    nk = parse(Int64, matched[:nk])
     cartesian, crystal = map((:cartesian, :crystal)) do key
         if !isnothing(matched[key])
             points = map(eachmatch(K_POINTS_ITEM, matched[key])) do matched
@@ -405,7 +405,7 @@ struct TimedItem <: PWOutputParameter
     name::String
     cpu::Millisecond
     wall::Millisecond
-    calls::Maybe{UInt64}
+    calls::Maybe{Int64}
 end
 
 function Base.parse(::Type{TimedItem}, str::AbstractString)
@@ -428,8 +428,8 @@ function parsetime(str::AbstractString)
     compound = match(r"(\d+)h\s*(\d+)m", str)
     seconds = match(r"(\d+\.\d{2})s", str)
     if isnothing(seconds) && !isnothing(compound)
-        hours = parse(UInt64, compound[1])
-        minutes = parse(UInt64, compound[2])
+        hours = parse(Int64, compound[1])
+        minutes = parse(Int64, compound[2])
         return convert(Millisecond, Hour(hours) + Minute(minutes))
     elseif isnothing(compound) && !isnothing(seconds)
         seconds = parse(Float64, seconds[1])
