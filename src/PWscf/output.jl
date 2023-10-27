@@ -640,3 +640,6 @@ function parsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m === nothing && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
     return tryparse_internal(T, m.match)
 end # function parsefinal
+
+Base.NamedTuple(obj::PWOutputParameter) =
+    NamedTuple(name => getfield(obj, name) for name in fieldnames(obj))
