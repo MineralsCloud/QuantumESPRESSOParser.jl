@@ -122,7 +122,7 @@ end
 
 function Base.parse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
     obj = tryparse(IrreducibleBrillouinZone, str)
-    isnothing(obj) ? throw(ParseError("cannot find IBZ!")) : return obj
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
 end
 function Base.tryparse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
     matched = match(K_POINTS_BLOCK, str)
@@ -409,9 +409,13 @@ struct TimedItem <: PWOutputParameter
 end
 
 function Base.parse(::Type{TimedItem}, str::AbstractString)
+    obj = tryparse(TimedItem, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{TimedItem}, str::AbstractString)
     matched = match(TIMED_ITEM, str)
     if isnothing(matched)
-        nothing
+        return nothing
     else
         name, cpu, wall = matched[1], parsetime(matched[2]), parsetime(matched[3])
         return TimedItem(
