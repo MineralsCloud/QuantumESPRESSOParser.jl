@@ -122,27 +122,24 @@ struct IrreducibleBrillouinZone <: PWOutputParameter
 end
 
 # Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-    m = match(K_POINTS_BLOCK, str)
-    if m === nothing
+function parse_ibz(str::AbstractString)
+    matched = match(K_POINTS_BLOCK, str)
+    if isnothing(matched)
         @info("The k-points info is not found!")
         return nothing
     end
-    nk = parse(Int, m[:nk])
-    result = []
-    kinds = (:cart => :tpiba, :cryst => :crystal)
-    for (k, v) in kinds
-        if m[k] !== nothing
-            x = Matrix{Float64}(undef, nk, 4)
-            for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
-                x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
+    nk = parse(UInt64, matched[:nk])
+    cartesian, crystal = map((:cartesian, :crystal)) do key
+        if !isnothing(matched[key])
+            points = map(eachmatch(K_POINTS_ITEM, matched[key])) do matched
+                SpecialPoint(Base.Fix1(parse, Float64), matched.captures[begin:end])
             end
-            push!(result, SpecialPointsCard(x, v))
-        else
-            push!(result, nothing)
+            @assert length(points) == nk
+            points
         end
     end
-    return Tuple(result)
-end # function parse_ibz
+    return IrreducibleBrillouinZone(cartesian, crystal)
+end
 
 function parse_stress(str::AbstractString)
     pressures = Float64[]
