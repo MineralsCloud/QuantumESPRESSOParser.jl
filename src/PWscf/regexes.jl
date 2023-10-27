@@ -200,15 +200,14 @@ const CONVERGED_ELECTRONS_ENERGY = Regex(
     "m",
 )
 const TIME_BLOCK = r"(init_run\X+?This run was terminated on:.*)"
-const TIME_FORMAT = r"(\d+h\s*\d+m|\d+\.\d{2}s)"
+const TIME_FORMAT = r"(\d+h\s*\d+m|\d+m\s*\d+\.\d{2}s|\d+\.\d{2}s)"
 const TIMED_ITEM =
     r"([\w:]+)\s*:\s*" *
     TIME_FORMAT *
     r"\s*CPU\s*" *
     TIME_FORMAT *
     r"\s*WALL" *
-    r"(\s*\(\s*(\d+)\s*calls\))?" *
-    r"$"  # Match the last row
+    r"(\s*\(\s*(\d+)\s*calls\))?"
 const TERMINATED_DATE = r"This run was terminated on:(.+)"  # TODO: Date
 const JOB_DONE = r"JOB DONE\."
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/UtilXlib/error_handler.f90#L48-L68.
