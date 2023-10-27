@@ -165,7 +165,18 @@ function parse_stress(str::AbstractString)
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
 
-eachiteration(str::AbstractString) = eachmatch(ITERATION_BLOCK, str)
+struct EachIteration
+    iterator::Base.RegexMatchIterator
+end
+
+Base.iterate(iter::EachIteration) = iterate(iter.iterator)
+Base.iterate(iter::EachIteration, state) = iterate(iter.iterator, state)
+
+Base.eltype(::Type{EachIteration}) = String
+
+Base.IteratorSize(::Type{EachIteration}) = Base.SizeUnknown()
+
+eachiteration(str::AbstractString) = EachIteration(eachmatch(ITERATION_BLOCK, str))
 
 function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString)
     # Loop relax steps
