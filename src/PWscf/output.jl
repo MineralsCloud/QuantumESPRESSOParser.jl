@@ -22,7 +22,6 @@ export Diagonalization,
     ProjectedPreconditionedConjugateGradient,
     parse_fft_base_info,
     parse_symmetries,
-    parse_ibz,
     parse_stress,
     parse_iteration_time,
     parse_bands,
@@ -59,7 +58,9 @@ struct Davidson <: Diagonalization end
 struct ConjugateGradient <: Diagonalization end
 struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
 
-Base.@kwdef struct Preamble
+abstract type PWOutputParameter end
+
+Base.@kwdef struct Preamble <: PWOutputParameter
     ibrav::Int
     alat::Float64
     omega::Float64
@@ -114,29 +115,33 @@ function parse_symmetries(str::AbstractString)
     return num_sym_ops = isempty(m[:n]) ? 0 : parse(Int, m[:n])
 end # function parse_symmetries
 
-# Return `nothing`, `(cartesian_coordinates, nothing)`, `(nothing, crystal_coordinates)`, `(cartesian_coordinates, crystal_coordinates)`
-function parse_ibz(str::AbstractString)::Maybe{Tuple}
-    m = match(K_POINTS_BLOCK, str)
-    if m === nothing
+struct IrreducibleBrillouinZone <: PWOutputParameter
+    cartesian::Maybe{Vector{SpecialPoint}}
+    crystal::Maybe{Vector{SpecialPoint}}
+end
+
+function Base.parse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
+    obj = tryparse(IrreducibleBrillouinZone, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{IrreducibleBrillouinZone}, str::AbstractString)
+    matched = match(K_POINTS_BLOCK, str)
+    if isnothing(matched)
         @info("The k-points info is not found!")
         return nothing
     end
-    nk = parse(Int, m[:nk])
-    result = []
-    kinds = (:cart => :tpiba, :cryst => :crystal)
-    for (k, v) in kinds
-        if m[k] !== nothing
-            x = Matrix{Float64}(undef, nk, 4)
-            for (i, m) in enumerate(eachmatch(K_POINTS_ITEM, m[k]))
-                x[i, :] = map(x -> parse(Float64, x), m.captures[1:end])
+    nk = parse(UInt64, matched[:nk])
+    cartesian, crystal = map((:cartesian, :crystal)) do key
+        if !isnothing(matched[key])
+            points = map(eachmatch(K_POINTS_ITEM, matched[key])) do matched
+                SpecialPoint(Base.Fix1(parse, Float64), matched.captures[begin:end])
             end
-            push!(result, SpecialPointsCard(x, v))
-        else
-            push!(result, nothing)
+            @assert length(points) == nk
+            points
         end
     end
-    return Tuple(result)
-end # function parse_ibz
+    return IrreducibleBrillouinZone(cartesian, crystal)
+end
 
 function parse_stress(str::AbstractString)
     pressures = Float64[]
@@ -396,7 +401,7 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
     return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
 end # function parse_fft_dimensions
 
-struct TimedItem
+struct TimedItem <: PWOutputParameter
     name::String
     cpu::Millisecond
     wall::Millisecond
@@ -404,9 +409,13 @@ struct TimedItem
 end
 
 function Base.parse(::Type{TimedItem}, str::AbstractString)
+    obj = tryparse(TimedItem, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{TimedItem}, str::AbstractString)
     matched = match(TIMED_ITEM, str)
     if isnothing(matched)
-        nothing
+        return nothing
     else
         name, cpu, wall = matched[1], parsetime(matched[2]), parsetime(matched[3])
         return TimedItem(
@@ -638,3 +647,6 @@ function parsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m === nothing && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
     return tryparse_internal(T, m.match)
 end # function parsefinal
+
+Base.NamedTuple(obj::PWOutputParameter) =
+    NamedTuple(name => getfield(obj, name) for name in fieldnames(obj))
