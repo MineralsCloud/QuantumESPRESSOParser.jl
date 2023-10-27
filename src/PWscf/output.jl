@@ -3,7 +3,7 @@ using DataFrames: AbstractDataFrame, DataFrame, groupby
 using QuantumESPRESSOBase.PWscf
 using VersionParsing: vparse
 
-export TimedItem
+export IrreducibleBrillouinZone, TimedItem
 
 struct SubroutineError
     name::String
