@@ -261,6 +261,27 @@ function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
     end
 end
 
+struct UnconvergedEnergy <: PWOutputParameter
+    total_energy::Float64
+    harris_foulkes_estimate::Maybe{Float64}
+    estimated_scf_accuracy::Float64
+end
+
+function Base.parse(::Type{UnconvergedEnergy}, str::AbstractString)
+    obj = tryparse(UnconvergedEnergy, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{UnconvergedEnergy}, str::AbstractString)
+    matched = match(UNCONVERGED_ELECTRONS_ENERGY, str)
+    if isnothing(matched)
+        return nothing
+    else
+        ɛ, hf, δ = map(_parser, matched.captures)
+        return UnconvergedEnergy(ɛ, hf, δ)
+    end
+end
+_parser(x) = isnothing(x) ? x : parse(Float64, x)
+
 function _parse_nonconverged_energy(str::AbstractString)
     ɛ, hf, δ = nothing, nothing, nothing  # Initialization
     m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
