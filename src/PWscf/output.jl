@@ -98,7 +98,11 @@ rows, i.e., "Min", "Max", and "Sum" are printed. If not, the title is
 "G-vector sticks info" and only the "Sum" row is printed. If no information is found,
 return `nothing`. The `DataFrame` is grouped by "sticks" and "gvecs".
 """
-function parse_fft_base_info(str::AbstractString)
+function Base.parse(::Type{FFTGrid}, str::AbstractString)
+    obj = tryparse(FFTGrid, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{FFTGrid}, str::AbstractString)
     matched = match(FFT_BASE_INFO, str)
     if isnothing(matched)
         @info("The FFT base info is not found!")
