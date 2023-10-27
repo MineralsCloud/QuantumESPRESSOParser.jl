@@ -417,26 +417,33 @@ function Base.tryparse(::Type{TimedItem}, str::AbstractString)
     if isnothing(matched)
         return nothing
     else
-        name, cpu, wall = matched[1], parsetime(matched[2]), parsetime(matched[3])
+        name, cpu, wall = matched[1], parsetime(matched[2]), parsetime(matched[9])
         return TimedItem(
-            name, cpu, wall, isnothing(matched[4]) ? nothing : parse(UInt64, matched[5])
+            name, cpu, wall, isnothing(matched[16]) ? nothing : parse(Int64, matched[16])
         )
     end
 end
 
 function parsetime(str::AbstractString)
-    compound = match(r"(\d+)h\s*(\d+)m", str)
-    seconds = match(r"(\d+\.\d{2})s", str)
-    if isnothing(seconds) && !isnothing(compound)
-        hours = parse(Int64, compound[1])
-        minutes = parse(Int64, compound[2])
+    matched = match((HOURS_MINUTES), str)
+    if !isnothing(matched)
+        hours = parse(Int64, matched[1])
+        minutes = parse(Int64, matched[2])
         return convert(Millisecond, Hour(hours) + Minute(minutes))
-    elseif isnothing(compound) && !isnothing(seconds)
-        seconds = parse(Float64, seconds[1])
-        return Millisecond(round(Int64, 1000seconds))  # 1000 times a floating point number may not be an integer
-    else
-        throw(ParseError("unrecognized time format!"))
     end
+    matched = match((MINUTES_SECONDS), str)
+    if !isnothing(matched)
+        minutes = parse(Int64, matched[1])
+        seconds = parse(Float64, matched[2])
+        return convert(Millisecond, Minute(minutes)) +
+               Millisecond(round(Int64, 1000seconds))
+    end
+    matched = match((SECONDS), str)
+    if !isnothing(matched)
+        seconds = parse(Float64, matched[1])
+        return Millisecond(round(Int64, 1000seconds))  # 1000 times a floating point number may not be an integer
+    end
+    throw(ParseError("unrecognized time format!"))
 end
 
 function parse_input_name(str::AbstractString)
