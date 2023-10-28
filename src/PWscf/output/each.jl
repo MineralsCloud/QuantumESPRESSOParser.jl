@@ -6,6 +6,8 @@ export eachstep,
     eachunconvergedenergy,
     eachconvergedenergy,
     each_energy_by_step,
+    eachcellparameterscard,
+    eachatomicpositionscard,
     eachtimeditem
 
 abstract type Each end
@@ -280,6 +282,12 @@ eachconvergedenergy(str::AbstractString) =
     EachParsed{ConvergedEnergy}(CONVERGED_ELECTRONS_ENERGY, str)
 
 function each_energy_by_step end
+
+eachcellparameterscard(str::AbstractString) =
+    EachParsed{CellParametersCard}(CELL_PARAMETERS_BLOCK, str)
+
+eachatomicpositionscard(str::AbstractString) =
+    EachParsed{AtomicPositionsCard}(ATOMIC_POSITIONS_BLOCK, str)
 
 struct TimedItem <: PWOutputItem
     name::String
