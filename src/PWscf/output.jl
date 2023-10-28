@@ -51,9 +51,9 @@ include("regexes.jl")
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
 
-abstract type PWOutputParameter end
+abstract type PWOutputItem end
 
-Base.@kwdef struct Preamble <: PWOutputParameter
+Base.@kwdef struct Preamble <: PWOutputItem
     ibrav::Int8
     alat::Float64
     omega::Float64
@@ -74,7 +74,7 @@ Base.@kwdef struct Preamble <: PWOutputParameter
     nstep::Maybe{Int64} = nothing
 end
 
-struct FFTGrid <: PWOutputParameter
+struct FFTGrid <: PWOutputItem
     type::String
     dense::Int64
     smooth::Int64
@@ -119,7 +119,7 @@ function parse_symmetries(str::AbstractString)
     return num_sym_ops = isempty(m[:n]) ? 0 : parse(Int, m[:n])
 end # function parse_symmetries
 
-struct IrreducibleBrillouinZone <: PWOutputParameter
+struct IrreducibleBrillouinZone <: PWOutputItem
     cartesian::Maybe{Vector{SpecialPoint}}
     crystal::Maybe{Vector{SpecialPoint}}
 end
@@ -223,7 +223,7 @@ Base.IteratorSize(::Type{EachIteration}) = Base.SizeUnknown()
 
 eachiteration(str::AbstractString) = EachIteration(eachmatch(ITERATION_BLOCK, str))
 
-struct IterationHead <: PWOutputParameter
+struct IterationHead <: PWOutputItem
     number::Int64
     ecut::Float64
     beta::Float64
@@ -244,7 +244,7 @@ function Base.tryparse(::Type{IterationHead}, str::AbstractString)
     end
 end
 
-struct IterationTime <: PWOutputParameter
+struct IterationTime <: PWOutputItem
     time::Float64
 end
 
@@ -266,7 +266,7 @@ struct Davidson <: DiagonalizationSolver end
 struct ConjugateGradient <: DiagonalizationSolver end
 struct ProjectedPreconditionedConjugateGradient <: DiagonalizationSolver end
 
-struct Diagonalization <: PWOutputParameter
+struct Diagonalization <: PWOutputItem
     solver::DiagonalizationSolver
     ethr::Float64
     avg_iter::Float64
@@ -295,7 +295,7 @@ function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
     end
 end
 
-struct UnconvergedEnergy <: PWOutputParameter
+struct UnconvergedEnergy <: PWOutputItem
     total_energy::Float64
     harris_foulkes_estimate::Maybe{Float64}
     estimated_scf_accuracy::Float64
@@ -317,7 +317,7 @@ end
 
 _parser(x) = isnothing(x) ? x : parse(Float64, x)
 
-struct ConvergedEnergy <: PWOutputParameter
+struct ConvergedEnergy <: PWOutputItem
     total_energy::Float64
     harris_foulkes_estimate::Maybe{Float64}
     estimated_scf_accuracy::Float64
@@ -451,7 +451,7 @@ function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
     return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
 end # function parse_fft_dimensions
 
-struct TimedItem <: PWOutputParameter
+struct TimedItem <: PWOutputItem
     name::String
     cpu::Millisecond
     wall::Millisecond
