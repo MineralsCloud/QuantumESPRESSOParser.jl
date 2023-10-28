@@ -1,6 +1,8 @@
 export eachstep, eachiteration
 
-struct EachStep
+abstract type Each end
+
+struct EachStep <: Each
     iterator::Base.RegexMatchIterator
 end
 
@@ -29,7 +31,7 @@ Base.IteratorSize(::Type{EachStep}) = Base.SizeUnknown()
 
 eachstep(str::AbstractString) = EachStep(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
 
-struct EachIteration
+struct EachIteration <: Each
     iterator::Base.RegexMatchIterator
 end
 
@@ -58,7 +60,7 @@ Base.IteratorSize(::Type{EachIteration}) = Base.SizeUnknown()
 
 eachiteration(str::AbstractString) = EachIteration(eachmatch(ITERATION_BLOCK, str))
 
-struct EachParsed{T}
+struct EachParsed{T} <: Each
     regex::Regex
     string::String
 end
