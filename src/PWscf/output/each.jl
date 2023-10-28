@@ -1,4 +1,10 @@
-export eachstep, eachiteration
+export eachstep,
+    eachiteration,
+    eachiterationhead,
+    eachiterationtime,
+    eachdiagonalization,
+    eachunconvergedenergy,
+    eachconvergedenergy
 
 abstract type Each end
 
