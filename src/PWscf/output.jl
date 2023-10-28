@@ -3,24 +3,14 @@ using DataFrames: AbstractDataFrame, DataFrame, groupby
 using QuantumESPRESSOBase.PWscf
 using VersionParsing: vparse
 
-export IrreducibleBrillouinZone, TimedItem
-
-struct SubroutineError
-    name::String
-    cerr::String
-    msg::String
-end
-
-struct ParseError <: Exception
-    msg::String
-end
-
-export Diagonalization,
-    Preamble,
-    Davidson,
-    ConjugateGradient,
-    ProjectedPreconditionedConjugateGradient,
-    parse_symmetries,
+export Preamble,
+    FFTGrid,
+    IrreducibleBrillouinZone,
+    IterationHead,
+    UnconvergedEnergy,
+    ConvergedEnergy,
+    TimedItem
+export parse_symmetries,
     parse_stress,
     parse_bands,
     parse_all_electron_energy,
@@ -45,6 +35,16 @@ export Diagonalization,
     parsenext,
     tryparsefinal,
     parsefinal
+
+struct SubroutineError
+    name::String
+    cerr::String
+    msg::String
+end
+
+struct ParseError <: Exception
+    msg::String
+end
 
 include("regexes.jl")
 
