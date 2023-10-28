@@ -4,7 +4,8 @@ export eachstep,
     eachiterationtime,
     eachdiagonalization,
     eachunconvergedenergy,
-    eachconvergedenergy
+    eachconvergedenergy,
+    eachtimeditem
 
 abstract type Each end
 
@@ -275,6 +276,53 @@ end
 
 eachconvergedenergy(str::AbstractString) =
     EachParsed{ConvergedEnergy}(CONVERGED_ELECTRONS_ENERGY, str)
+
+struct TimedItem <: PWOutputItem
+    name::String
+    cpu::Millisecond
+    wall::Millisecond
+    calls::Maybe{Int64}
+end
+
+function Base.parse(::Type{TimedItem}, str::AbstractString)
+    obj = tryparse(TimedItem, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{TimedItem}, str::AbstractString)
+    matched = match(TIMED_ITEM, str)
+    if isnothing(matched)
+        return nothing
+    else
+        name, cpu, wall = matched[1], parsetime(matched[2]), parsetime(matched[9])
+        return TimedItem(
+            name, cpu, wall, isnothing(matched[16]) ? nothing : parse(Int64, matched[16])
+        )
+    end
+end
+
+function parsetime(str::AbstractString)
+    matched = match((HOURS_MINUTES), str)
+    if !isnothing(matched)
+        hours = parse(Int64, matched[1])
+        minutes = parse(Int64, matched[2])
+        return convert(Millisecond, Hour(hours) + Minute(minutes))
+    end
+    matched = match((MINUTES_SECONDS), str)
+    if !isnothing(matched)
+        minutes = parse(Int64, matched[1])
+        seconds = parse(Float64, matched[2])
+        return convert(Millisecond, Minute(minutes)) +
+               Millisecond(round(Int64, 1000seconds))
+    end
+    matched = match((SECONDS), str)
+    if !isnothing(matched)
+        seconds = parse(Float64, matched[1])
+        return Millisecond(round(Int64, 1000seconds))  # 1000 times a floating point number may not be an integer
+    end
+    throw(ParseError("unrecognized time format!"))
+end
+
+eachtimeditem(str::AbstractString) = EachParsed{TimedItem}(TIMED_ITEM, str)
 
 # See https://docs.julialang.org/en/v1/manual/types/#man-custom-pretty-printing
 function Base.show(io::IO, iter::Each)
