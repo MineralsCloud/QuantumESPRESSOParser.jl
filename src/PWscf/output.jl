@@ -22,7 +22,6 @@ export Diagonalization,
     ProjectedPreconditionedConjugateGradient,
     parse_symmetries,
     parse_stress,
-    parse_iteration_time,
     parse_bands,
     parse_all_electron_energy,
     parse_energy_decomposition,
@@ -31,11 +30,11 @@ export Diagonalization,
     parse_version,
     parse_parallel_info,
     parse_fft_dimensions,
-    parse_iteration_head,
-    parse_electrons_energies,
     parse_input_name,
     isoptimized,
     isjobdone,
+    eachstep,
+    eachiteration,
     tryparsefirst,
     parsefirst,
     tryparseall,
@@ -51,11 +50,6 @@ include("regexes.jl")
 
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
-
-abstract type Diagonalization end
-struct Davidson <: Diagonalization end
-struct ConjugateGradient <: Diagonalization end
-struct ProjectedPreconditionedConjugateGradient <: Diagonalization end
 
 abstract type PWOutputParameter end
 
@@ -171,131 +165,177 @@ function parse_stress(str::AbstractString)
     return pressures, atomic_stresses, kbar_stresses
 end # function parse_stress
 
-function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString)
-    # Loop relax steps
-    for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
-        # Loop scf iterations
-        for (j, iter) in enumerate(eachmatch(ITERATION_BLOCK, scf[1]))
-            push!(df, [i j f(iter[1])...])
-        end
+struct EachStep
+    iterator::Base.RegexMatchIterator
+end
+
+function Base.iterate(iter::EachStep)
+    iterated = iterate(iter.iterator)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
     end
-    return df
-end # function _iterationwise
+end
+function Base.iterate(iter::EachStep, state)
+    iterated = iterate(iter.iterator, state)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
 
-function parse_iteration_head(str::AbstractString)
-    df = DataFrame(;
-        step=Int[],  # Step number
-        iteration=Int[],  # Iteration number
-        ecut=Float64[],  # Cutoff energy
-        β=Float64[],  # Mixing beta
-    )
-    return _iterationwise!(_parse_iteration_head, df, str)
-end # function parse_iteration_head
-# This is a helper function and should not be exported.
-function _parse_iteration_head(str::AbstractString)
-    head = match(ITERATION_HEAD, str)
-    return map(x -> parse(Float64, x), head.captures[2:3])
-end # function _parse_iteration_head
+Base.eltype(::Type{EachStep}) = String
 
-function parse_iteration_time(str::AbstractString)
-    df = DataFrame(; step=Int[], iteration=Int[], time=Float64[])
-    return _iterationwise!(_parse_iteration_time, df, str)
-end # function parse_iteration_time
-# This is a helper function and should not be exported.
-function _parse_iteration_time(str::AbstractString)
-    return parse(Float64, match(TOTAL_CPU_TIME, str)[1])
-end # function _parse_iteration_time
+Base.IteratorSize(::Type{EachStep}) = Base.SizeUnknown()
 
-function parse_diagonalization(str::AbstractString)
-    df = DataFrame(;
-        step=Int[],
-        iteration=Int[],
-        diag=Diagonalization[],  # Diagonalization style
-        ethr=Float64[],  # Energy threshold
-        avg=Float64[],  # Average # of iterations
-    )
-    return _iterationwise!(_parse_diagonalization, df, str)
-end # function parse_diagonalization
-# This is a helper function and should not be exported.
-function _parse_diagonalization(str::AbstractString)
-    solver, ethr, avg_iter = nothing, nothing, nothing  # Initialization
-    m = match(C_BANDS, str)
-    if m !== nothing
-        solver = if m[:diag] == "Davidson diagonalization with overlap"
+eachstep(str::AbstractString) = EachStep(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
+
+struct EachIteration
+    iterator::Base.RegexMatchIterator
+end
+
+function Base.iterate(iter::EachIteration)
+    iterated = iterate(iter.iterator)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
+function Base.iterate(iter::EachIteration, state)
+    iterated = iterate(iter.iterator, state)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
+
+Base.eltype(::Type{EachIteration}) = String
+
+Base.IteratorSize(::Type{EachIteration}) = Base.SizeUnknown()
+
+eachiteration(str::AbstractString) = EachIteration(eachmatch(ITERATION_BLOCK, str))
+
+struct IterationHead <: PWOutputParameter
+    number::Int64
+    ecut::Float64
+    beta::Float64
+end
+
+function Base.parse(::Type{IterationHead}, str::AbstractString)
+    obj = tryparse(IterationHead, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{IterationHead}, str::AbstractString)
+    matched = match(ITERATION_HEAD, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return IterationHead(
+            parse(Int64, matched[1]), parse(Float64, matched[2]), parse(Float64, matched[3])
+        )
+    end
+end
+
+struct IterationTime <: PWOutputParameter
+    time::Float64
+end
+
+function Base.parse(::Type{IterationTime}, str::AbstractString)
+    obj = tryparse(IterationTime, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{IterationTime}, str::AbstractString)
+    matched = match(TOTAL_CPU_TIME, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return IterationTime(parse(Float64, matched[1]))
+    end
+end
+
+abstract type DiagonalizationSolver end
+struct Davidson <: DiagonalizationSolver end
+struct ConjugateGradient <: DiagonalizationSolver end
+struct ProjectedPreconditionedConjugateGradient <: DiagonalizationSolver end
+
+struct Diagonalization <: PWOutputParameter
+    solver::DiagonalizationSolver
+    ethr::Float64
+    avg_iter::Float64
+end
+
+function Base.parse(::Type{Diagonalization}, str::AbstractString)
+    obj = tryparse(Diagonalization, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
+    matched = match(C_BANDS, str)
+    if !isnothing(matched)
+        return nothing
+    else
+        solver = if matched[:diag] == "Davidson diagonalization with overlap"
             Davidson()
-        elseif m[:diag] == "CG style diagonalization"
+        elseif matched[:diag] == "CG style diagonalization"
             ConjugateGradient()
-        elseif m[:diag] == "PPCG style diagonalization"
+        elseif matched[:diag] == "PPCG style diagonalization"
             ProjectedPreconditionedConjugateGradient()
         else
-            error("unknown diagonalization style!")
+            throw(ParseError("unknown diagonalization style!"))
         end
-        ethr, avg_iter = map(x -> parse(Float64, x), m.captures[2:end])
-    end  # Keep them `nothing` if `m` is `nothing`
-    return solver, ethr, avg_iter
-end # function _parse_diagonalization
+        ethr, avg_iter = map(Base.Fix1(parse, parse), matched.captures[2:end])
+        return Diagonalization(solver, ethr, avg_iter)
+    end
+end
 
-function _parse_nonconverged_energy(str::AbstractString)
-    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
-    m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
-    if m !== nothing
-        ɛ, hf, δ = map(x -> x === nothing ? x : parse(Float64, x), m.captures)
-    end  # Keep them `nothing` if `m` is `nothing`
-    return ɛ, hf, δ
-end # function _parse_nonconverged_energy
-function _parse_electrons_energies(str::AbstractString, ::Val{:nonconverged})
-    df = DataFrame(;
-        step=Int[],
-        iteration=Int[],
-        ɛ=Maybe{Float64}[],  # Total energy
-        hf=Maybe{Float64}[],  # Harris-Foulkes estimate
-        δ=Maybe{Float64}[],  # Estimated scf accuracy
-    )
-    return _iterationwise!(_parse_nonconverged_energy, df, str)
-end # function _parse_electrons_energies
-function _parse_electrons_energies(str::AbstractString, ::Val{:converged})
-    df = DataFrame(;
-        step=Int[],
-        ɛ=Maybe{Float64}[],  # Total energy
-        hf=Maybe{Float64}[],  # Harris-Foulkes estimate
-        δ=Maybe{Float64}[],  # Estimated scf accuracy
-    )
-    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
-        data = if m !== nothing
-            map(x -> x === nothing ? x : parse(Float64, x), m.captures[1:3])
-        else
-            ntuple(_ -> nothing, 3)
-        end  # Keep them `nothing` if `m` is `nothing`
-        push!(df, [i data...])
+struct UnconvergedEnergy <: PWOutputParameter
+    total_energy::Float64
+    harris_foulkes_estimate::Maybe{Float64}
+    estimated_scf_accuracy::Float64
+end
+
+function Base.parse(::Type{UnconvergedEnergy}, str::AbstractString)
+    obj = tryparse(UnconvergedEnergy, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{UnconvergedEnergy}, str::AbstractString)
+    matched = match(UNCONVERGED_ELECTRONS_ENERGY, str)
+    if isnothing(matched)
+        return nothing
+    else
+        ɛ, hf, δ = map(_parser, matched.captures)
+        return UnconvergedEnergy(ɛ, hf, δ)
     end
-    return df
-end # function _parse_electrons_energies
-function _parse_electrons_energies(str::AbstractString, ::Val{:combined})
-    converged = parse_electrons_energies(str, :converged)
-    nonconverged = parse_electrons_energies(str, :nonconverged)
-    # TODO: Very ugly hack
-    m = 1  # Initial step number
-    for (i, n) in enumerate(nonconverged.step)
-        if n != m
-            @assert(all(==(nothing), nonconverged[i - 1, 3:5]))
-            # nonconverged[i - 1, 3:5] = converged[n, 2:4]  # Converged energies do not have `iteration` column
-            nonconverged[i - 1, 3] = converged[n, 2]
-            nonconverged[i - 1, 4] = converged[n, 3]
-            nonconverged[i - 1, 5] = converged[n, 4]
-        end
-        m = n  # Save the last step number
+end
+
+_parser(x) = isnothing(x) ? x : parse(Float64, x)
+
+struct ConvergedEnergy <: PWOutputParameter
+    total_energy::Float64
+    harris_foulkes_estimate::Maybe{Float64}
+    estimated_scf_accuracy::Float64
+end
+
+function Base.parse(::Type{ConvergedEnergy}, str::AbstractString)
+    obj = tryparse(ConvergedEnergy, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{ConvergedEnergy}, str::AbstractString)
+    matched = match(CONVERGED_ELECTRONS_ENERGY, str)
+    if isnothing(matched)
+        return nothing
+    else
+        ɛ, hf, δ = map(_parser, matched.captures[1:3])
+        return ConvergedEnergy(ɛ, hf, δ)
     end
-    if m == 1
-        nonconverged[end, 3] = converged[end, 2]
-        nonconverged[end, 4] = converged[end, 3]
-        nonconverged[end, 5] = converged[end, 4]
-    end
-    return nonconverged
-end # function _parse_electrons_energies
-function parse_electrons_energies(str::AbstractString, option::Symbol)
-    @assert(option ∈ (:combined, :converged, :nonconverged))
-    return _parse_electrons_energies(str, Val(option))
-end # function parse_electrons_energies
+end
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_bands(str::AbstractString)
