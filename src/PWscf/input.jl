@@ -263,13 +263,29 @@ function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
     end
 end
 
-function Base.parse(::Type{T}, str::AbstractString) where {T<:Card}
-    x = tryparse(T, str)
-    if x === nothing
-        throw(Meta.ParseError("cannot find card `$(groupname(T))`!"))
-    else
-        return x
-    end
+function Base.parse(::Type{AtomicSpeciesCard}, str::AbstractString)
+    obj = tryparse(AtomicSpeciesCard, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.parse(::Type{AtomicPositionsCard}, str::AbstractString)
+    obj = tryparse(AtomicPositionsCard, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.parse(::Type{CellParametersCard}, str::AbstractString)
+    obj = tryparse(CellParametersCard, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.parse(::Type{GammaPointCard}, str::AbstractString)
+    obj = tryparse(GammaPointCard, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.parse(::Type{KMeshCard}, str::AbstractString)
+    obj = tryparse(KMeshCard, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.parse(::Type{SpecialPointsCard}, str::AbstractString)
+    obj = tryparse(SpecialPointsCard, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
 end
 function Base.parse(::Type{PWInput}, str::AbstractString)
     args = []
