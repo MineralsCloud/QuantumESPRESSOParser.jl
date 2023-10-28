@@ -54,24 +54,24 @@ const Maybe{T} = Union{T,Nothing}  # Should not be exported
 abstract type PWOutputParameter end
 
 Base.@kwdef struct Preamble <: PWOutputParameter
-    ibrav::Int
+    ibrav::Int8
     alat::Float64
     omega::Float64
-    nat::Int
-    ntyp::Int
+    nat::Int64
+    ntyp::Int64
     nelec::Float64
     nelup::Maybe{Float64} = nothing
     neldw::Maybe{Float64} = nothing
-    nbnd::Int
+    nbnd::Int64
     ecutwfc::Float64
     ecutrho::Float64
     ecutfock::Maybe{Float64} = nothing
     conv_thr::Maybe{Float64} = nothing
     mixing_beta::Maybe{Float64} = nothing
-    mixing_ndim::Maybe{Int} = nothing
+    mixing_ndim::Maybe{Int64} = nothing
     mixing_mode::Maybe{String} = nothing
     xc::String
-    nstep::Maybe{Int} = nothing
+    nstep::Maybe{Int64} = nothing
 end
 
 struct FFTGrid <: PWOutputParameter
