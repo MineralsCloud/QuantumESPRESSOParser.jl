@@ -38,12 +38,14 @@ struct ParseError <: Exception
     msg::String
 end
 
-include("regexes.jl")
-
 # From https://discourse.julialang.org/t/aliases-for-union-t-nothing-and-union-t-missing/15402/4
 const Maybe{T} = Union{T,Nothing}  # Should not be exported
 
 abstract type PWOutputItem end
+
+include("regexes.jl")
+include("once.jl")
+include("each.jl")
 
 function parse_symmetries(str::AbstractString)
     m = match(SYM_OPS, str)
