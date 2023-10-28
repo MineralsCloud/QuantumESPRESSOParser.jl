@@ -9,7 +9,7 @@ export Preamble,
     UnconvergedEnergy,
     ConvergedEnergy,
     TimedItem
-export parse_symmetries, parse_stress, parse_bands, parse_fft_dimensions, parse_input_name
+export parse_symmetries, parse_stress, parse_bands, parse_input_name
 
 struct ParseError <: Exception
     msg::String
@@ -112,12 +112,25 @@ function Base.tryparse(::Type{Parallelization}, str::AbstractString)
     end
 end
 
-function parse_fft_dimensions(str::AbstractString)
-    m = match(FFT_DIMENSIONS, str)
-    m === nothing && return nothing
-    parsed = map(x -> parse(Int, x), m.captures)
-    return (; zip((:ng, :nr1, :nr2, :nr3), parsed)...)
-end # function parse_fft_dimensions
+struct FFTDimensions <: PWOutputItem
+    ng::Int64
+    nr1::Int64
+    nr2::Int64
+    nr3::Int64
+end
+
+function Base.parse(::Type{FFTDimensions}, str::AbstractString)
+    obj = tryparse(FFTDimensions, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{FFTDimensions}, str::AbstractString)
+    matched = match(FFT_DIMENSIONS, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return FFTDimensions(map(Base.Fix1(parse, Int64), matched.captures)...)
+    end
+end
 
 function parse_input_name(str::AbstractString)
     m = match(READING_INPUT_FROM, str)
