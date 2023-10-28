@@ -51,6 +51,14 @@ Begin final coordinates
 End final coordinates
 """
 
+function Base.parse(::Type{CellParametersCard}, str::AbstractString)
+    obj = tryparse(CellParametersCard, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.parse(::Type{AtomicPositionsCard}, str::AbstractString)
+    obj = tryparse(AtomicPositionsCard, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
 function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
     matched = match(CELL_PARAMETERS_BLOCK_OUTPUT, str)
     if isnothing(matched)
