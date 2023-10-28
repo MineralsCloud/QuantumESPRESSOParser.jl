@@ -20,7 +20,7 @@ using QuantumESPRESSOBase.PWscf:
     CellParametersCard,
     PWInput
 
-# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py
+# This regular expression is taken from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py#L374-L413.
 const ATOMIC_POSITIONS_BLOCK = r"""
 ^ \s* ATOMIC_POSITIONS \s*                      # Atomic positions start with that string
 [{(]? \s* (?P<units>\S+?)? \s* [)}]? \s* $\R    # The units are after the string in optional brackets
@@ -62,29 +62,29 @@ const ATOMIC_POSITIONS_BLOCK = r"""
     )+                                          # A positions block should be one or more lines
 )
 """imx
-# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py.
+# This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py#L548-L593.
 const CELL_PARAMETERS_BLOCK = r"""
-^ [ \t]*
+^[ \t]*
 CELL_PARAMETERS [ \t]*
-[{(]? \s* (?P<option>[a-z]*) \s* [)}]? \h* (?:[\#!].*)? \v  # Match option, do not match comment
+[{(]? [ \t]* (?P<option>[a-zA-Z]*) [ \t]* =? [ \t]* ([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)? [)}]? [ \t]* (?:[\#!].*)? \R  # Match option, do not match comment
 (?P<data>
-(?:
-    \s*              # White space in front of the element spec is ok
     (?:
-        [-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[ED][-+]?[0-9]+)?  # First number
+        \s*              # White space in front of the element spec is ok
         (?:
-        \s+          # White space between numbers
-        [-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[ED][-+]?[0-9]+)?
-        ){2}         # I expect 3 numbers
-        |
-        \#           # If a line is commented out, that is also ok
-        |
-        !            # If a line is commented out, that is also ok
-    )
-    .*               # I do not care what is after the comment or the vector
-    |                # Or
-    ^\s*$            # A line only containing white space
-){3}                 # I need exactly 3 vectors
+            [-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[ED][-+]?[0-9]+)?  # First number
+            \s+          # White space between numbers
+            [-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[ED][-+]?[0-9]+)?
+            \s+
+            [-+]?(?:[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)(?:[ED][-+]?[0-9]+)?
+            |
+            \#           # If a line is commented out, that is also ok
+            |
+            !            # If a line is commented out, that is also ok
+        )
+        .*               # I do not care what is after the comment or the vector
+        |                # Or
+        ^\s*$            # A line only containing white space
+    ){3}                 # I need exactly 3 vectors
 )
 """imx
 # This regular expression is referenced from https://github.com/aiidateam/qe-tools/blob/aedee19/qe_tools/parsers/_input_base.py#L683-L691
