@@ -1,5 +1,15 @@
+using Dates: Hour, Minute, Millisecond
+using VersionParsing: vparse
 
-export QuantumESPRESSOBaseVersion, Parallelization, FFTDimensions, InputFile
+export QuantumESPRESSOBaseVersion,
+    Parallelization,
+    FFTDimensions,
+    InputFile,
+    SubroutineError,
+    Preamble,
+    FFTGrid,
+    IrreducibleBrillouinZone,
+    TimedItem
 
 struct QuantumESPRESSOBaseVersion <: PWOutputItem
     version::VersionNumber
