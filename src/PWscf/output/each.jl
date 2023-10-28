@@ -5,6 +5,7 @@ export eachstep,
     eachdiagonalization,
     eachunconvergedenergy,
     eachconvergedenergy,
+    each_energy_by_step,
     eachtimeditem
 
 abstract type Each end
@@ -277,6 +278,8 @@ end
 
 eachconvergedenergy(str::AbstractString) =
     EachParsed{ConvergedEnergy}(CONVERGED_ELECTRONS_ENERGY, str)
+
+function each_energy_by_step end
 
 struct TimedItem <: PWOutputItem
     name::String
