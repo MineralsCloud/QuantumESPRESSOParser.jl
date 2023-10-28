@@ -1,3 +1,5 @@
+export eachcellparameterscard, eachatomicpositionscard
+
 # The following format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/output_tau.f90#L47-L60.
 const CELL_PARAMETERS_BLOCK_OUTPUT = r"""
 CELL_PARAMETERS \h+
@@ -80,6 +82,12 @@ function tryparse_internal(::Type{AtomicPositionsCard}, str::AbstractString)
         AtomicPositionsCard(data, option)
     end
 end # function tryparse_internal
+
+eachcellparameterscard(str::AbstractString) =
+    EachParsed{CellParametersCard}(CELL_PARAMETERS_BLOCK_OUTPUT, str)
+
+eachatomicpositionscard(str::AbstractString) =
+    EachParsed{AtomicPositionsCard}(ATOMIC_POSITIONS_BLOCK_OUTPUT, str)
 
 const AtomicStructure = Union{CellParametersCard,AtomicPositionsCard}
 
