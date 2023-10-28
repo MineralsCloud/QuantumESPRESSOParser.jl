@@ -9,8 +9,7 @@ export Preamble,
     UnconvergedEnergy,
     ConvergedEnergy,
     TimedItem
-export parse_symmetries,
-    parse_stress, parse_bands, parse_parallel_info, parse_fft_dimensions, parse_input_name
+export parse_symmetries, parse_stress, parse_bands, parse_fft_dimensions, parse_input_name
 
 struct ParseError <: Exception
     msg::String
@@ -93,11 +92,25 @@ function Base.tryparse(::Type{QuantumESPRESSOBaseVersion}, str::AbstractString)
     return isnothing(matched) ? nothing : vparse(matched[:version])
 end
 
-function parse_parallel_info(str::AbstractString)
-    m = match(PARALLEL_INFO, str)
-    m === nothing && return nothing
-    return m[:kind], m[:num] === nothing ? 1 : parse(Int, m[:num])
-end # function parse_parallel_info
+struct Parallelization <: PWOutputItem
+    type::String
+    cores::Maybe{Int64}
+end
+
+function Base.parse(::Type{Parallelization}, str::AbstractString)
+    obj = tryparse(Parallelization, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{Parallelization}, str::AbstractString)
+    matched = match(PARALLEL_INFO, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return Parallelization(
+            matched[:kind], isnothing(matched[:num]) ? 1 : parse(Int64, matched[:num])
+        )
+    end
+end
 
 function parse_fft_dimensions(str::AbstractString)
     m = match(FFT_DIMENSIONS, str)
