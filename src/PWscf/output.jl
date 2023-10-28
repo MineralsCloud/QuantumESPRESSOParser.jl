@@ -296,7 +296,28 @@ function Base.tryparse(::Type{UnconvergedEnergy}, str::AbstractString)
         return UnconvergedEnergy(ɛ, hf, δ)
     end
 end
+
 _parser(x) = isnothing(x) ? x : parse(Float64, x)
+
+struct ConvergedEnergy <: PWOutputParameter
+    total_energy::Float64
+    harris_foulkes_estimate::Maybe{Float64}
+    estimated_scf_accuracy::Float64
+end
+
+function Base.parse(::Type{ConvergedEnergy}, str::AbstractString)
+    obj = tryparse(ConvergedEnergy, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{ConvergedEnergy}, str::AbstractString)
+    matched = match(CONVERGED_ELECTRONS_ENERGY, str)
+    if isnothing(matched)
+        return nothing
+    else
+        ɛ, hf, δ = map(_parser, matched.captures[1:3])
+        return ConvergedEnergy(ɛ, hf, δ)
+    end
+end
 
 function _parse_nonconverged_energy(str::AbstractString)
     ɛ, hf, δ = nothing, nothing, nothing  # Initialization
