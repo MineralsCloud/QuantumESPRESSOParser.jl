@@ -176,7 +176,7 @@ end
 eachdiagonalization(str::AbstractString) = EachParsed{Diagonalization}(C_BANDS, str)
 
 Base.@kwdef struct UnconvergedEnergy <: PWOutputItem
-    total_energy::Float64
+    total::Float64
     harris_foulkes_estimate::Maybe{Float64} = nothing
     estimated_scf_accuracy::Float64
 end
