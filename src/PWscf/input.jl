@@ -239,14 +239,6 @@ function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
         )
     end
 end
-function Base.tryparse(::Type{KPointsCard}, str::AbstractString)
-    for T in (GammaPointCard, KMeshCard, SpecialPointsCard)
-        x = tryparse(T, str)
-        if x !== nothing
-            return x
-        end
-    end
-end
 function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
