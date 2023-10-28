@@ -95,6 +95,27 @@ function _tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     end
 end
 
+function Base.iterate(regexmatchiterator::EachParsed{CellParametersCard})
+    regexmatchiterator = eachmatch(regexmatchiterator.regex, regexmatchiterator.string)
+    iterated = iterate(regexmatchiterator)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return _tryparse(CellParametersCard, matched.match), state
+    end
+end
+function Base.iterate(regexmatchiterator::EachParsed{CellParametersCard}, state)
+    regexmatchiterator = eachmatch(regexmatchiterator.regex, regexmatchiterator.string)
+    iterated = iterate(regexmatchiterator, state)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return _tryparse(CellParametersCard, matched.match), state
+    end
+end
+
 eachcellparameterscard(str::AbstractString) =
     EachParsed{CellParametersCard}(CELL_PARAMETERS_BLOCK_OUTPUT, str)
 
