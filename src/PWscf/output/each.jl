@@ -109,6 +109,8 @@ function Base.tryparse(::Type{IterationHead}, str::AbstractString)
     end
 end
 
+eachiterationhead(str::AbstractString) = EachParsed{IterationHead}(ITERATION_HEAD, str)
+
 struct IterationTime <: PWOutputItem
     time::Float64
 end
@@ -125,6 +127,8 @@ function Base.tryparse(::Type{IterationTime}, str::AbstractString)
         return IterationTime(parse(Float64, matched[1]))
     end
 end
+
+eachiterationtime(str::AbstractString) = EachParsed{IterationTime}(TOTAL_CPU_TIME, str)
 
 abstract type DiagonalizationSolver end
 struct Davidson <: DiagonalizationSolver end
@@ -160,6 +164,8 @@ function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
     end
 end
 
+eachdiagonalization(str::AbstractString) = EachParsed{Diagonalization}(C_BANDS, str)
+
 Base.@kwdef struct UnconvergedEnergy <: PWOutputItem
     total_energy::Float64
     harris_foulkes_estimate::Maybe{Float64} = nothing
@@ -181,6 +187,9 @@ function Base.tryparse(::Type{UnconvergedEnergy}, str::AbstractString)
         return UnconvergedEnergy(total, harris_foulkes_estimate, estimated_scf_accuracy)
     end
 end
+
+eachunconvergedenergy(str::AbstractString) =
+    EachParsed{UnconvergedEnergy}(UNCONVERGED_ELECTRONS_ENERGY, str)
 
 _parser(x) = isnothing(x) ? x : parse(Float64, x)
 
@@ -255,3 +264,6 @@ function Base.tryparse(::Type{ConvergedEnergy}, str::AbstractString)
         )
     end
 end
+
+eachconvergedenergy(str::AbstractString) =
+    EachParsed{ConvergedEnergy}(CONVERGED_ELECTRONS_ENERGY, str)
