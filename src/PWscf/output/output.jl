@@ -9,7 +9,7 @@ export Preamble,
     UnconvergedEnergy,
     ConvergedEnergy,
     TimedItem
-export parse_symmetries, parse_stress, parse_bands, parse_input_name
+export parse_symmetries, parse_stress, parse_bands
 
 struct ParseError <: Exception
     msg::String
@@ -132,7 +132,15 @@ function Base.tryparse(::Type{FFTDimensions}, str::AbstractString)
     end
 end
 
-function parse_input_name(str::AbstractString)
-    m = match(READING_INPUT_FROM, str)
-    return m === nothing ? nothing : only(m)
-end # function parse_input_name
+struct InputFile <: PWOutputItem
+    name::String
+end
+
+function Base.parse(::Type{InputFile}, str::AbstractString)
+    obj = tryparse(InputFile, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{InputFile}, str::AbstractString)
+    matched = match(READING_INPUT_FROM, str)
+    return isnothing(matched) ? nothing : InputFile(only(matched))
+end
