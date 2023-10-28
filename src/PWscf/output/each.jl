@@ -176,7 +176,7 @@ end
 eachdiagonalization(str::AbstractString) = EachParsed{Diagonalization}(C_BANDS, str)
 
 Base.@kwdef struct UnconvergedEnergy <: PWOutputItem
-    total_energy::Float64
+    total::Float64
     harris_foulkes_estimate::Maybe{Float64} = nothing
     estimated_scf_accuracy::Float64
 end
@@ -231,7 +231,8 @@ function Base.tryparse(::Type{ConvergedEnergy}, str::AbstractString)
         return nothing
     else
         total, harris_foulkes_estimate, estimated_scf_accuracy = map(
-            _parser, matched.captures[1:3]
+            _parser,
+            (matched[1], matched[2], matched[4]),  # Not `matched[3]`!
         )
         all_electron = if !isnothing(matched[:ae])
             parse(Float64, only(match(Regex(FIXED_POINT_REAL), matched[:ae])))
