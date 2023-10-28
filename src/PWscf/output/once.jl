@@ -1,4 +1,72 @@
 
+export QuantumESPRESSOBaseVersion, Parallelization, FFTDimensions, InputFile
+
+struct QuantumESPRESSOBaseVersion <: PWOutputItem
+    version::VersionNumber
+end
+
+function Base.parse(::Type{QuantumESPRESSOBaseVersion}, str::AbstractString)
+    obj = tryparse(QuantumESPRESSOBaseVersion, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{QuantumESPRESSOBaseVersion}, str::AbstractString)
+    matched = match(PWSCF_VERSION, str)
+    return isnothing(matched) ? nothing : vparse(matched[:version])
+end
+
+struct Parallelization <: PWOutputItem
+    type::String
+    cores::Maybe{Int64}
+end
+
+function Base.parse(::Type{Parallelization}, str::AbstractString)
+    obj = tryparse(Parallelization, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{Parallelization}, str::AbstractString)
+    matched = match(PARALLEL_INFO, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return Parallelization(
+            matched[:kind], isnothing(matched[:num]) ? 1 : parse(Int64, matched[:num])
+        )
+    end
+end
+
+struct FFTDimensions <: PWOutputItem
+    ng::Int64
+    nr1::Int64
+    nr2::Int64
+    nr3::Int64
+end
+
+function Base.parse(::Type{FFTDimensions}, str::AbstractString)
+    obj = tryparse(FFTDimensions, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{FFTDimensions}, str::AbstractString)
+    matched = match(FFT_DIMENSIONS, str)
+    if isnothing(matched)
+        return nothing
+    else
+        return FFTDimensions(map(Base.Fix1(parse, Int64), matched.captures)...)
+    end
+end
+
+struct InputFile <: PWOutputItem
+    name::String
+end
+
+function Base.parse(::Type{InputFile}, str::AbstractString)
+    obj = tryparse(InputFile, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{InputFile}, str::AbstractString)
+    matched = match(READING_INPUT_FROM, str)
+    return isnothing(matched) ? nothing : InputFile(only(matched))
+end
+
 struct SubroutineError <: PWOutputItem
     name::String
     cerr::String
