@@ -296,11 +296,16 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
         nml = tryparse(T, str)
         push!(args, f => (nml === nothing ? T() : nml))
     end
-    for (f, T) in zip(
-        (:atomic_species, :atomic_positions, :k_points),
-        (AtomicSpeciesCard, AtomicPositionsCard, KPointsCard),
-    )  # Must-have cards, or else error
+    for (f, T) in
+        zip((:atomic_species, :atomic_positions), (AtomicSpeciesCard, AtomicPositionsCard))  # Must-have cards, or else error
         push!(args, f => parse(T, str))
+    end
+    for (T) in (GammaPointCard, KMeshCard, SpecialPointsCard)
+        card = tryparse(T, str)
+        if !isnothing(card)
+            push!(args, :k_points => card)
+            break
+        end
     end
     for (f, T) in zip((:cell_parameters,), (CellParametersCard,))
         card = tryparse(T, str)  # Optional cards
