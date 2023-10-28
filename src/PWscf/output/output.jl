@@ -10,12 +10,7 @@ export Preamble,
     ConvergedEnergy,
     TimedItem
 export parse_symmetries,
-    parse_stress,
-    parse_bands,
-    parse_version,
-    parse_parallel_info,
-    parse_fft_dimensions,
-    parse_input_name
+    parse_stress, parse_bands, parse_parallel_info, parse_fft_dimensions, parse_input_name
 
 struct ParseError <: Exception
     msg::String
@@ -85,10 +80,18 @@ function parse_bands(str::AbstractString)
     return kpts, bands
 end # function parse_bands
 
-function parse_version(str::AbstractString)
-    m = match(PWSCF_VERSION, str)
-    m !== nothing ? vparse(m[:version]) : return nothing
-end # function parse_version
+struct QuantumESPRESSOBaseVersion <: PWOutputItem
+    version::VersionNumber
+end
+
+function Base.parse(::Type{QuantumESPRESSOBaseVersion}, str::AbstractString)
+    obj = tryparse(QuantumESPRESSOBaseVersion, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{QuantumESPRESSOBaseVersion}, str::AbstractString)
+    matched = match(PWSCF_VERSION, str)
+    return isnothing(matched) ? nothing : vparse(matched[:version])
+end
 
 function parse_parallel_info(str::AbstractString)
     m = match(PARALLEL_INFO, str)
