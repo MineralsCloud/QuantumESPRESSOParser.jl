@@ -42,47 +42,6 @@ const REGEXOF = (
     AtomicPositionsCard=ATOMIC_POSITIONS_BLOCK_OUTPUT,
 )
 
-tryparsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
-    tryparse_internal(T, str)
-parsefirst(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = _parse(T, str)
-
-function tryparseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
-    return map(eachmatch(REGEXOF[nameof(T)], str)) do x
-        try
-            tryparse_internal(T, x.match)
-        catch
-            nothing
-        end
-    end
-end # function parseall
-function parseall(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
-    return map(eachmatch(REGEXOF[nameof(T)], str)) do x
-        try
-            tryparse_internal(T, x.match)
-        catch
-            Meta.ParseError("Pass failed!")
-        end
-    end
-end # function parseall
-
-tryparselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} =
-    tryparseall(T, str)[end]
-parselast(::Type{T}, str::AbstractString) where {T<:AtomicStructure} = parseall(T, str)[end]
-
-function _parsenext_internal(
-    ::Type{T}, str::AbstractString, start::Integer, raise::Bool
-) where {T}
-    x = findnext(REGEXOF[nameof(T)], str, start)
-    if x === nothing
-        raise ? throw(Meta.ParseError("Nothing found for next!")) : return nothing
-    end
-    return tryparse_internal(T, str[x])
-end # function parsenext
-tryparsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
-    _parsenext_internal(T, str, start, false)
-parsenext(::Type{T}, str::AbstractString, start::Integer) where {T} =
-    _parsenext_internal(T, str, start, true)
-
 function tryparsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m = match(FINAL_COORDINATES_BLOCK, str)
     m === nothing && return nothing
