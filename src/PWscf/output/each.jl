@@ -130,9 +130,9 @@ function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
     end
 end
 
-struct UnconvergedEnergy <: PWOutputItem
+Base.@kwdef struct UnconvergedEnergy <: PWOutputItem
     total_energy::Float64
-    harris_foulkes_estimate::Maybe{Float64}
+    harris_foulkes_estimate::Maybe{Float64} = nothing
     estimated_scf_accuracy::Float64
 end
 
@@ -145,17 +145,32 @@ function Base.tryparse(::Type{UnconvergedEnergy}, str::AbstractString)
     if isnothing(matched)
         return nothing
     else
-        ɛ, hf, δ = map(_parser, matched.captures)
-        return UnconvergedEnergy(ɛ, hf, δ)
+        total, harris_foulkes_estimate, estimated_scf_accuracy = map(
+            _parser, matched.captures
+        )
+        return UnconvergedEnergy(total, harris_foulkes_estimate, estimated_scf_accuracy)
     end
 end
 
 _parser(x) = isnothing(x) ? x : parse(Float64, x)
 
-struct ConvergedEnergy <: PWOutputItem
-    total_energy::Float64
-    harris_foulkes_estimate::Maybe{Float64}
+Base.@kwdef struct ConvergedEnergy <: PWOutputItem
+    total::Float64
+    harris_foulkes_estimate::Maybe{Float64} = nothing
     estimated_scf_accuracy::Float64
+    all_electron::Maybe{Float64} = nothing
+    one_electron::Maybe{Float64} = nothing
+    hartree::Maybe{Float64} = nothing
+    xc::Maybe{Float64} = nothing
+    ewald::Maybe{Float64} = nothing
+    one_center_paw::Maybe{Float64} = nothing
+    paw_hartree_ae::Maybe{Float64} = nothing
+    paw_hartree_ps::Maybe{Float64} = nothing
+    paw_xc_ae::Maybe{Float64} = nothing
+    paw_xc_ps::Maybe{Float64} = nothing
+    total_e_h_paw::Maybe{Float64} = nothing
+    total_e_xc_paw::Maybe{Float64} = nothing
+    smearing::Maybe{Float64} = nothing
 end
 
 function Base.parse(::Type{ConvergedEnergy}, str::AbstractString)
@@ -167,7 +182,46 @@ function Base.tryparse(::Type{ConvergedEnergy}, str::AbstractString)
     if isnothing(matched)
         return nothing
     else
-        ɛ, hf, δ = map(_parser, matched.captures[1:3])
-        return ConvergedEnergy(ɛ, hf, δ)
+        total, harris_foulkes_estimate, estimated_scf_accuracy = map(
+            _parser, matched.captures[1:3]
+        )
+        all_electron = if !isnothing(matched[:ae])
+            parse(Float64, only(match(Regex(FIXED_POINT_REAL), matched[:ae])))
+        end
+        one_electron, hartree, xc, ewald = if !isnothing(matched[:decomp])
+            map(
+                Base.Fix1(parse, Float64) ∘ only,
+                eachmatch(Regex(FIXED_POINT_REAL), matched[:decomp]),
+            )
+        end
+        # one_center_paw,
+        # paw_hartree_ae, paw_hartree_ps, paw_xc_ae, paw_xc_ps, total_e_h_paw,
+        # total_e_xc_paw = if !isnothing(matched[:decomp])
+        #     map(
+        #         Base.Fix1(parse, Float64) ∘ only,
+        #         eachmatch(Regex(FIXED_POINT_REAL), matched[:decomp]),
+        #     )
+        # end
+        smearing = if !isnothing(matched[:smearing])
+            parse(Float64, only(match(Regex(FIXED_POINT_REAL), matched[:smearing])))
+        end
+        return ConvergedEnergy(;
+            total,
+            harris_foulkes_estimate,
+            estimated_scf_accuracy,
+            all_electron,
+            one_electron,
+            hartree,
+            xc,
+            ewald,
+            # one_center_paw,
+            # paw_hartree_ae,
+            # paw_hartree_ps,
+            # paw_xc_ae,
+            # paw_xc_ps,
+            # total_e_h_paw,
+            # total_e_xc_paw,
+            smearing,
+        )
     end
 end
