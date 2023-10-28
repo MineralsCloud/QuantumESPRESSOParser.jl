@@ -85,18 +85,18 @@ function parse_bands(str::AbstractString)
     return kpts, bands
 end # function parse_bands
 
-function parse_version(str::AbstractString)::Maybe{VersionNumber}
+function parse_version(str::AbstractString)
     m = match(PWSCF_VERSION, str)
     m !== nothing ? vparse(m[:version]) : return nothing
 end # function parse_version
 
-function parse_parallel_info(str::AbstractString)::Maybe{Tuple{String,Int}}
+function parse_parallel_info(str::AbstractString)
     m = match(PARALLEL_INFO, str)
     m === nothing && return nothing
     return m[:kind], m[:num] === nothing ? 1 : parse(Int, m[:num])
 end # function parse_parallel_info
 
-function parse_fft_dimensions(str::AbstractString)::Maybe{NamedTuple}
+function parse_fft_dimensions(str::AbstractString)
     m = match(FFT_DIMENSIONS, str)
     m === nothing && return nothing
     parsed = map(x -> parse(Int, x), m.captures)
