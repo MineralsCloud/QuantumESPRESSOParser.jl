@@ -15,9 +15,7 @@ export parse_symmetries,
     parse_version,
     parse_parallel_info,
     parse_fft_dimensions,
-    parse_input_name,
-    isoptimized,
-    isjobdone
+    parse_input_name
 
 struct ParseError <: Exception
     msg::String
@@ -32,6 +30,7 @@ include("regexes.jl")
 include("once.jl")
 include("each.jl")
 include("atomicstructure.jl")
+include("misc.jl")
 
 function parse_symmetries(str::AbstractString)
     m = match(SYM_OPS, str)
@@ -108,8 +107,3 @@ function parse_input_name(str::AbstractString)
     m = match(READING_INPUT_FROM, str)
     return m === nothing ? nothing : only(m)
 end # function parse_input_name
-
-isoptimized(str::AbstractString) =
-    match(FINAL_COORDINATES_BLOCK, str) === nothing ? false : true
-
-isjobdone(str::AbstractString) = match(JOB_DONE, str) !== nothing
