@@ -278,7 +278,7 @@ function Base.parse(::Type{Diagonalization}, str::AbstractString)
 end
 function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
     matched = match(C_BANDS, str)
-    if !isnothing(matched)
+    if isnothing(matched)
         return nothing
     else
         solver = if matched[:diag] == "Davidson diagonalization with overlap"
