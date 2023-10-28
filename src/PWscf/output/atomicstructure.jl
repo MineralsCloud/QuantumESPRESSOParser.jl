@@ -121,25 +121,3 @@ eachcellparameterscard(str::AbstractString) =
 
 eachatomicpositionscard(str::AbstractString) =
     EachParsed{AtomicPositionsCard}(ATOMIC_POSITIONS_BLOCK_OUTPUT, str)
-
-const AtomicStructure = Union{CellParametersCard,AtomicPositionsCard}
-
-const REGEXOF = (
-    CellParametersCard=CELL_PARAMETERS_BLOCK_OUTPUT,
-    AtomicPositionsCard=ATOMIC_POSITIONS_BLOCK_OUTPUT,
-)
-
-function _tryparsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
-    m = match(FINAL_COORDINATES_BLOCK, str)
-    m === nothing && return nothing
-    m = match(REGEXOF[nameof(T)], m.match)
-    m === nothing && return nothing
-    return _tryparse(T, m.match)
-end # function parsefinal
-function parsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
-    m = match(FINAL_COORDINATES_BLOCK, str)
-    m === nothing && throw(Meta.ParseError("No final coordinates found!"))
-    m = match(REGEXOF[nameof(T)], m.match)
-    m === nothing && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
-    return _tryparse(T, m.match)
-end # function parsefinal
