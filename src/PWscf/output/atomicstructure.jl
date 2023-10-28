@@ -32,11 +32,6 @@ end # function tryparse_internal
 
 const AtomicStructure = Union{CellParametersCard,AtomicPositionsCard}
 
-function _parse(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
-    x = tryparse(T, str)
-    return x === nothing ? throw(Meta.ParseError("cannot find `$(T)`!")) : x
-end # function _parse
-
 const REGEXOF = (
     CellParametersCard=CELL_PARAMETERS_BLOCK_OUTPUT,
     AtomicPositionsCard=ATOMIC_POSITIONS_BLOCK_OUTPUT,
