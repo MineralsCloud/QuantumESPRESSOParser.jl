@@ -269,3 +269,12 @@ end
 
 eachconvergedenergy(str::AbstractString) =
     EachParsed{ConvergedEnergy}(CONVERGED_ELECTRONS_ENERGY, str)
+
+# See https://docs.julialang.org/en/v1/manual/types/#man-custom-pretty-printing
+function Base.show(io::IO, iter::Each)
+    if get(io, :compact, false)
+        print(IOContext(io, :limit => true, :compact => true), summary(iter), "(...)")
+    else
+        print(io, summary(iter), "(...)")
+    end
+end
