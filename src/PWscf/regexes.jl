@@ -1,4 +1,4 @@
-using ReadableRegex: capture, either, maybe, @rs_str
+using ReadableRegex: ANY, lazy_zero_or_more, capture, either, maybe, @rs_str
 
 # See https://gist.github.com/singularitti/e9e04c501ddfe40ba58917a754707b2e
 const INTEGER = raw"([-+]?[0-9]+)"
@@ -139,7 +139,10 @@ total\s+stress\s*\(Ry\/bohr\*\*3\)\s+
 ){3}
 )
 """mx
-const SELF_CONSISTENT_CALCULATION_BLOCK = r"(Self-consistent Calculation\X+?End of self-consistent calculation)"
+const SELF_CONSISTENT_CALCULATION_BLOCK =
+    rs"Self-consistent Calculation" *
+    capture(lazy_zero_or_more(ANY)) *
+    rs"End of self-consistent calculation"
 const ITERATION_BLOCK = r"(?<=iteration #)(.*?)(?=iteration #|End of self-consistent calculation)"s
 # This format is from https://github.com/QEF/q-e/blob/4132a64/PW/src/electrons.f90#L920-L921.
 # '     iteration #',I3,'     ecut=', F9.2,' Ry',5X,'beta=',F5.2
