@@ -300,7 +300,7 @@ function Base.parse(::Type{PWInput}, str::AbstractString)
         zip((:atomic_species, :atomic_positions), (AtomicSpeciesCard, AtomicPositionsCard))  # Must-have cards, or else error
         push!(args, f => parse(T, str))
     end
-    for (T) in (GammaPointCard, KMeshCard, SpecialPointsCard)
+    for T in (GammaPointCard, KMeshCard, SpecialPointsCard)
         card = tryparse(T, str)
         if !isnothing(card)
             push!(args, :k_points => card)
