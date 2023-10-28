@@ -158,13 +158,14 @@ const HOURS_MINUTES = rs"(\d+)h\s*(\d+)m"
 const MINUTES_SECONDS = rs"(\d+)m\s*(\d+\.\d{2})s"
 const SECONDS = rs"(\d+)\.(\d{2})s"
 const TIME_FORMAT = capture(either(HOURS_MINUTES, MINUTES_SECONDS, SECONDS))
-const TIMED_ITEM =
+const TIMED_ITEM = Regex(
     rs"([\w:]+)\s*:\s*" *
     TIME_FORMAT *
     rs"\s*CPU\s*" *
     TIME_FORMAT *
     rs"\s*WALL" *
-    maybe(rs"\s*\(\s*(\d+)\s*calls\)")
+    maybe(rs"\s*\(\s*(\d+)\s*calls\)"),
+)
 const TERMINATED_DATE = r"This run was terminated on:(.+)"  # TODO: Date
 const JOB_DONE = r"JOB DONE\."
 # These formats are from https://github.com/QEF/q-e/blob/4132a64/UtilXlib/error_handler.f90#L48-L68.
