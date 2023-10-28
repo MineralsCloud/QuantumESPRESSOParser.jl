@@ -223,17 +223,6 @@ Base.IteratorSize(::Type{EachIteration}) = Base.SizeUnknown()
 
 eachiteration(str::AbstractString) = EachIteration(eachmatch(ITERATION_BLOCK, str))
 
-function _iterationwise!(f::Function, df::AbstractDataFrame, str::AbstractString)
-    # Loop relax steps
-    for (i, scf) in enumerate(eachmatch(SELF_CONSISTENT_CALCULATION_BLOCK, str))
-        # Loop scf iterations
-        for (j, iter) in enumerate(eachmatch(ITERATION_BLOCK, scf[1]))
-            push!(df, [i j f(iter[1])...])
-        end
-    end
-    return df
-end # function _iterationwise
-
 struct IterationHead <: PWOutputParameter
     number::Int64
     ecut::Float64
