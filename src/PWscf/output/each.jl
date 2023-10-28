@@ -130,9 +130,9 @@ function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
     end
 end
 
-struct UnconvergedEnergy <: PWOutputItem
+Base.@kwdef struct UnconvergedEnergy <: PWOutputItem
     total_energy::Float64
-    harris_foulkes_estimate::Maybe{Float64}
+    harris_foulkes_estimate::Maybe{Float64} = nothing
     estimated_scf_accuracy::Float64
 end
 
@@ -145,8 +145,10 @@ function Base.tryparse(::Type{UnconvergedEnergy}, str::AbstractString)
     if isnothing(matched)
         return nothing
     else
-        ɛ, hf, δ = map(_parser, matched.captures)
-        return UnconvergedEnergy(ɛ, hf, δ)
+        total, harris_foulkes_estimate, estimated_scf_accuracy = map(
+            _parser, matched.captures
+        )
+        return UnconvergedEnergy(total, harris_foulkes_estimate, estimated_scf_accuracy)
     end
 end
 
