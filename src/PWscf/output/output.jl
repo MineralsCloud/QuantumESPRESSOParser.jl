@@ -12,7 +12,6 @@ abstract type PWOutputItem end
 include("regexes.jl")
 include("once.jl")
 include("each.jl")
-include("atomicstructure.jl")
 include("misc.jl")
 
 function parse_symmetries(str::AbstractString)
