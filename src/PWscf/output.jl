@@ -169,8 +169,24 @@ struct EachIteration
     iterator::Base.RegexMatchIterator
 end
 
-Base.iterate(iter::EachIteration) = iterate(iter.iterator)
-Base.iterate(iter::EachIteration, state) = iterate(iter.iterator, state)
+function Base.iterate(iter::EachIteration)
+    iterated = iterate(iter.iterator)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
+function Base.iterate(iter::EachIteration, state)
+    iterated = iterate(iter.iterator, state)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
 
 Base.eltype(::Type{EachIteration}) = String
 
