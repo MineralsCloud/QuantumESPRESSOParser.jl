@@ -52,14 +52,14 @@ End final coordinates
 """
 
 function Base.parse(::Type{CellParametersCard}, str::AbstractString)
-    obj = tryparse(CellParametersCard, str)
+    obj = _tryparse(CellParametersCard, str)
     isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
 end
 function Base.parse(::Type{AtomicPositionsCard}, str::AbstractString)
-    obj = tryparse(AtomicPositionsCard, str)
+    obj = _tryparse(AtomicPositionsCard, str)
     isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
 end
-function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
+function _tryparse(::Type{CellParametersCard}, str::AbstractString)
     matched = match(CELL_PARAMETERS_BLOCK_OUTPUT, str)
     if isnothing(matched)
         return nothing
@@ -77,7 +77,7 @@ function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
         end
     end
 end
-function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
+function _tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     matched = match(ATOMIC_POSITIONS_BLOCK_OUTPUT, str)
     if isnothing(matched)
         return nothing
@@ -108,17 +108,17 @@ const REGEXOF = (
     AtomicPositionsCard=ATOMIC_POSITIONS_BLOCK_OUTPUT,
 )
 
-function tryparsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
+function _tryparsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m = match(FINAL_COORDINATES_BLOCK, str)
     m === nothing && return nothing
     m = match(REGEXOF[nameof(T)], m.match)
     m === nothing && return nothing
-    return tryparse(T, m.match)
+    return _tryparse(T, m.match)
 end # function parsefinal
 function parsefinal(::Type{T}, str::AbstractString) where {T<:AtomicStructure}
     m = match(FINAL_COORDINATES_BLOCK, str)
     m === nothing && throw(Meta.ParseError("No final coordinates found!"))
     m = match(REGEXOF[nameof(T)], m.match)
     m === nothing && throw(Meta.ParseError("No `CELL_PARAMETERS` found!"))
-    return tryparse(T, m.match)
+    return _tryparse(T, m.match)
 end # function parsefinal
