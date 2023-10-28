@@ -30,7 +30,6 @@ export Diagonalization,
     parse_version,
     parse_parallel_info,
     parse_fft_dimensions,
-    parse_electrons_energies,
     parse_input_name,
     isoptimized,
     isjobdone,
@@ -348,68 +347,6 @@ function Base.tryparse(::Type{ConvergedEnergy}, str::AbstractString)
         return ConvergedEnergy(ɛ, hf, δ)
     end
 end
-
-function _parse_nonconverged_energy(str::AbstractString)
-    ɛ, hf, δ = nothing, nothing, nothing  # Initialization
-    m = match(UNCONVERGED_ELECTRONS_ENERGY, str)
-    if m !== nothing
-        ɛ, hf, δ = map(x -> x === nothing ? x : parse(Float64, x), m.captures)
-    end  # Keep them `nothing` if `m` is `nothing`
-    return ɛ, hf, δ
-end # function _parse_nonconverged_energy
-function _parse_electrons_energies(str::AbstractString, ::Val{:nonconverged})
-    df = DataFrame(;
-        step=Int[],
-        iteration=Int[],
-        ɛ=Maybe{Float64}[],  # Total energy
-        hf=Maybe{Float64}[],  # Harris-Foulkes estimate
-        δ=Maybe{Float64}[],  # Estimated scf accuracy
-    )
-    return _iterationwise!(_parse_nonconverged_energy, df, str)
-end # function _parse_electrons_energies
-function _parse_electrons_energies(str::AbstractString, ::Val{:converged})
-    df = DataFrame(;
-        step=Int[],
-        ɛ=Maybe{Float64}[],  # Total energy
-        hf=Maybe{Float64}[],  # Harris-Foulkes estimate
-        δ=Maybe{Float64}[],  # Estimated scf accuracy
-    )
-    for (i, m) in enumerate(eachmatch(CONVERGED_ELECTRONS_ENERGY, str))
-        data = if m !== nothing
-            map(x -> x === nothing ? x : parse(Float64, x), m.captures[1:3])
-        else
-            ntuple(_ -> nothing, 3)
-        end  # Keep them `nothing` if `m` is `nothing`
-        push!(df, [i data...])
-    end
-    return df
-end # function _parse_electrons_energies
-function _parse_electrons_energies(str::AbstractString, ::Val{:combined})
-    converged = parse_electrons_energies(str, :converged)
-    nonconverged = parse_electrons_energies(str, :nonconverged)
-    # TODO: Very ugly hack
-    m = 1  # Initial step number
-    for (i, n) in enumerate(nonconverged.step)
-        if n != m
-            @assert(all(==(nothing), nonconverged[i - 1, 3:5]))
-            # nonconverged[i - 1, 3:5] = converged[n, 2:4]  # Converged energies do not have `iteration` column
-            nonconverged[i - 1, 3] = converged[n, 2]
-            nonconverged[i - 1, 4] = converged[n, 3]
-            nonconverged[i - 1, 5] = converged[n, 4]
-        end
-        m = n  # Save the last step number
-    end
-    if m == 1
-        nonconverged[end, 3] = converged[end, 2]
-        nonconverged[end, 4] = converged[end, 3]
-        nonconverged[end, 5] = converged[end, 4]
-    end
-    return nonconverged
-end # function _parse_electrons_energies
-function parse_electrons_energies(str::AbstractString, option::Symbol)
-    @assert(option ∈ (:combined, :converged, :nonconverged))
-    return _parse_electrons_energies(str, Val(option))
-end # function parse_electrons_energies
 
 # See https://github.com/QEF/q-e/blob/4132a64/PW/src/print_ks_energies.f90#L10.
 function parse_bands(str::AbstractString)
