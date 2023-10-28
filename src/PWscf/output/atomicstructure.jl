@@ -45,11 +45,6 @@ const ATOMIC_POSITIONS_ITEM_OUTPUT = r"""
 ([-+]?[0-9]+)? \s*            # if_pos(2)
 ([-+]?[0-9]+)? \s*            # if_pos(3)
 """x
-const FINAL_COORDINATES_BLOCK = r"""
-Begin final coordinates
-(\X+?)
-End final coordinates
-"""
 
 function Base.parse(::Type{CellParametersCard}, str::AbstractString)
     obj = _tryparse(CellParametersCard, str)
