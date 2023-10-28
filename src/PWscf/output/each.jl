@@ -58,6 +58,36 @@ Base.IteratorSize(::Type{EachIteration}) = Base.SizeUnknown()
 
 eachiteration(str::AbstractString) = EachIteration(eachmatch(ITERATION_BLOCK, str))
 
+struct EachParsed{T}
+    regex::Regex
+    string::String
+end
+
+function Base.iterate(regexmatchiterator::EachParsed{T}) where {T}
+    regexmatchiterator = eachmatch(regexmatchiterator.regex, regexmatchiterator.string)
+    iterated = iterate(regexmatchiterator)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return tryparse(T, matched.match), state
+    end
+end
+function Base.iterate(regexmatchiterator::EachParsed{T}, state) where {T}
+    regexmatchiterator = eachmatch(regexmatchiterator.regex, regexmatchiterator.string)
+    iterated = iterate(regexmatchiterator, state)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return tryparse(T, matched.match), state
+    end
+end
+
+Base.eltype(::Type{EachParsed{T}}) where {T} = T
+
+Base.IteratorSize(::Type{<:EachParsed}) = Base.SizeUnknown()
+
 struct IterationHead <: PWOutputItem
     number::Int64
     ecut::Float64
