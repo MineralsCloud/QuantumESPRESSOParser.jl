@@ -175,7 +175,7 @@ const CELL_PARAMETERS_ITEM = r"""
 function Base.tryparse(::Type{AtomicSpeciesCard}, str::AbstractString)
     m = match(ATOMIC_SPECIES_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    if m !== nothing
+    if !isnothing(m)
         content = only(m.captures)
         return AtomicSpeciesCard(
             map(eachmatch(ATOMIC_SPECIES_ITEM, content)) do matched
@@ -191,7 +191,7 @@ end
 function Base.tryparse(::Type{AtomicPositionsCard}, str::AbstractString)
     m = match(ATOMIC_POSITIONS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    if m !== nothing
+    if !isnothing(m)
         if m.captures[1] === nothing
             @warn "Not specifying units is DEPRECATED and will no longer be allowed in the future!"
             @info "No option is specified, 'alat' is assumed."
@@ -221,14 +221,14 @@ function Base.tryparse(::Type{GammaPointCard}, str::AbstractString)
 end
 function Base.tryparse(::Type{KMeshCard}, str::AbstractString)
     m = match(K_POINTS_AUTOMATIC_BLOCK, str)
-    if m !== nothing
+    if !isnothing(m)
         data = map(x -> fparse(Int, x), m.captures)
         return KMeshCard(MonkhorstPackGrid(data[1:3], data[4:6]))
     end
 end
 function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
     m = match(K_POINTS_SPECIAL_BLOCK, str)
-    if m !== nothing
+    if !isnothing(m)
         option = m.captures[1] === nothing ? "tpiba" : m.captures[1]
         return SpecialPointsCard(
             map(eachmatch(K_POINTS_SPECIAL_ITEM, m.captures[2])) do matched
@@ -242,7 +242,7 @@ end
 function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
     m = match(CELL_PARAMETERS_BLOCK, str)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
-    if m !== nothing
+    if !isnothing(m)
         rawoption = m[:option]
         option = if isempty(rawoption)
             @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
