@@ -10,6 +10,7 @@ export eachstep,
     each_energy_by_step,
     eachatomicforceblock,
     eachatomicforce,
+    eachtotalforce,
     eachcellparameterscard,
     eachatomicpositionscard,
     eachtimeditem
@@ -352,6 +353,25 @@ function Base.tryparse(::Type{AtomicForce}, str::AbstractString)
 end
 
 eachatomicforce(str::AbstractString) = EachParsed{AtomicForce}(FORCE_ACTING_ON_ATOM, str)
+
+TOTAL_FOCE = Regex(
+    rs"Total force =[ \t]*" * capture(rs"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)")
+)
+
+struct TotalForce <: PWOutputItem
+    force::Float64
+end
+
+function Base.parse(::Type{TotalForce}, str::AbstractString)
+    obj = tryparse(TotalForce, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{TotalForce}, str::AbstractString)
+    matched = match(TOTAL_FOCE, str)
+    return isnothing(matched) ? nothing : TotalForce(parse(Float64, matched[1]))
+end
+
+eachtotalforce(str::AbstractString) = EachParsed{TotalForce}(TOTAL_FOCE, str)
 
 eachcellparameterscard(str::AbstractString) =
     EachParsed{CellParametersCard}(CELL_PARAMETERS_BLOCK, str)
