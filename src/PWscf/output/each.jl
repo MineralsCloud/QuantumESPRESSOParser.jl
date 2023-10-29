@@ -1,3 +1,5 @@
+using StaticArrays: SVector
+
 export eachstep,
     eachiteration,
     eachiterationhead,
@@ -7,6 +9,7 @@ export eachstep,
     eachconvergedenergy,
     each_energy_by_step,
     eachtotalforce,
+    eachatomicforce,
     eachcellparameterscard,
     eachatomicpositionscard,
     eachtimeditem
@@ -322,6 +325,33 @@ Base.IteratorSize(::Type{EachTotalForce}) = Base.SizeUnknown()
 
 eachtotalforce(str::AbstractString) =
     EachTotalForce(eachmatch(FORCES_ACTING_ON_ATOMS_BLOCK, str))
+
+FORCE_ACTING_ON_ATOM = Regex(
+    rs"atom\s+(\d+)\s+type\s+(\d+)\s+force\s+=\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)"
+)
+
+struct AtomicForce <: PWOutputItem
+    atom::Int64
+    type::Int64
+    force::SVector{3,Float64}
+end
+
+function Base.parse(::Type{AtomicForce}, str::AbstractString)
+    obj = tryparse(AtomicForce, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{AtomicForce}, str::AbstractString)
+    matched = match(FORCE_ACTING_ON_ATOM, str)
+    if isnothing(matched)
+        return nothing
+    else
+        atom, type = map(Base.Fix1(parse, Int64), matched.captures[1:2])
+        force = map(Base.Fix1(parse, Float64), matched.captures[3:5])
+        return AtomicForce(atom, type, force)
+    end
+end
+
+eachatomicforce(str::AbstractString) = EachParsed{AtomicForce}(FORCE_ACTING_ON_ATOM, str)
 
 eachcellparameterscard(str::AbstractString) =
     EachParsed{CellParametersCard}(CELL_PARAMETERS_BLOCK, str)
