@@ -288,7 +288,7 @@ eachconvergedenergy(str::AbstractString) =
 
 function each_energy_by_step end
 
-FORCES_ACTING_ON_ATOMS_BLOCK = Regex(
+const FORCES_ACTING_ON_ATOMS_BLOCK = Regex(
     raw"Forces acting on atoms (cartesian axes, Ry/au):" *
     capture(lazy_zero_or_more(ANY)) *
     rs"Total force =[ \t]*" *
@@ -327,7 +327,7 @@ Base.IteratorSize(::Type{EachAtomicForceBlock}) = Base.SizeUnknown()
 eachatomicforceblock(str::AbstractString) =
     EachAtomicForceBlock(eachmatch(FORCES_ACTING_ON_ATOMS_BLOCK, str))
 
-FORCE_ACTING_ON_ATOM = Regex(
+const FORCE_ACTING_ON_ATOM = Regex(
     rs"atom\s+(\d+)\s+type\s+(\d+)\s+force\s+=\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)"
 )
 
@@ -354,7 +354,7 @@ end
 
 eachatomicforce(str::AbstractString) = EachParsed{AtomicForce}(FORCE_ACTING_ON_ATOM, str)
 
-TOTAL_FOCE = Regex(
+const TOTAL_FOCE = Regex(
     rs"Total force =[ \t]*" * capture(rs"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)")
 )
 
