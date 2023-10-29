@@ -8,7 +8,7 @@ export eachstep,
     eachunconvergedenergy,
     eachconvergedenergy,
     each_energy_by_step,
-    eachtotalforce,
+    eachatomicforceblock,
     eachatomicforce,
     eachcellparameterscard,
     eachatomicpositionscard,
@@ -296,11 +296,11 @@ FORCES_ACTING_ON_ATOMS_BLOCK = Regex(
     capture(rs"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"),
 )
 
-struct EachTotalForce <: Each
+struct EachAtomicForceBlock <: Each
     iterator::Base.RegexMatchIterator
 end
 
-function Base.iterate(iter::EachTotalForce)
+function Base.iterate(iter::EachAtomicForceBlock)
     iterated = iterate(iter.iterator)
     if isnothing(iterated)
         return nothing
@@ -309,7 +309,7 @@ function Base.iterate(iter::EachTotalForce)
         return matched.match, state
     end
 end
-function Base.iterate(iter::EachTotalForce, state)
+function Base.iterate(iter::EachAtomicForceBlock, state)
     iterated = iterate(iter.iterator, state)
     if isnothing(iterated)
         return nothing
@@ -319,12 +319,12 @@ function Base.iterate(iter::EachTotalForce, state)
     end
 end
 
-Base.eltype(::Type{EachTotalForce}) = String
+Base.eltype(::Type{EachAtomicForceBlock}) = String
 
-Base.IteratorSize(::Type{EachTotalForce}) = Base.SizeUnknown()
+Base.IteratorSize(::Type{EachAtomicForceBlock}) = Base.SizeUnknown()
 
-eachtotalforce(str::AbstractString) =
-    EachTotalForce(eachmatch(FORCES_ACTING_ON_ATOMS_BLOCK, str))
+eachatomicforceblock(str::AbstractString) =
+    EachAtomicForceBlock(eachmatch(FORCES_ACTING_ON_ATOMS_BLOCK, str))
 
 FORCE_ACTING_ON_ATOM = Regex(
     rs"atom\s+(\d+)\s+type\s+(\d+)\s+force\s+=\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)"
