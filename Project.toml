@@ -26,6 +26,7 @@ Dates = "1"
 PyFortran90Namelists = "0.1"
 QuantumESPRESSOBase = "0.12"
 ReadableRegex = "0.1, 0.2, 0.3"
+StaticArrays = "0.8.3, 0.9, 0.10, 0.11, 0.12, 1"
 VersionParsing = "1"
 julia = "1"
 
