@@ -66,7 +66,7 @@ const ATOMIC_POSITIONS_BLOCK = r"""
 const CELL_PARAMETERS_BLOCK = r"""
 ^[ \t]*
 CELL_PARAMETERS [ \t]*
-[{(]? [ \t]* (?P<option>[a-zA-Z]*) [ \t]* =? [ \t]* ([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)? [)}]? [ \t]* (?:[\#!].*)? \R  # Match option, do not match comment
+[{(]? [ \t]* (?P<option>[a-zA-Z]*) [ \t]* =? [ \t]* (?<alat>[-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)? [)}]? [ \t]* (?:[\#!].*)? \R  # Match option, do not match comment
 (?P<data>
     (?:
         \s*              # White space in front of the element spec is ok
@@ -244,12 +244,14 @@ function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
     # Function `match` only searches for the first match of the regular expression, so it could be a `nothing`
     if !isnothing(m)
         rawoption = m[:option]
-        option = if isempty(rawoption)
+        option, alat = if isempty(rawoption)
             @warn "Neither unit nor lattice parameter are specified. DEPRECATED, will no longer be allowed!"
             @info "'bohr' is assumed."
-            :bohr
+            :bohr, 1
+        elseif !isnothing(m[:alat])  # Match QE output style
+            :bohr, fparse(Float64, m[:alat])
         else
-            Symbol(rawoption)
+            Symbol(rawoption), 1
         end
         content = m[:data]
         data = Matrix{Float64}(undef, 3, 3)
@@ -259,7 +261,7 @@ function Base.tryparse(::Type{CellParametersCard}, str::AbstractString)
                 x -> fparse(Float64, x), [captured[1], captured[4], captured[7]]
             )
         end
-        return CellParametersCard(data, option)
+        return CellParametersCard(data * alat, option)
     end
 end
 
