@@ -6,6 +6,7 @@ export eachstep,
     eachunconvergedenergy,
     eachconvergedenergy,
     each_energy_by_step,
+    eachtotalforce,
     eachcellparameterscard,
     eachatomicpositionscard,
     eachtimeditem
@@ -282,6 +283,45 @@ eachconvergedenergy(str::AbstractString) =
     EachParsed{ConvergedEnergy}(CONVERGED_ELECTRONS_ENERGY, str)
 
 function each_energy_by_step end
+
+FORCES_ACTING_ON_ATOMS_BLOCK = Regex(
+    raw"Forces acting on atoms (cartesian axes, Ry/au):" *
+    capture(lazy_zero_or_more(ANY)) *
+    rs"Total force =[ \t]*" *
+    capture(rs"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)") *
+    rs"[ \t]+Total SCF correction =[ \t]*" *
+    capture(rs"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"),
+)
+
+struct EachTotalForce <: Each
+    iterator::Base.RegexMatchIterator
+end
+
+function Base.iterate(iter::EachTotalForce)
+    iterated = iterate(iter.iterator)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
+function Base.iterate(iter::EachTotalForce, state)
+    iterated = iterate(iter.iterator, state)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
+
+Base.eltype(::Type{EachTotalForce}) = String
+
+Base.IteratorSize(::Type{EachTotalForce}) = Base.SizeUnknown()
+
+eachtotalforce(str::AbstractString) =
+    EachTotalForce(eachmatch(FORCES_ACTING_ON_ATOMS_BLOCK, str))
 
 eachcellparameterscard(str::AbstractString) =
     EachParsed{CellParametersCard}(CELL_PARAMETERS_BLOCK, str)
