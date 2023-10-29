@@ -119,9 +119,9 @@ version = "4.1.1"
 
 [[deps.CrystallographyBase]]
 deps = ["AnonymousEnums", "CrystallographyCore", "LinearAlgebra", "Reexport", "StaticArrays", "StructEquality"]
-git-tree-sha1 = "bdef31872b0957a58e6837ce83d7ee6955643ef6"
+git-tree-sha1 = "2a9fffe4389d550840ebf4521f091f0b6c0f2e30"
 uuid = "93b1d1cd-a8ea-4aa5-adb1-b2407ea0ba8d"
-version = "0.14.2"
+version = "0.14.3"
 
     [deps.CrystallographyBase.extensions]
     BrillouinSpglibExt = ["Brillouin", "Spglib"]
@@ -338,8 +338,8 @@ version = "0.12.0"
     StructTypes = "856f2bd8-1eba-4b0a-8007-ebc267875bd4"
 
 [[deps.QuantumESPRESSOParser]]
-deps = ["AbInitioSoftwareBase", "CrystallographyBase", "Dates", "PyFortran90Namelists", "QuantumESPRESSOBase", "ReadableRegex", "VersionParsing"]
-git-tree-sha1 = "6e845fd39bac587e0ea6c2c6e66ad5b6854df99e"
+deps = ["AbInitioSoftwareBase", "CrystallographyBase", "Dates", "PyFortran90Namelists", "QuantumESPRESSOBase", "ReadableRegex", "StaticArrays", "VersionParsing"]
+git-tree-sha1 = "5a298c6d9d4d15378ee46d95fe12e63c2bcb3001"
 repo-rev = "main"
 repo-url = "https://github.com/MineralsCloud/QuantumESPRESSOParser.jl"
 uuid = "a780ab42-b33a-11e9-16c1-a92d75b2a626"
