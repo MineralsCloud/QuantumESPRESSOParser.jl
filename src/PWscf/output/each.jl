@@ -1,3 +1,5 @@
+using StaticArrays: SVector
+
 export eachstep,
     eachiteration,
     eachiterationhead,
@@ -6,6 +8,9 @@ export eachstep,
     eachunconvergedenergy,
     eachconvergedenergy,
     each_energy_by_step,
+    eachatomicforceblock,
+    eachatomicforce,
+    eachtotalforce,
     eachcellparameterscard,
     eachatomicpositionscard,
     eachtimeditem
@@ -282,6 +287,91 @@ eachconvergedenergy(str::AbstractString) =
     EachParsed{ConvergedEnergy}(CONVERGED_ELECTRONS_ENERGY, str)
 
 function each_energy_by_step end
+
+const FORCES_ACTING_ON_ATOMS_BLOCK = Regex(
+    raw"Forces acting on atoms (cartesian axes, Ry/au):" *
+    capture(lazy_zero_or_more(ANY)) *
+    rs"Total force =[ \t]*" *
+    capture(rs"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)") *
+    rs"[ \t]+Total SCF correction =[ \t]*" *
+    capture(rs"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)"),
+)
+
+struct EachAtomicForceBlock <: Each
+    iterator::Base.RegexMatchIterator
+end
+
+function Base.iterate(iter::EachAtomicForceBlock)
+    iterated = iterate(iter.iterator)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
+function Base.iterate(iter::EachAtomicForceBlock, state)
+    iterated = iterate(iter.iterator, state)
+    if isnothing(iterated)
+        return nothing
+    else
+        matched, state = iterated
+        return matched.match, state
+    end
+end
+
+Base.eltype(::Type{EachAtomicForceBlock}) = String
+
+Base.IteratorSize(::Type{EachAtomicForceBlock}) = Base.SizeUnknown()
+
+eachatomicforceblock(str::AbstractString) =
+    EachAtomicForceBlock(eachmatch(FORCES_ACTING_ON_ATOMS_BLOCK, str))
+
+const FORCE_ACTING_ON_ATOM = Regex(
+    rs"atom\s+(\d+)\s+type\s+(\d+)\s+force\s+=\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)\s+(-?\d+\.\d+)"
+)
+
+struct AtomicForce <: PWOutputItem
+    atom::Int64
+    type::Int64
+    force::SVector{3,Float64}
+end
+
+function Base.parse(::Type{AtomicForce}, str::AbstractString)
+    obj = tryparse(AtomicForce, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{AtomicForce}, str::AbstractString)
+    matched = match(FORCE_ACTING_ON_ATOM, str)
+    if isnothing(matched)
+        return nothing
+    else
+        atom, type = map(Base.Fix1(parse, Int64), matched.captures[1:2])
+        force = map(Base.Fix1(parse, Float64), matched.captures[3:5])
+        return AtomicForce(atom, type, force)
+    end
+end
+
+eachatomicforce(str::AbstractString) = EachParsed{AtomicForce}(FORCE_ACTING_ON_ATOM, str)
+
+const TOTAL_FOCE = Regex(
+    rs"Total force =[ \t]*" * capture(rs"([-+]?[0-9]*\.[0-9]+|[0-9]+\.?[0-9]*)")
+)
+
+struct TotalForce <: PWOutputItem
+    force::Float64
+end
+
+function Base.parse(::Type{TotalForce}, str::AbstractString)
+    obj = tryparse(TotalForce, str)
+    isnothing(obj) ? throw(ParseError("no matched string found!")) : return obj
+end
+function Base.tryparse(::Type{TotalForce}, str::AbstractString)
+    matched = match(TOTAL_FOCE, str)
+    return isnothing(matched) ? nothing : TotalForce(parse(Float64, matched[1]))
+end
+
+eachtotalforce(str::AbstractString) = EachParsed{TotalForce}(TOTAL_FOCE, str)
 
 eachcellparameterscard(str::AbstractString) =
     EachParsed{CellParametersCard}(CELL_PARAMETERS_BLOCK, str)
