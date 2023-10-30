@@ -87,7 +87,7 @@ function Base.iterate(regexmatchiterator::EachParsed{T}) where {T}
         return nothing
     else
         matched, state = iterated
-        return tryparse(T, matched.match), state
+        return parse(T, matched.match), state
     end
 end
 function Base.iterate(regexmatchiterator::EachParsed{T}, state) where {T}
@@ -97,7 +97,7 @@ function Base.iterate(regexmatchiterator::EachParsed{T}, state) where {T}
         return nothing
     else
         matched, state = iterated
-        return tryparse(T, matched.match), state
+        return parse(T, matched.match), state
     end
 end
 
