@@ -229,7 +229,7 @@ end
 function Base.tryparse(::Type{SpecialPointsCard}, str::AbstractString)
     m = match(K_POINTS_SPECIAL_BLOCK, str)
     if !isnothing(m)
-        option = m.captures[1] === nothing ? "tpiba" : m.captures[1]
+        option = m.captures[1] === nothing ? :tpiba : Symbol(m.captures[1])
         return SpecialPointsCard(
             map(eachmatch(K_POINTS_SPECIAL_ITEM, m.captures[2])) do matched
                 # TODO: Match `nks`
