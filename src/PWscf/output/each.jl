@@ -176,7 +176,7 @@ function Base.tryparse(::Type{Diagonalization}, str::AbstractString)
         else
             throw(ParseError("unknown diagonalization style!"))
         end
-        ethr, avg_iter = map(Base.Fix1(parse, parse), matched.captures[2:end])
+        ethr, avg_iter = map(Base.Fix1(parse, Float64), matched.captures[2:end])
         return Diagonalization(solver, ethr, avg_iter)
     end
 end
